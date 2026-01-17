@@ -32,6 +32,10 @@ languages:
           name: "About"
           url: "/about/"
           weight: 30
+        - identifier: search
+          name: "Search"
+          url: "/search/"
+          weight: 40
 
   ko:
     languageName: "한국어"
@@ -55,6 +59,10 @@ languages:
           name: "소개"
           url: "/ko/about/"
           weight: 30
+        - identifier: search
+          name: "검색"
+          url: "/ko/search/"
+          weight: 40
 
 params:
   env: production
@@ -72,6 +80,12 @@ markup:
       unsafe: true
   highlight:
     noClasses: false
+
+outputs:
+  home:
+    - HTML
+    - RSS
+    - JSON
 
 taxonomies:
   tag: "tags"
