@@ -6,7 +6,7 @@ pagination:
 
 enableRobotsTXT: true
 
-defaultContentLanguage: ko
+defaultContentLanguage: en
 defaultContentLanguageInSubdir: false
 
 languages:
