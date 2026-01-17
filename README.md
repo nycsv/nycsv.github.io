@@ -34,8 +34,8 @@ Repo Settings → Pages → Source: **GitHub Actions**
 Then push to `main`. The workflow `.github/workflows/gh-pages.yaml` will deploy automatically.
 
 ## Content structure
-- `content/ko/...` → Korean (default, root `/`)
-- `content/en/...` → English (`/en/`)
+- `content/en/...` → English (default, root `/`)
+- `content/ko/...` → Korean (`/ko/`)
 
 ## Notes
 - This template does NOT vendor the theme itself; you should add PaperMod as a submodule (recommended) or copy it into `themes/PaperMod`.
