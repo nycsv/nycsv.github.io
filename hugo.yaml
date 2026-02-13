@@ -20,6 +20,10 @@ languages:
         Content: "Notes on experiments, system design, and troubleshooting. "
     menu:
       main:
+        - identifier: demo
+          name: "ASR Demo"
+          url: "/asr-demo/"
+          weight: 5
         - identifier: posts
           name: "Posts"
           url: "/posts/"

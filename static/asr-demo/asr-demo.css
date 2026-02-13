@@ -1,0 +1,96 @@
+/**
+ * Streaming ASR Demo - Dashboard Dark Theme
+ */
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Transcript gradient overlay */
+.transcript-gradient {
+  background: linear-gradient(to bottom, transparent 0%, rgba(11, 11, 12, 0) 80%, rgba(11, 11, 12, 1) 100%);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2c2839; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #413b54; }
+
+/* Connection status dot */
+.asr-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
+.asr-status-dot.idle     { background: #4b5563; }
+.asr-status-dot.connecting { background: #f59e0b; animation: pulse-dot 1.5s ease-in-out infinite; }
+.asr-status-dot.connected  { background: #10b981; }
+.asr-status-dot.error      { background: #ef4444; }
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* Mini waveform bars in header */
+.waveform-bar-mini {
+  transition: height 0.15s ease;
+}
+
+.waveform-active .waveform-bar-mini {
+  animation: waveform-mini 0.7s ease-in-out infinite alternate;
+}
+.waveform-active .waveform-bar-mini:nth-child(1) { animation-delay: 0s; }
+.waveform-active .waveform-bar-mini:nth-child(2) { animation-delay: 0.1s; }
+.waveform-active .waveform-bar-mini:nth-child(3) { animation-delay: 0.2s; }
+.waveform-active .waveform-bar-mini:nth-child(4) { animation-delay: 0.15s; }
+.waveform-active .waveform-bar-mini:nth-child(5) { animation-delay: 0.05s; }
+.waveform-active .waveform-bar-mini:nth-child(6) { animation-delay: 0.25s; }
+.waveform-active .waveform-bar-mini:nth-child(7) { animation-delay: 0.1s; }
+
+@keyframes waveform-mini {
+  0%   { transform: scaleY(0.4); opacity: 0.5; }
+  100% { transform: scaleY(1.5); opacity: 1; }
+}
+
+/* Mic button recording state */
+.asr-mic-button.recording {
+  background: #ef4444 !important;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3) !important;
+}
+.asr-mic-button.recording:hover { background: #dc2626 !important; }
+
+/* Transcript cursor */
+.asr-transcript-cursor {
+  display: none;
+  width: 2px;
+  height: 1.1em;
+  background: #5b2bee;
+  margin-left: 2px;
+  animation: blink 1s step-end infinite;
+  vertical-align: text-bottom;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* Error message */
+.asr-error-message.show { display: block !important; }
+
+/* Radio button styling */
+input[type="radio"] { accent-color: #5b2bee; }
+
+/* Disabled source options */
+.asr-source-option:has(input:disabled) {
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+/* Footer connection bars */
+.bar-connected .bar-1 { background: #10b981; }
+.bar-connected .bar-2 { background: #10b981; }
+.bar-connected .bar-3 { background: #10b981; }
