@@ -78,11 +78,9 @@ function init() {
     copyBtn: document.getElementById('copy-btn'),
   };
 
-  // Load saved server URL
+  // Load saved server URL (default to production endpoint)
   const savedUrl = localStorage.getItem('asr-demo-ws-url');
-  if (savedUrl) {
-    dom.serverUrl.value = savedUrl;
-  }
+  dom.serverUrl.value = savedUrl || 'wss://ai.eesungkim.com/ws';
 
   // Attach event listeners
   dom.connectBtn.addEventListener('click', handleConnect);
