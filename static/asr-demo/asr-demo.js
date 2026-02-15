@@ -741,6 +741,23 @@ setInterval(() => {
   }
 }, 100);
 
+/**
+ * Toggle mobile sidebar drawer
+ */
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  const isOpen = !sidebar.classList.contains('-translate-x-full');
+
+  if (isOpen) {
+    sidebar.classList.add('-translate-x-full');
+    backdrop.classList.add('hidden');
+  } else {
+    sidebar.classList.remove('-translate-x-full');
+    backdrop.classList.remove('hidden');
+  }
+}
+
 // Initialize on DOM ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);

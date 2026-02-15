@@ -33,18 +33,27 @@
 
 <div class="flex h-screen w-full overflow-hidden">
 
+  <!-- Sidebar backdrop (mobile only) -->
+  <div id="sidebar-backdrop" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
+
   <!-- Sidebar -->
-  <aside class="w-72 flex flex-col border-r border-border-subtle bg-surface/50 shrink-0">
+  <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 -translate-x-full transition-transform duration-300 flex flex-col border-r border-border-subtle bg-surface shrink-0 md:static md:translate-x-0 md:bg-surface/50">
 
     <!-- Logo -->
     <div class="p-6 flex flex-col gap-1">
-      <div class="flex items-center gap-2">
-        <a href="{{ .Site.BaseURL }}" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <div class="w-8 h-8 bg-primary rounded flex items-center justify-center">
-            <span class="material-symbols-outlined text-white text-xl">graphic_eq</span>
-          </div>
-          <h1 class="text-lg font-bold tracking-tight text-white leading-none">Streaming ASR</h1>
-        </a>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <a href="{{ .Site.BaseURL }}" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <div class="w-8 h-8 bg-primary rounded flex items-center justify-center">
+              <span class="material-symbols-outlined text-white text-xl">graphic_eq</span>
+            </div>
+            <h1 class="text-lg font-bold tracking-tight text-white leading-none">Streaming ASR</h1>
+          </a>
+        </div>
+        <!-- Close button (mobile only) -->
+        <button class="md:hidden p-1 text-slate-400 hover:text-white transition-colors" onclick="toggleSidebar()">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
       </div>
       <p class="text-xs text-slate-500 font-medium ml-10">Demo</p>
     </div>
@@ -110,14 +119,18 @@
     <div id="error-message" class="asr-error-message hidden px-6 py-3 bg-red-500/10 border-b border-red-500/30 text-red-400 text-xs font-medium"></div>
 
     <!-- Compact Control Header -->
-    <header class="h-16 border-b border-border-subtle bg-surface/30 px-6 flex items-center justify-between z-10 shrink-0">
-      <div class="flex items-center gap-6">
+    <header class="h-16 border-b border-border-subtle bg-surface/30 px-4 md:px-6 flex items-center justify-between z-10 shrink-0">
+      <div class="flex items-center gap-3 md:gap-6">
+        <!-- Hamburger menu (mobile only) -->
+        <button class="md:hidden p-1 text-slate-400 hover:text-white transition-colors" onclick="toggleSidebar()">
+          <span class="material-symbols-outlined text-2xl">menu</span>
+        </button>
         <button id="mic-btn" class="asr-mic-button flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-primary/90 transition-all shadow-md shadow-primary/10 disabled:opacity-40 disabled:cursor-not-allowed" disabled>
           <span class="material-symbols-outlined text-[20px]" id="mic-icon">mic</span>
           <span id="mic-label">Connect first</span>
         </button>
-        <div class="h-6 w-px bg-border-subtle"></div>
-        <div class="flex items-center gap-4 text-slate-400">
+        <div class="h-6 w-px bg-border-subtle hidden md:block"></div>
+        <div class="hidden md:flex items-center gap-4 text-slate-400">
           <div class="flex items-center gap-2">
             <span id="mic-ready-dot" class="w-2 h-2 rounded-full bg-slate-600"></span>
             <span id="mic-ready-text" class="text-xs font-medium">Mic: Standby</span>
@@ -146,7 +159,7 @@
     <div class="flex-1 flex flex-col bg-background-dark relative overflow-hidden">
 
       <!-- Transcript toolbar -->
-      <div class="absolute top-4 right-8 flex items-center gap-2 z-20">
+      <div class="absolute top-4 right-4 md:right-8 flex items-center gap-2 z-20">
         <button id="copy-btn" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold bg-surface border border-border-subtle text-slate-300 hover:text-white hover:border-slate-500 rounded-lg transition-all shadow-xl disabled:opacity-40">
           <span class="material-symbols-outlined text-[16px]">content_copy</span>
           Copy
@@ -154,12 +167,12 @@
       </div>
 
       <!-- Tabs -->
-      <div class="flex px-8 border-b border-border-subtle/50 bg-background-dark/50 shrink-0">
+      <div class="flex px-4 md:px-8 border-b border-border-subtle/50 bg-background-dark/50 shrink-0">
         <button class="px-4 py-3 text-xs font-bold border-b-2 border-primary text-primary">Live Transcript</button>
       </div>
 
       <!-- Live Transcript Container -->
-      <div id="transcript-box" class="flex-1 overflow-y-auto px-8 py-8 relative custom-scrollbar">
+      <div id="transcript-box" class="flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-8 relative custom-scrollbar">
 
         <!-- Session start marker (hidden until recording starts) -->
         <div id="session-marker" class="hidden flex items-center justify-center gap-4 py-4 mb-6">
@@ -171,7 +184,7 @@
         <!-- Transcript content -->
         <div class="max-w-4xl mx-auto">
           <div id="transcript-content" class="space-y-2">
-            <span id="transcript-committed" class="text-slate-100 leading-relaxed text-lg font-medium"></span><span id="transcript-partial" class="text-slate-500 leading-relaxed text-lg font-medium italic"></span><span id="transcript-cursor" class="asr-transcript-cursor"></span>
+            <span id="transcript-committed" class="text-slate-100 leading-relaxed text-base md:text-lg font-medium"></span><span id="transcript-partial" class="text-slate-500 leading-relaxed text-base md:text-lg font-medium italic"></span><span id="transcript-cursor" class="asr-transcript-cursor"></span>
           </div>
           <!-- Placeholder -->
           <div id="transcript-placeholder" class="flex flex-col items-center justify-center h-64 text-center space-y-4">
@@ -186,13 +199,13 @@
         </div>
 
         <!-- Bottom gradient -->
-        <div class="fixed bottom-10 left-72 right-0 h-16 transcript-gradient pointer-events-none z-10"></div>
+        <div class="fixed bottom-10 left-0 md:left-72 right-0 h-16 transcript-gradient pointer-events-none z-10"></div>
       </div>
     </div>
 
     <!-- Status Bar Footer -->
-    <footer class="h-10 bg-surface border-t border-border-subtle px-6 flex items-center justify-between text-slate-500 shrink-0">
-      <div class="flex items-center gap-6">
+    <footer class="h-10 bg-surface border-t border-border-subtle px-3 md:px-6 flex items-center justify-between text-slate-500 shrink-0">
+      <div class="hidden md:flex items-center gap-6">
         <div class="flex items-center gap-2">
           <span class="material-symbols-outlined text-[16px]">schedule</span>
           <span class="text-xs font-medium">Duration: <span id="stat-duration">-</span></span>
