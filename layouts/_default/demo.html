@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html class="dark" lang="{{ .Page.Lang }}">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,8 @@
   <meta name="description" content="Real-time speech recognition demo - Stream audio from your microphone">
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet">
   <link rel="icon" type="image/x-icon" href="{{ .Site.BaseURL }}/favicon.ico">
   <script>
     tailwind.config = {
@@ -29,251 +31,277 @@
   </script>
   <link rel="stylesheet" href="{{ .Site.BaseURL }}/demo/demo.css">
 </head>
-<body class="bg-background-dark font-display text-slate-100 antialiased overflow-hidden" data-base="{{ .Site.BaseURL }}">
 
-<div class="flex h-screen w-full overflow-hidden">
+<body class="bg-background-dark font-display text-slate-100 antialiased overflow-hidden"
+  data-base="{{ .Site.BaseURL }}">
 
-  <!-- Sidebar backdrop (mobile only) -->
-  <div id="sidebar-backdrop" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
+  <div class="flex h-screen w-full overflow-hidden">
 
-  <!-- Sidebar -->
-  <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 -translate-x-full transition-transform duration-300 flex flex-col border-r border-border-subtle bg-surface shrink-0 md:static md:translate-x-0 md:bg-surface/50">
+    <!-- Sidebar backdrop (mobile only) -->
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
 
-    <!-- Logo -->
-    <div class="p-6 flex flex-col gap-1">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <a href="{{ .Site.BaseURL }}" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div class="w-8 h-8 bg-primary rounded flex items-center justify-center">
-              <span class="material-symbols-outlined text-white text-xl">graphic_eq</span>
-            </div>
-            <h1 class="text-lg font-bold tracking-tight text-white leading-none">Streaming Demo</h1>
-          </a>
-        </div>
-        <!-- Close button (mobile only) -->
-        <button class="md:hidden p-1 text-slate-400 hover:text-white transition-colors" onclick="toggleSidebar()">
-          <span class="material-symbols-outlined text-xl">close</span>
-        </button>
-      </div>
-      <p class="text-xs text-slate-500 font-medium ml-10">Demo</p>
-    </div>
+    <!-- Sidebar -->
+    <aside id="sidebar"
+      class="fixed inset-y-0 left-0 z-50 w-72 -translate-x-full transition-transform duration-300 flex flex-col border-r border-border-subtle bg-surface shrink-0 md:static md:translate-x-0 md:bg-surface/50">
 
-    <nav class="flex-1 px-4 overflow-y-auto space-y-6">
-
-      <!-- Server Section -->
-      <div>
-        <h3 class="px-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Server</h3>
-        <div class="space-y-2">
-          <input
-            type="text"
-            id="server-url"
-            placeholder="wss://your-server/ws"
-            class="w-full bg-background-dark border border-border-subtle rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:border-primary text-slate-200 placeholder-slate-600"
-          />
-          <button id="connect-btn" class="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white text-sm font-bold py-2.5 rounded-lg transition-all">
-            <span class="material-symbols-outlined text-[18px]">power_settings_new</span>
-            Connect
+      <!-- Logo -->
+      <div class="p-6 flex flex-col gap-1">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <a href="{{ .Site.BaseURL }}" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <div class="w-8 h-8 bg-primary rounded flex items-center justify-center">
+                <span class="material-symbols-outlined text-white text-xl">graphic_eq</span>
+              </div>
+              <h1 class="text-lg font-bold tracking-tight text-white leading-none">Streaming Demo</h1>
+            </a>
+          </div>
+          <!-- Close button (mobile only) -->
+          <button class="md:hidden p-1 text-slate-400 hover:text-white transition-colors" onclick="toggleSidebar()">
+            <span class="material-symbols-outlined text-xl">close</span>
           </button>
-          <div class="flex items-center gap-2 px-1 pt-1">
-            <span class="asr-status-dot idle" id="status-dot"></span>
-            <span id="status-text" class="text-xs text-slate-500">Disconnected</span>
+        </div>
+        <p class="text-xs text-slate-500 font-medium ml-10">Demo</p>
+      </div>
+
+      <nav class="flex-1 px-4 overflow-y-auto space-y-6">
+
+        <!-- Server Section -->
+        <div>
+          <h3 class="px-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Server</h3>
+          <div class="space-y-2">
+            <input type="text" id="server-url" placeholder="wss://your-server/ws"
+              class="w-full bg-background-dark border border-border-subtle rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:border-primary text-slate-200 placeholder-slate-600" />
+            <button id="connect-btn"
+              class="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white text-sm font-bold py-2.5 rounded-lg transition-all">
+              <span class="material-symbols-outlined text-[18px]">power_settings_new</span>
+              Connect
+            </button>
+            <div class="flex items-center gap-2 px-1 pt-1">
+              <span class="asr-status-dot idle" id="status-dot"></span>
+              <span id="status-text" class="text-xs text-slate-500">Disconnected</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Configuration Section -->
+        <div>
+          <h3 class="px-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Configuration</h3>
+          <div class="space-y-1">
+            <div
+              class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary border border-primary/20">
+              <span class="material-symbols-outlined text-[20px]">settings_input_component</span>
+              <span class="text-sm font-semibold">Audio Source</span>
+            </div>
+          </div>
+          <div id="audio-source-group" class="mt-2 space-y-1 px-1">
+            <label
+              class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-white/5 hover:text-white transition-all cursor-pointer asr-source-option">
+              <input type="radio" name="audio-source" value="mic" checked
+                class="text-primary focus:ring-primary bg-background-dark border-border-subtle">
+              <span class="material-symbols-outlined text-[18px]">mic</span>
+              <span class="text-sm font-medium">Microphone</span>
+            </label>
+            <label
+              class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-white/5 hover:text-white transition-all cursor-pointer asr-source-option">
+              <input type="radio" name="audio-source" value="system"
+                class="text-primary focus:ring-primary bg-background-dark border-border-subtle">
+              <span class="material-symbols-outlined text-[18px]">desktop_windows</span>
+              <span class="text-sm font-medium">System Audio</span>
+            </label>
+            <label
+              class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-white/5 hover:text-white transition-all cursor-pointer asr-source-option">
+              <input type="radio" name="audio-source" value="both"
+                class="text-primary focus:ring-primary bg-background-dark border-border-subtle">
+              <span class="material-symbols-outlined text-[18px]">merge</span>
+              <span class="text-sm font-medium">Both</span>
+            </label>
+          </div>
+        </div>
+
+      </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col overflow-hidden relative">
+
+      <!-- Error Message -->
+      <div id="error-message"
+        class="asr-error-message hidden px-6 py-3 bg-red-500/10 border-b border-red-500/30 text-red-400 text-xs font-medium">
+      </div>
+
+      <!-- Compact Control Header -->
+      <header
+        class="h-16 border-b border-border-subtle bg-surface/30 px-4 md:px-6 flex items-center justify-between z-10 shrink-0">
+        <div class="flex items-center gap-3 md:gap-6">
+          <!-- Hamburger menu (mobile only) -->
+          <button class="md:hidden p-1 text-slate-400 hover:text-white transition-colors" onclick="toggleSidebar()">
+            <span class="material-symbols-outlined text-2xl">menu</span>
+          </button>
+          <button id="mic-btn"
+            class="asr-mic-button flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-primary/90 transition-all shadow-md shadow-primary/10 disabled:opacity-40 disabled:cursor-not-allowed"
+            disabled>
+            <span class="material-symbols-outlined text-[20px]" id="mic-icon">mic</span>
+            <span id="mic-label">Connect first</span>
+          </button>
+          <div class="h-6 w-px bg-border-subtle hidden md:block"></div>
+          <div class="hidden md:flex items-center gap-4 text-slate-400">
+            <div class="flex items-center gap-2">
+              <span id="mic-ready-dot" class="w-2 h-2 rounded-full bg-slate-600"></span>
+              <span id="mic-ready-text" class="text-xs font-medium">Mic: Standby</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[16px]">speed</span>
+              <span class="text-xs font-medium"><span id="stat-latency">-</span> latency</span>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <!-- Mini waveform visualizer -->
+          <div id="waveform"
+            class="flex items-end gap-0.5 bg-background-dark/50 border border-border-subtle px-3 py-1.5 rounded-lg h-10">
+            <div class="waveform-bar-mini w-1 h-2 bg-slate-600 rounded-full"></div>
+            <div class="waveform-bar-mini w-1 h-4 bg-slate-500 rounded-full"></div>
+            <div class="waveform-bar-mini w-1 h-2 bg-slate-600 rounded-full"></div>
+            <div class="waveform-bar-mini w-1 h-3 bg-slate-500 rounded-full"></div>
+            <div class="waveform-bar-mini w-1 h-5 bg-primary rounded-full"></div>
+            <div class="waveform-bar-mini w-1 h-3 bg-slate-500 rounded-full"></div>
+            <div class="waveform-bar-mini w-1 h-4 bg-slate-600 rounded-full"></div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Transcript Focus Area -->
+      <div class="flex-1 flex flex-col bg-background-dark relative overflow-hidden">
+
+        <!-- Transcript toolbar -->
+        <div class="absolute top-4 right-4 md:right-8 flex items-center gap-2 z-20">
+          <button id="copy-btn"
+            class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold bg-surface border border-border-subtle text-slate-300 hover:text-white hover:border-slate-500 rounded-lg transition-all shadow-xl disabled:opacity-40">
+            <span class="material-symbols-outlined text-[16px]">content_copy</span>
+            Copy
+          </button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex px-4 md:px-8 border-b border-border-subtle/50 bg-background-dark/50 shrink-0">
+          <button id="tab-live"
+            class="px-4 py-3 text-xs font-bold border-b-2 border-primary text-primary transition-colors">Live
+            Transcript</button>
+          <button id="tab-review"
+            class="px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-white hover:border-slate-500 transition-colors">Review</button>
+        </div>
+
+        <!-- Live Transcript Container -->
+        <div id="transcript-box" class="flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-8 relative custom-scrollbar">
+
+          <!-- Session start marker (hidden until recording starts) -->
+          <div id="session-marker" class="hidden flex items-center justify-center gap-4 py-4 mb-6">
+            <div class="h-px flex-1 bg-border-subtle"></div>
+            <span id="session-marker-time"
+              class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Session Started</span>
+            <div class="h-px flex-1 bg-border-subtle"></div>
+          </div>
+
+          <!-- Transcript content -->
+          <div class="max-w-4xl mx-auto">
+            <div id="transcript-content" class="space-y-2">
+              <span id="transcript-committed"
+                class="text-slate-100 leading-relaxed text-base md:text-lg font-medium"></span><span
+                id="transcript-partial"
+                class="text-slate-500 leading-relaxed text-base md:text-lg font-medium italic"></span><span
+                id="transcript-cursor" class="asr-transcript-cursor"></span>
+            </div>
+            <!-- Placeholder -->
+            <div id="transcript-placeholder"
+              class="flex flex-col items-center justify-center h-64 text-center space-y-4">
+              <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center ring-4 ring-primary/5">
+                <span class="material-symbols-outlined text-primary text-3xl">mic_none</span>
+              </div>
+              <div>
+                <p class="text-slate-400 text-sm font-medium">Connect to a server and start transcribing</p>
+                <p class="text-slate-600 text-xs mt-1">Transcription will appear here in real-time</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom gradient -->
+          <div class="fixed bottom-10 left-0 md:left-72 right-0 h-16 transcript-gradient pointer-events-none z-10">
+          </div>
+        </div>
+
+        <!-- Review Panel -->
+        <div id="review-box" class="flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-8 relative custom-scrollbar hidden">
+          <div class="max-w-4xl mx-auto space-y-4">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-primary text-[20px]">rate_review</span>
+              <h2 class="text-sm font-semibold text-slate-200">Review</h2>
+            </div>
+            <div class="bg-surface/60 border border-border-subtle rounded-xl p-4 text-slate-300 text-sm">
+              Use this space to review and annotate transcripts. This panel can be wired to your review workflow later.
+            </div>
+            <div class="grid gap-3">
+              <div class="bg-background-dark/60 border border-border-subtle rounded-lg p-4 text-xs text-slate-500">
+                No review items yet.
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Configuration Section -->
-      <div>
-        <h3 class="px-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Configuration</h3>
-        <div class="space-y-1">
-          <div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary border border-primary/20">
-            <span class="material-symbols-outlined text-[20px]">settings_input_component</span>
-            <span class="text-sm font-semibold">Audio Source</span>
-          </div>
-        </div>
-        <div id="audio-source-group" class="mt-2 space-y-1 px-1">
-          <label class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-white/5 hover:text-white transition-all cursor-pointer asr-source-option">
-            <input type="radio" name="audio-source" value="mic" checked class="text-primary focus:ring-primary bg-background-dark border-border-subtle">
-            <span class="material-symbols-outlined text-[18px]">mic</span>
-            <span class="text-sm font-medium">Microphone</span>
-          </label>
-          <label class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-white/5 hover:text-white transition-all cursor-pointer asr-source-option">
-            <input type="radio" name="audio-source" value="system" class="text-primary focus:ring-primary bg-background-dark border-border-subtle">
-            <span class="material-symbols-outlined text-[18px]">desktop_windows</span>
-            <span class="text-sm font-medium">System Audio</span>
-          </label>
-          <label class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-white/5 hover:text-white transition-all cursor-pointer asr-source-option">
-            <input type="radio" name="audio-source" value="both" class="text-primary focus:ring-primary bg-background-dark border-border-subtle">
-            <span class="material-symbols-outlined text-[18px]">merge</span>
-            <span class="text-sm font-medium">Both</span>
-          </label>
-        </div>
-      </div>
-
-    </nav>
-  </aside>
-
-  <!-- Main Content Area -->
-  <main class="flex-1 flex flex-col overflow-hidden relative">
-
-    <!-- Error Message -->
-    <div id="error-message" class="asr-error-message hidden px-6 py-3 bg-red-500/10 border-b border-red-500/30 text-red-400 text-xs font-medium"></div>
-
-    <!-- Compact Control Header -->
-    <header class="h-16 border-b border-border-subtle bg-surface/30 px-4 md:px-6 flex items-center justify-between z-10 shrink-0">
-      <div class="flex items-center gap-3 md:gap-6">
-        <!-- Hamburger menu (mobile only) -->
-        <button class="md:hidden p-1 text-slate-400 hover:text-white transition-colors" onclick="toggleSidebar()">
-          <span class="material-symbols-outlined text-2xl">menu</span>
-        </button>
-        <button id="mic-btn" class="asr-mic-button flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-primary/90 transition-all shadow-md shadow-primary/10 disabled:opacity-40 disabled:cursor-not-allowed" disabled>
-          <span class="material-symbols-outlined text-[20px]" id="mic-icon">mic</span>
-          <span id="mic-label">Connect first</span>
-        </button>
-        <div class="h-6 w-px bg-border-subtle hidden md:block"></div>
-        <div class="hidden md:flex items-center gap-4 text-slate-400">
+      <!-- Status Bar Footer -->
+      <footer
+        class="h-10 bg-surface border-t border-border-subtle px-3 md:px-6 flex items-center justify-between text-slate-500 shrink-0">
+        <div class="hidden md:flex items-center gap-6">
           <div class="flex items-center gap-2">
-            <span id="mic-ready-dot" class="w-2 h-2 rounded-full bg-slate-600"></span>
-            <span id="mic-ready-text" class="text-xs font-medium">Mic: Standby</span>
+            <span class="material-symbols-outlined text-[16px]">schedule</span>
+            <span class="text-xs font-medium">Duration: <span id="stat-duration">-</span></span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-[16px]">speed</span>
-            <span class="text-xs font-medium"><span id="stat-latency">-</span> latency</span>
+            <span class="material-symbols-outlined text-[16px]">stacked_bar_chart</span>
+            <span class="text-xs font-medium">Buffer: <span id="stat-buffer">-</span></span>
           </div>
         </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <!-- Mini waveform visualizer -->
-        <div id="waveform" class="flex items-end gap-0.5 bg-background-dark/50 border border-border-subtle px-3 py-1.5 rounded-lg h-10">
-          <div class="waveform-bar-mini w-1 h-2 bg-slate-600 rounded-full"></div>
-          <div class="waveform-bar-mini w-1 h-4 bg-slate-500 rounded-full"></div>
-          <div class="waveform-bar-mini w-1 h-2 bg-slate-600 rounded-full"></div>
-          <div class="waveform-bar-mini w-1 h-3 bg-slate-500 rounded-full"></div>
-          <div class="waveform-bar-mini w-1 h-5 bg-primary rounded-full"></div>
-          <div class="waveform-bar-mini w-1 h-3 bg-slate-500 rounded-full"></div>
-          <div class="waveform-bar-mini w-1 h-4 bg-slate-600 rounded-full"></div>
-        </div>
-      </div>
-    </header>
-
-    <!-- Transcript Focus Area -->
-    <div class="flex-1 flex flex-col bg-background-dark relative overflow-hidden">
-
-      <!-- Transcript toolbar -->
-      <div class="absolute top-4 right-4 md:right-8 flex items-center gap-2 z-20">
-        <button id="copy-btn" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold bg-surface border border-border-subtle text-slate-300 hover:text-white hover:border-slate-500 rounded-lg transition-all shadow-xl disabled:opacity-40">
-          <span class="material-symbols-outlined text-[16px]">content_copy</span>
-          Copy
-        </button>
-      </div>
-
-      <!-- Tabs -->
-      <div class="flex px-4 md:px-8 border-b border-border-subtle/50 bg-background-dark/50 shrink-0">
-        <button id="tab-live" class="px-4 py-3 text-xs font-bold border-b-2 border-primary text-primary transition-colors">Live Transcript</button>
-        <button id="tab-review" class="px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-white hover:border-slate-500 transition-colors">Review</button>
-      </div>
-
-      <!-- Live Transcript Container -->
-      <div id="transcript-box" class="flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-8 relative custom-scrollbar">
-
-        <!-- Session start marker (hidden until recording starts) -->
-        <div id="session-marker" class="hidden flex items-center justify-center gap-4 py-4 mb-6">
-          <div class="h-px flex-1 bg-border-subtle"></div>
-          <span id="session-marker-time" class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Session Started</span>
-          <div class="h-px flex-1 bg-border-subtle"></div>
-        </div>
-
-        <!-- Transcript content -->
-        <div class="max-w-4xl mx-auto">
-          <div id="transcript-content" class="space-y-2">
-            <span id="transcript-committed" class="text-slate-100 leading-relaxed text-base md:text-lg font-medium"></span><span id="transcript-partial" class="text-slate-500 leading-relaxed text-base md:text-lg font-medium italic"></span><span id="transcript-cursor" class="asr-transcript-cursor"></span>
-          </div>
-          <!-- Placeholder -->
-          <div id="transcript-placeholder" class="flex flex-col items-center justify-center h-64 text-center space-y-4">
-            <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center ring-4 ring-primary/5">
-              <span class="material-symbols-outlined text-primary text-3xl">mic_none</span>
-            </div>
-            <div>
-              <p class="text-slate-400 text-sm font-medium">Connect to a server and start transcribing</p>
-              <p class="text-slate-600 text-xs mt-1">Transcription will appear here in real-time</p>
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-bold uppercase tracking-widest" id="stat-status">IDLE</span>
+            <div class="flex gap-0.5" id="status-footer-dot">
+              <div class="w-1 h-2 bg-slate-600 rounded-full"></div>
+              <div class="w-1 h-3 bg-slate-600 rounded-full"></div>
+              <div class="w-1 h-4 bg-slate-600 rounded-full"></div>
             </div>
           </div>
         </div>
+      </footer>
 
-        <!-- Bottom gradient -->
-        <div class="fixed bottom-10 left-0 md:left-72 right-0 h-16 transcript-gradient pointer-events-none z-10"></div>
-      </div>
+    </main>
+  </div>
 
-      <!-- Review Panel -->
-      <div id="review-box" class="flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-8 relative custom-scrollbar hidden">
-        <div class="max-w-4xl mx-auto space-y-4">
-          <div class="flex items-center gap-3">
-            <span class="material-symbols-outlined text-primary text-[20px]">rate_review</span>
-            <h2 class="text-sm font-semibold text-slate-200">Review</h2>
-          </div>
-          <div class="bg-surface/60 border border-border-subtle rounded-xl p-4 text-slate-300 text-sm">
-            Use this space to review and annotate transcripts. This panel can be wired to your review workflow later.
-          </div>
-          <div class="grid gap-3">
-            <div class="bg-background-dark/60 border border-border-subtle rounded-lg p-4 text-xs text-slate-500">
-              No review items yet.
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+  <!-- i18n strings for JavaScript -->
+  <script>
+    window.ASR_I18N = {
+      micLabelStart: 'Start Transcribing',
+      micLabelStop: 'Stop',
+      micLabelConnect: 'Connect first',
+      statusIdle: 'Disconnected',
+      statusConnecting: 'Connecting...',
+      statusConnected: 'Connected',
+      statusRecording: 'Recording',
+      statusStopping: 'Stopping...',
+      btnConnect: 'Connect',
+      btnDisconnect: 'Disconnect',
+      errorEmptyUrl: 'Please enter a server URL',
+      errorMixedContent: 'Cannot connect to ws:// from https:// page. Use wss:// instead.',
+      errorConnection: '[Connection error] Server is not running',
+      errorDisconnected: 'Disconnected from server',
+      errorMicAccess: 'Microphone access denied',
+      errorNoText: 'No transcription to copy',
+      errorCopyFailed: 'Failed to copy to clipboard',
+    };
+  </script>
 
-    <!-- Status Bar Footer -->
-    <footer class="h-10 bg-surface border-t border-border-subtle px-3 md:px-6 flex items-center justify-between text-slate-500 shrink-0">
-      <div class="hidden md:flex items-center gap-6">
-        <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-[16px]">schedule</span>
-          <span class="text-xs font-medium">Duration: <span id="stat-duration">-</span></span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-[16px]">stacked_bar_chart</span>
-          <span class="text-xs font-medium">Buffer: <span id="stat-buffer">-</span></span>
-        </div>
-      </div>
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] font-bold uppercase tracking-widest" id="stat-status">IDLE</span>
-          <div class="flex gap-0.5" id="status-footer-dot">
-            <div class="w-1 h-2 bg-slate-600 rounded-full"></div>
-            <div class="w-1 h-3 bg-slate-600 rounded-full"></div>
-            <div class="w-1 h-4 bg-slate-600 rounded-full"></div>
-          </div>
-        </div>
-      </div>
-    </footer>
-
-  </main>
-</div>
-
-<!-- i18n strings for JavaScript -->
-<script>
-  window.ASR_I18N = {
-    micLabelStart: 'Start Transcribing',
-    micLabelStop: 'Stop',
-    micLabelConnect: 'Connect first',
-    statusIdle: 'Disconnected',
-    statusConnecting: 'Connecting...',
-    statusConnected: 'Connected',
-    statusRecording: 'Recording',
-    statusStopping: 'Stopping...',
-    btnConnect: 'Connect',
-    btnDisconnect: 'Disconnect',
-    errorEmptyUrl: 'Please enter a server URL',
-    errorMixedContent: 'Cannot connect to ws:// from https:// page. Use wss:// instead.',
-    errorConnection: 'Connection error',
-    errorDisconnected: 'Disconnected from server',
-    errorMicAccess: 'Microphone access denied',
-    errorNoText: 'No transcription to copy',
-    errorCopyFailed: 'Failed to copy to clipboard',
-  };
-</script>
-
-<!-- Main application script -->
-<script src="{{ .Site.BaseURL }}/demo/demo.js"></script>
+  <!-- Main application script -->
+  <script src="{{ .Site.BaseURL }}/demo/demo.js"></script>
 
 </body>
+
 </html>
