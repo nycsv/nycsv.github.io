@@ -1,5 +1,5 @@
 baseURL: "https://eesungkim.com/"
-title: "Dev Log"
+title: "Log"
 theme: "PaperMod"
 pagination:
   pagerSize: 10
@@ -16,8 +16,8 @@ languages:
     contentDir: "content/en"
     params:
       homeInfoParams:
-        Title: "Dev Log"
-        Content: "Notes on experiments, system design, and troubleshooting. "
+        Title: "Log"
+        Content: "Log of experiments, system design, and troubleshooting. "
     menu:
       main:
         - identifier: demo
@@ -32,6 +32,10 @@ languages:
           name: "Tags"
           url: "/tags/"
           weight: 20
+        - identifier: review
+          name: "Review"
+          url: "/review/"
+          weight: 25
         - identifier: about
           name: "About"
           url: "/about/"
@@ -59,6 +63,10 @@ languages:
           name: "태그"
           url: "/ko/tags/"
           weight: 20
+        - identifier: review
+          name: "리뷰"
+          url: "/ko/review/"
+          weight: 25
         - identifier: about
           name: "소개"
           url: "/ko/about/"
