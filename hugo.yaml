@@ -12,7 +12,7 @@ defaultContentLanguageInSubdir: false
 languages:
   en:
     languageName: "English"
-    weight: 2
+    weight: 1
     contentDir: "content/en"
     params:
       homeInfoParams:
@@ -31,25 +31,6 @@ languages:
         - identifier: search
           name: "Search"
           url: "/search/"
-          weight: 40
-
-  ko:
-    languageName: "한국어"
-    weight: 1
-    contentDir: "content/ko"
-    params:
-      homeInfoParams:
-        Title: "개발 일지"
-        Content: "연구, 실험, 트러블슈팅을 기록합니다."
-    menu:
-      main:
-        - identifier: review
-          name: "리뷰"
-          url: "/ko/review/"
-          weight: 25
-        - identifier: search
-          name: "검색"
-          url: "/ko/search/"
           weight: 40
 
 params:
