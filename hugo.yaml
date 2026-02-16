@@ -17,25 +17,17 @@ languages:
     params:
       homeInfoParams:
         Title: "Log"
-        Content: "Log of experiments, system design, and troubleshooting. "
+        Content: "Log of research, experiments, and troubleshooting. "
     menu:
       main:
-        - identifier: demo
-          name: "Demo"
-          url: "/demo/"
-          weight: 5
-        - identifier: posts
-          name: "Posts"
-          url: "/posts/"
-          weight: 10
         - identifier: review
           name: "Review"
           url: "/review/"
           weight: 25
-        - identifier: about
-          name: "About"
-          url: "/about/"
-          weight: 30
+        - identifier: demo
+          name: "Demo"
+          url: "/demo/"
+          weight: 5
         - identifier: search
           name: "Search"
           url: "/search/"
@@ -48,21 +40,13 @@ languages:
     params:
       homeInfoParams:
         Title: "개발 일지"
-        Content: "실험, 시스템 설계, 트러블슈팅을 기록합니다."
+        Content: "연구, 실험, 트러블슈팅을 기록합니다."
     menu:
       main:
-        - identifier: posts
-          name: "글"
-          url: "/ko/posts/"
-          weight: 10
         - identifier: review
           name: "리뷰"
           url: "/ko/review/"
           weight: 25
-        - identifier: about
-          name: "소개"
-          url: "/ko/about/"
-          weight: 30
         - identifier: search
           name: "검색"
           url: "/ko/search/"
