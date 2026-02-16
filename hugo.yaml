@@ -16,8 +16,8 @@ languages:
     contentDir: "content/en"
     params:
       homeInfoParams:
-        Title: "Log"
-        Content: "Log of research, experiments, and troubleshooting. "
+        Title: ""
+        Content: "Notes of research, experiments, and troubleshooting."
     menu:
       main:
         - identifier: review
