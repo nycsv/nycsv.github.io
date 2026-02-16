@@ -28,10 +28,6 @@ languages:
           name: "Posts"
           url: "/posts/"
           weight: 10
-        - identifier: tags
-          name: "Tags"
-          url: "/tags/"
-          weight: 20
         - identifier: review
           name: "Review"
           url: "/review/"
@@ -59,10 +55,6 @@ languages:
           name: "글"
           url: "/ko/posts/"
           weight: 10
-        - identifier: tags
-          name: "태그"
-          url: "/ko/tags/"
-          weight: 20
         - identifier: review
           name: "리뷰"
           url: "/ko/review/"
