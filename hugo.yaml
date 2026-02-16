@@ -21,8 +21,8 @@ languages:
     menu:
       main:
         - identifier: demo
-          name: "ASR Demo"
-          url: "/asr-demo/"
+          name: "Demo"
+          url: "/demo/"
           weight: 5
         - identifier: posts
           name: "Posts"

@@ -1,5 +1,5 @@
 /**
- * Streaming ASR Demo - Main Client
+ * Streaming Demo - Main Client
  *
  * WebSocket-based real-time speech recognition client
  * Captures microphone audio, resamples to 16kHz PCM16LE, streams to ASR server
@@ -76,19 +76,45 @@ function init() {
     statusFooterDot: document.getElementById('status-footer-dot'),
     audioSourceGroup: document.getElementById('audio-source-group'),
     copyBtn: document.getElementById('copy-btn'),
+    tabLive: document.getElementById('tab-live'),
+    tabReview: document.getElementById('tab-review'),
+    reviewBox: document.getElementById('review-box'),
   };
 
   // Load saved server URL (default to production endpoint)
-  const savedUrl = localStorage.getItem('asr-demo-ws-url');
+  const savedUrl = localStorage.getItem('demo-ws-url');
   dom.serverUrl.value = savedUrl || 'wss://ai.eesungkim.com/ws';
 
   // Attach event listeners
   dom.connectBtn.addEventListener('click', handleConnect);
   dom.micBtn.addEventListener('click', handleMicClick);
   dom.copyBtn.addEventListener('click', handleCopyClick);
+  dom.tabLive.addEventListener('click', () => setActiveTab('live'));
+  dom.tabReview.addEventListener('click', () => setActiveTab('review'));
 
   // Initial state
+  setActiveTab('live');
   updateUI();
+}
+
+/**
+ * Tab switching
+ */
+function setActiveTab(tab) {
+  const isLive = tab === 'live';
+
+  dom.transcriptBox.classList.toggle('hidden', !isLive);
+  dom.reviewBox.classList.toggle('hidden', isLive);
+
+  updateTabButton(dom.tabLive, isLive);
+  updateTabButton(dom.tabReview, !isLive);
+}
+
+function updateTabButton(button, isActive) {
+  button.classList.toggle('text-primary', isActive);
+  button.classList.toggle('border-primary', isActive);
+  button.classList.toggle('text-slate-400', !isActive);
+  button.classList.toggle('border-transparent', !isActive);
 }
 
 /**
@@ -112,7 +138,7 @@ async function handleConnect() {
   }
 
   // Save URL
-  localStorage.setItem('asr-demo-ws-url', url);
+  localStorage.setItem('demo-ws-url', url);
 
   // Connect to WebSocket
   if (currentState === State.IDLE) {
@@ -435,7 +461,7 @@ async function startRecording() {
 
     // Load AudioWorklet module
     const baseUrl = document.body.dataset.base || '';
-    const workletUrl = `${baseUrl}/asr-demo/audio-resampler-worklet.js`;
+    const workletUrl = `${baseUrl}/demo/audio-resampler-worklet.js`;
     await audioContext.audioWorklet.addModule(workletUrl);
 
     // Create worklet node

@@ -27,7 +27,7 @@
       },
     }
   </script>
-  <link rel="stylesheet" href="{{ .Site.BaseURL }}/asr-demo/asr-demo.css">
+  <link rel="stylesheet" href="{{ .Site.BaseURL }}/demo/demo.css">
 </head>
 <body class="bg-background-dark font-display text-slate-100 antialiased overflow-hidden" data-base="{{ .Site.BaseURL }}">
 
@@ -47,7 +47,7 @@
             <div class="w-8 h-8 bg-primary rounded flex items-center justify-center">
               <span class="material-symbols-outlined text-white text-xl">graphic_eq</span>
             </div>
-            <h1 class="text-lg font-bold tracking-tight text-white leading-none">Streaming ASR</h1>
+            <h1 class="text-lg font-bold tracking-tight text-white leading-none">Streaming Demo</h1>
           </a>
         </div>
         <!-- Close button (mobile only) -->
@@ -168,7 +168,8 @@
 
       <!-- Tabs -->
       <div class="flex px-4 md:px-8 border-b border-border-subtle/50 bg-background-dark/50 shrink-0">
-        <button class="px-4 py-3 text-xs font-bold border-b-2 border-primary text-primary">Live Transcript</button>
+        <button id="tab-live" class="px-4 py-3 text-xs font-bold border-b-2 border-primary text-primary transition-colors">Live Transcript</button>
+        <button id="tab-review" class="px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-white hover:border-slate-500 transition-colors">Review</button>
       </div>
 
       <!-- Live Transcript Container -->
@@ -200,6 +201,24 @@
 
         <!-- Bottom gradient -->
         <div class="fixed bottom-10 left-0 md:left-72 right-0 h-16 transcript-gradient pointer-events-none z-10"></div>
+      </div>
+
+      <!-- Review Panel -->
+      <div id="review-box" class="flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-8 relative custom-scrollbar hidden">
+        <div class="max-w-4xl mx-auto space-y-4">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-primary text-[20px]">rate_review</span>
+            <h2 class="text-sm font-semibold text-slate-200">Review</h2>
+          </div>
+          <div class="bg-surface/60 border border-border-subtle rounded-xl p-4 text-slate-300 text-sm">
+            Use this space to review and annotate transcripts. This panel can be wired to your review workflow later.
+          </div>
+          <div class="grid gap-3">
+            <div class="bg-background-dark/60 border border-border-subtle rounded-lg p-4 text-xs text-slate-500">
+              No review items yet.
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -254,7 +273,7 @@
 </script>
 
 <!-- Main application script -->
-<script src="{{ .Site.BaseURL }}/asr-demo/asr-demo.js"></script>
+<script src="{{ .Site.BaseURL }}/demo/demo.js"></script>
 
 </body>
 </html>
