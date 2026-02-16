@@ -120,6 +120,9 @@
             Transcript</button>
           <button id="tab-review"
             class="px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-white hover:border-slate-500 transition-colors">Review</button>
+          <button id="tab-translate"
+            class="px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-white hover:border-slate-500 transition-colors">Live
+            Translate</button>
         </div>
 
         <!-- Live Transcript Container -->
@@ -173,6 +176,42 @@
             <div class="grid gap-3">
               <div class="bg-background-dark/60 border border-border-subtle rounded-lg p-4 text-xs text-slate-500">
                 No review items yet.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Translate Panel -->
+        <div id="translate-box" class="flex-1 flex flex-col overflow-hidden hidden">
+          <!-- English transcript (top half) -->
+          <div class="flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-6 custom-scrollbar" id="translate-en-scroll">
+            <div class="max-w-4xl mx-auto">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="material-symbols-outlined text-slate-400 text-[16px]">translate</span>
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">English</span>
+              </div>
+              <div class="space-y-2">
+                <span id="translate-committed-en"
+                  class="text-slate-100 leading-relaxed text-base md:text-lg font-medium"></span><span
+                  id="translate-partial-en"
+                  class="text-slate-500 leading-relaxed text-base md:text-lg font-medium italic"></span>
+              </div>
+            </div>
+          </div>
+          <!-- Divider -->
+          <div class="border-t border-border-subtle/70 mx-4 md:mx-8"></div>
+          <!-- Korean translation (bottom half) -->
+          <div class="flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-6 custom-scrollbar" id="translate-ko-scroll">
+            <div class="max-w-4xl mx-auto">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="material-symbols-outlined text-primary text-[16px]">g_translate</span>
+                <span class="text-[10px] font-bold text-primary/70 uppercase tracking-widest">Korean Translation</span>
+              </div>
+              <div class="space-y-2">
+                <span id="translate-committed-ko"
+                  class="text-slate-100 leading-relaxed text-base md:text-lg font-medium"></span><span
+                  id="translate-partial-ko"
+                  class="text-primary/70 leading-relaxed text-base md:text-lg font-medium italic"></span>
               </div>
             </div>
           </div>

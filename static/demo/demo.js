@@ -30,6 +30,10 @@ let workletNode = null;
 let committedText = '';
 let partialText = '';
 
+// Translation state
+let translationCommitted = '';
+let translationPartial = '';
+
 // Audio gating: only send audio after server ack
 let readyToSendAudio = false;
 let ackResolver = null;
@@ -81,6 +85,14 @@ function init() {
     tabLive: document.getElementById('tab-live'),
     tabReview: document.getElementById('tab-review'),
     reviewBox: document.getElementById('review-box'),
+    tabTranslate: document.getElementById('tab-translate'),
+    translateBox: document.getElementById('translate-box'),
+    translateCommittedEn: document.getElementById('translate-committed-en'),
+    translatePartialEn: document.getElementById('translate-partial-en'),
+    translateCommittedKo: document.getElementById('translate-committed-ko'),
+    translatePartialKo: document.getElementById('translate-partial-ko'),
+    translateEnScroll: document.getElementById('translate-en-scroll'),
+    translateKoScroll: document.getElementById('translate-ko-scroll'),
   };
 
   // Attach event listeners
@@ -89,6 +101,7 @@ function init() {
   dom.copyBtn.addEventListener('click', handleCopyClick);
   dom.tabLive.addEventListener('click', () => setActiveTab('live'));
   dom.tabReview.addEventListener('click', () => setActiveTab('review'));
+  dom.tabTranslate.addEventListener('click', () => setActiveTab('translate'));
 
   // Initial state
   setActiveTab('live');
@@ -99,13 +112,13 @@ function init() {
  * Tab switching
  */
 function setActiveTab(tab) {
-  const isLive = tab === 'live';
+  dom.transcriptBox.classList.toggle('hidden', tab !== 'live');
+  dom.reviewBox.classList.toggle('hidden', tab !== 'review');
+  dom.translateBox.classList.toggle('hidden', tab !== 'translate');
 
-  dom.transcriptBox.classList.toggle('hidden', !isLive);
-  dom.reviewBox.classList.toggle('hidden', isLive);
-
-  updateTabButton(dom.tabLive, isLive);
-  updateTabButton(dom.tabReview, !isLive);
+  updateTabButton(dom.tabLive, tab === 'live');
+  updateTabButton(dom.tabReview, tab === 'review');
+  updateTabButton(dom.tabTranslate, tab === 'translate');
 }
 
 function updateTabButton(button, isActive) {
@@ -241,6 +254,12 @@ function handleWebSocketMessage(event) {
 function handleCommittedText(data) {
   const newText = data.text || '';
   committedText += newText;
+
+  if (data.translation !== undefined) {
+    translationCommitted += data.translation;
+    translationPartial = '';
+  }
+
   updateTranscript();
 }
 
@@ -249,6 +268,10 @@ function handleCommittedText(data) {
  */
 function handlePartialText(data) {
   partialText = data.text || '';
+
+  if (data.translation !== undefined) {
+    translationPartial = data.translation;
+  }
 
   // Update stats
   if (data.triton_call_ms !== undefined) {
@@ -290,6 +313,10 @@ function handleFinalResult(data) {
   const finalText = data.transcription || '';
   committedText = finalText;
   partialText = '';
+  translationPartial = '';
+  if (data.translation !== undefined) {
+    translationCommitted = data.translation;
+  }
   updateTranscript();
   setState(State.CONNECTED);
   cleanup();
@@ -372,9 +399,11 @@ async function startRecording() {
     clearError();
     readyToSendAudio = false;
 
-    // Reset transcription
+    // Reset transcription and translation
     committedText = '';
     partialText = '';
+    translationCommitted = '';
+    translationPartial = '';
     updateTranscript();
 
     // Show session start marker
@@ -688,6 +717,16 @@ function updateTranscript() {
 
   // Auto-scroll to bottom
   dom.transcriptBox.scrollTop = dom.transcriptBox.scrollHeight;
+
+  // Update translate tab mirrors
+  dom.translateCommittedEn.textContent = committedText;
+  dom.translatePartialEn.textContent = partialText;
+  dom.translateCommittedKo.textContent = translationCommitted;
+  dom.translatePartialKo.textContent = translationPartial;
+
+  // Auto-scroll translate panels
+  dom.translateEnScroll.scrollTop = dom.translateEnScroll.scrollHeight;
+  dom.translateKoScroll.scrollTop = dom.translateKoScroll.scrollHeight;
 }
 
 /**

@@ -4,7 +4,9 @@
       "WebFetch(domain:subinium.github.io)",
       "WebFetch(domain:github.com)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(xargs:*)",
+      "Bash(hugo:*)"
     ]
   }
 }
