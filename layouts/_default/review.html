@@ -5,7 +5,7 @@
   </header>
 
   <div class="post-content">
-    {{ $posts := where .Site.RegularPages "Section" "posts" }}
+    {{ $posts := where .Site.RegularPages "Section" "reviews" }}
     {{ if gt (len $posts) 0 }}
     <ul>
       {{ range $posts.ByDate.Reverse }}

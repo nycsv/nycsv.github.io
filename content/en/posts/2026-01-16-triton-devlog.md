@@ -6,7 +6,7 @@ translationKey: "triton-devlog-001"
 draft: false
 ---
 
-Today I整理ed the basic model loading and I/O path for a Triton Python backend.
+Today I organized the basic model loading and I/O path for a Triton Python backend.
 
 ## Checklist
 - Create a minimal repro for errors

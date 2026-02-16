@@ -1,5 +1,6 @@
 ---
 title: "리뷰"
+layout: "review"
 url: "/ko/review/"
 ---
 리뷰 워크플로를 위한 메모와 주석을 정리합니다.
