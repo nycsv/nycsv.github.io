@@ -22,7 +22,7 @@ languages:
       main:
         - identifier: review
           name: "Review"
-          url: "/review/"
+          url: "/reviews/"
           weight: 25
         - identifier: demo
           name: "Demo"
