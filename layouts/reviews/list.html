@@ -5,6 +5,10 @@
   </header>
 
   <div class="post-content">
+    {{ if .Content }}
+    <div class="post-description">{{ .Content }}</div>
+    {{ end }}
+
     {{ $posts := where .Site.RegularPages "Section" "reviews" }}
     {{ if gt (len $posts) 0 }}
     <ul>
@@ -12,14 +16,15 @@
       <li>
         <a href="{{ .RelPermalink }}">{{ .Title }}</a>
         <span class="post-meta">{{ .Date.Format "Jan 2, 2006" }}</span>
+        {{ if .Summary }}
+        <p>{{ .Summary }}</p>
+        {{ end }}
       </li>
       {{ end }}
     </ul>
     {{ else }}
     <p>No review items yet.</p>
     {{ end }}
-
-    {{ .Content }}
   </div>
 </article>
 {{ end }}
