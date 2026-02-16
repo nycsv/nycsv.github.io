@@ -132,7 +132,7 @@ async function handleConnect() {
   if (window.location.protocol === 'https:' && url.startsWith('ws://')) {
     showError(
       i18n.errorMixedContent ||
-        'Cannot connect to ws:// from https:// page. Use wss:// instead.'
+      'Cannot connect to ws:// from https:// page. Use wss:// instead.'
     );
     return;
   }
@@ -166,7 +166,7 @@ async function connectWebSocket(url) {
 
     ws.onerror = (error) => {
       console.error('WebSocket error:', error);
-      showError(i18n.errorConnection || 'Connection error');
+      showError(i18n.errorConnection || '[Connection error] Server is not running');
       setState(State.IDLE);
     };
 
@@ -582,7 +582,7 @@ function cleanup() {
   }
 
   if (audioContext) {
-    audioContext.close().catch(() => {});
+    audioContext.close().catch(() => { });
     audioContext = null;
   }
 
