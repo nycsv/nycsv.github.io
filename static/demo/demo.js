@@ -5,6 +5,9 @@
  * Captures microphone audio, resamples to 16kHz PCM16LE, streams to ASR server
  */
 
+// Fixed server URL
+const SERVER_URL = 'wss://ai.eesungkim.com/ws';
+
 // State machine
 const State = {
   IDLE: 'IDLE',
@@ -51,7 +54,6 @@ function init() {
 
   // Cache DOM elements
   dom = {
-    serverUrl: document.getElementById('server-url'),
     connectBtn: document.getElementById('connect-btn'),
     statusDot: document.getElementById('status-dot'),
     statusText: document.getElementById('status-text'),
@@ -74,16 +76,12 @@ function init() {
     statStatus: document.getElementById('stat-status'),
     statBuffer: document.getElementById('stat-buffer'),
     statusFooterDot: document.getElementById('status-footer-dot'),
-    audioSourceGroup: document.getElementById('audio-source-group'),
+    audioSource: document.getElementById('audio-source'),
     copyBtn: document.getElementById('copy-btn'),
     tabLive: document.getElementById('tab-live'),
     tabReview: document.getElementById('tab-review'),
     reviewBox: document.getElementById('review-box'),
   };
-
-  // Load saved server URL (default to production endpoint)
-  const savedUrl = localStorage.getItem('demo-ws-url');
-  dom.serverUrl.value = savedUrl || 'wss://ai.eesungkim.com/ws';
 
   // Attach event listeners
   dom.connectBtn.addEventListener('click', handleConnect);
@@ -121,28 +119,8 @@ function updateTabButton(button, isActive) {
  * Handle connect button click
  */
 async function handleConnect() {
-  const url = dom.serverUrl.value.trim();
-
-  if (!url) {
-    showError(i18n.errorEmptyUrl || 'Please enter a server URL');
-    return;
-  }
-
-  // Validate HTTPS/WSS on production
-  if (window.location.protocol === 'https:' && url.startsWith('ws://')) {
-    showError(
-      i18n.errorMixedContent ||
-      'Cannot connect to ws:// from https:// page. Use wss:// instead.'
-    );
-    return;
-  }
-
-  // Save URL
-  localStorage.setItem('demo-ws-url', url);
-
-  // Connect to WebSocket
   if (currentState === State.IDLE) {
-    await connectWebSocket(url);
+    await connectWebSocket(SERVER_URL);
   } else if (currentState === State.CONNECTED) {
     disconnectWebSocket();
   }
@@ -382,8 +360,7 @@ function waitForAck(timeoutMs) {
  * @returns {'mic'|'system'|'both'}
  */
 function getAudioSource() {
-  const selected = document.querySelector('input[name="audio-source"]:checked');
-  return selected ? selected.value : 'mic';
+  return dom.audioSource ? dom.audioSource.value : 'mic';
 }
 
 /**
@@ -631,13 +608,16 @@ function updateUI() {
   }
 
   // Connect button
+  const btnTextSpan = dom.connectBtn.querySelector('span:last-child');
   if (currentState === State.IDLE || currentState === State.CONNECTING) {
-    dom.connectBtn.innerHTML = '<span class="material-symbols-outlined text-sm">power_settings_new</span> ' + (i18n.btnConnect || 'Connect');
+    dom.connectBtn.querySelector('.material-symbols-outlined').textContent = 'power_settings_new';
+    if (btnTextSpan) btnTextSpan.textContent = i18n.btnConnect || 'Connect';
     dom.connectBtn.disabled = currentState === State.CONNECTING;
     dom.connectBtn.classList.remove('bg-red-500/80', 'hover:bg-red-500');
     dom.connectBtn.classList.add('bg-primary', 'hover:bg-primary/90');
   } else {
-    dom.connectBtn.innerHTML = '<span class="material-symbols-outlined text-sm">power_settings_new</span> ' + (i18n.btnDisconnect || 'Disconnect');
+    dom.connectBtn.querySelector('.material-symbols-outlined').textContent = 'power_settings_new';
+    if (btnTextSpan) btnTextSpan.textContent = i18n.btnDisconnect || 'Disconnect';
     dom.connectBtn.disabled = currentState === State.RECORDING || currentState === State.STOPPING;
     dom.connectBtn.classList.remove('bg-primary', 'hover:bg-primary/90');
     dom.connectBtn.classList.add('bg-red-500/80', 'hover:bg-red-500');
@@ -686,10 +666,8 @@ function updateUI() {
   }
 
   // Disable audio source selector while recording
-  if (dom.audioSourceGroup) {
-    const radios = dom.audioSourceGroup.querySelectorAll('input[type="radio"]');
-    const disabled = currentState === State.RECORDING || currentState === State.STOPPING;
-    radios.forEach((r) => (r.disabled = disabled));
+  if (dom.audioSource) {
+    dom.audioSource.disabled = currentState === State.RECORDING || currentState === State.STOPPING;
   }
 
   // Status text in footer
@@ -766,23 +744,6 @@ setInterval(() => {
     updateStats();
   }
 }, 100);
-
-/**
- * Toggle mobile sidebar drawer
- */
-function toggleSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const backdrop = document.getElementById('sidebar-backdrop');
-  const isOpen = !sidebar.classList.contains('-translate-x-full');
-
-  if (isOpen) {
-    sidebar.classList.add('-translate-x-full');
-    backdrop.classList.add('hidden');
-  } else {
-    sidebar.classList.remove('-translate-x-full');
-    backdrop.classList.remove('hidden');
-  }
-}
 
 // Initialize on DOM ready
 if (document.readyState === 'loading') {

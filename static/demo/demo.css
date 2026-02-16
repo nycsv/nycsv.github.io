@@ -81,13 +81,13 @@
 /* Error message */
 .asr-error-message.show { display: block !important; }
 
-/* Radio button styling */
-input[type="radio"] { accent-color: #5b2bee; }
-
-/* Disabled source options */
-.asr-source-option:has(input:disabled) {
-  pointer-events: none;
+/* Audio source dropdown */
+#audio-source {
+  appearance: auto;
+}
+#audio-source:disabled {
   opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* Footer connection bars */

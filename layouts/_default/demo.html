@@ -37,90 +37,6 @@
 
   <div class="flex h-screen w-full overflow-hidden">
 
-    <!-- Sidebar backdrop (mobile only) -->
-    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
-
-    <!-- Sidebar -->
-    <aside id="sidebar"
-      class="fixed inset-y-0 left-0 z-50 w-72 -translate-x-full transition-transform duration-300 flex flex-col border-r border-border-subtle bg-surface shrink-0 md:static md:translate-x-0 md:bg-surface/50">
-
-      <!-- Logo -->
-      <div class="p-6 flex flex-col gap-1">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <a href="{{ .Site.BaseURL }}" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <div class="w-8 h-8 bg-primary rounded flex items-center justify-center">
-                <span class="material-symbols-outlined text-white text-xl">graphic_eq</span>
-              </div>
-              <h1 class="text-lg font-bold tracking-tight text-white leading-none">Streaming Demo</h1>
-            </a>
-          </div>
-          <!-- Close button (mobile only) -->
-          <button class="md:hidden p-1 text-slate-400 hover:text-white transition-colors" onclick="toggleSidebar()">
-            <span class="material-symbols-outlined text-xl">close</span>
-          </button>
-        </div>
-        <p class="text-xs text-slate-500 font-medium ml-10">Demo</p>
-      </div>
-
-      <nav class="flex-1 px-4 overflow-y-auto space-y-6">
-
-        <!-- Server Section -->
-        <div>
-          <h3 class="px-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Server</h3>
-          <div class="space-y-2">
-            <input type="text" id="server-url" placeholder="wss://your-server/ws"
-              class="w-full bg-background-dark border border-border-subtle rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:border-primary text-slate-200 placeholder-slate-600" />
-            <button id="connect-btn"
-              class="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white text-sm font-bold py-2.5 rounded-lg transition-all">
-              <span class="material-symbols-outlined text-[18px]">power_settings_new</span>
-              Connect
-            </button>
-            <div class="flex items-center gap-2 px-1 pt-1">
-              <span class="asr-status-dot idle" id="status-dot"></span>
-              <span id="status-text" class="text-xs text-slate-500">Disconnected</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Configuration Section -->
-        <div>
-          <h3 class="px-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Configuration</h3>
-          <div class="space-y-1">
-            <div
-              class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary border border-primary/20">
-              <span class="material-symbols-outlined text-[20px]">settings_input_component</span>
-              <span class="text-sm font-semibold">Audio Source</span>
-            </div>
-          </div>
-          <div id="audio-source-group" class="mt-2 space-y-1 px-1">
-            <label
-              class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-white/5 hover:text-white transition-all cursor-pointer asr-source-option">
-              <input type="radio" name="audio-source" value="mic" checked
-                class="text-primary focus:ring-primary bg-background-dark border-border-subtle">
-              <span class="material-symbols-outlined text-[18px]">mic</span>
-              <span class="text-sm font-medium">Microphone</span>
-            </label>
-            <label
-              class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-white/5 hover:text-white transition-all cursor-pointer asr-source-option">
-              <input type="radio" name="audio-source" value="system"
-                class="text-primary focus:ring-primary bg-background-dark border-border-subtle">
-              <span class="material-symbols-outlined text-[18px]">desktop_windows</span>
-              <span class="text-sm font-medium">System Audio</span>
-            </label>
-            <label
-              class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-white/5 hover:text-white transition-all cursor-pointer asr-source-option">
-              <input type="radio" name="audio-source" value="both"
-                class="text-primary focus:ring-primary bg-background-dark border-border-subtle">
-              <span class="material-symbols-outlined text-[18px]">merge</span>
-              <span class="text-sm font-medium">Both</span>
-            </label>
-          </div>
-        </div>
-
-      </nav>
-    </aside>
-
     <!-- Main Content Area -->
     <main class="flex-1 flex flex-col overflow-hidden relative">
 
@@ -132,11 +48,19 @@
       <!-- Compact Control Header -->
       <header
         class="h-16 border-b border-border-subtle bg-surface/30 px-4 md:px-6 flex items-center justify-between z-10 shrink-0">
-        <div class="flex items-center gap-3 md:gap-6">
-          <!-- Hamburger menu (mobile only) -->
-          <button class="md:hidden p-1 text-slate-400 hover:text-white transition-colors" onclick="toggleSidebar()">
-            <span class="material-symbols-outlined text-2xl">menu</span>
+        <div class="flex items-center gap-2 md:gap-4">
+          <!-- Connect button + status -->
+          <button id="connect-btn"
+            class="flex items-center gap-1.5 bg-primary hover:bg-primary/90 text-white text-sm font-bold px-3 py-2 rounded-lg transition-all">
+            <span class="material-symbols-outlined text-[18px]">power_settings_new</span>
+            <span class="hidden sm:inline">Connect</span>
           </button>
+          <div class="flex items-center gap-1.5">
+            <span class="asr-status-dot idle" id="status-dot"></span>
+            <span id="status-text" class="text-xs text-slate-500 hidden sm:inline">Disconnected</span>
+          </div>
+          <div class="h-6 w-px bg-border-subtle"></div>
+          <!-- Mic button -->
           <button id="mic-btn"
             class="asr-mic-button flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-primary/90 transition-all shadow-md shadow-primary/10 disabled:opacity-40 disabled:cursor-not-allowed"
             disabled>
@@ -156,6 +80,13 @@
           </div>
         </div>
         <div class="flex items-center gap-2">
+          <!-- Audio source dropdown -->
+          <select id="audio-source"
+            class="bg-background-dark border border-border-subtle rounded-lg px-2 py-1.5 text-xs font-medium text-slate-300 focus:outline-none focus:border-primary cursor-pointer">
+            <option value="mic">Microphone</option>
+            <option value="system">System Audio</option>
+            <option value="both">Both</option>
+          </select>
           <!-- Mini waveform visualizer -->
           <div id="waveform"
             class="flex items-end gap-0.5 bg-background-dark/50 border border-border-subtle px-3 py-1.5 rounded-lg h-10">
@@ -225,7 +156,7 @@
           </div>
 
           <!-- Bottom gradient -->
-          <div class="fixed bottom-10 left-0 md:left-72 right-0 h-16 transcript-gradient pointer-events-none z-10">
+          <div class="fixed bottom-10 left-0 right-0 h-16 transcript-gradient pointer-events-none z-10">
           </div>
         </div>
 
@@ -289,8 +220,6 @@
       statusStopping: 'Stopping...',
       btnConnect: 'Connect',
       btnDisconnect: 'Disconnect',
-      errorEmptyUrl: 'Please enter a server URL',
-      errorMixedContent: 'Cannot connect to ws:// from https:// page. Use wss:// instead.',
       errorConnection: '[Connection error] Server is not running',
       errorDisconnected: 'Disconnected from server',
       errorMicAccess: 'Microphone access denied',
