@@ -11,21 +11,6 @@
   background: linear-gradient(to bottom, transparent 0%, rgba(11, 11, 12, 0) 80%, rgba(11, 11, 12, 1) 100%);
 }
 
-/* Live translate vertical layout */
-.translate-section {
-  background: rgba(22, 22, 24, 0.6);
-  border: 1px solid rgba(44, 40, 57, 0.6);
-  border-radius: 14px;
-  padding: 18px 18px 20px;
-  box-shadow: 0 12px 24px rgba(9, 9, 10, 0.3);
-}
-.translate-section--en { border-left: 3px solid rgba(148, 163, 184, 0.35); }
-.translate-section--ko { border-left: 3px solid rgba(91, 43, 238, 0.45); }
-.translate-divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(44, 40, 57, 0.9), transparent);
-}
-
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
