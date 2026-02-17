@@ -932,12 +932,11 @@ function requestSummarization(text) {
 function handleSummaryResult(data) {
   summarizationInFlight = false;
   const summary = data.summary || '';
-  const summaryKo = data.summary_ko || '';
   const wordCount = data.word_count || 0;
   console.log('[summarize] received summary, length:', summary.length, 'wordCount:', wordCount);
 
   if (summary) {
-    insertSummaryBlock(summary, summaryKo, wordCount);
+    insertSummaryBlock(summary, wordCount);
     lastSummarizedWordCount = wordCount;
   } else {
     console.warn('[summarize] empty summary received');
@@ -947,28 +946,28 @@ function handleSummaryResult(data) {
 /**
  * Insert a summary block at the bottom of the transcript and translate panels
  */
-function insertSummaryBlock(summary, summaryKo, wordCount) {
+function insertSummaryBlock(summary, wordCount) {
   const label = `Summary at ${wordCount} words`;
 
-  function makeBlock(text) {
+  function makeBlock() {
     const block = document.createElement('div');
     block.className = 'summary-block';
     block.innerHTML = `
       <div class="summary-block-label">${escapeHtml(label)}</div>
-      <div class="summary-block-text">${escapeHtml(text)}</div>`;
+      <div class="summary-block-text">${escapeHtml(summary)}</div>`;
     return block;
   }
 
   // Append at bottom of Live Transcript tab
-  dom.transcriptContent.appendChild(makeBlock(summary));
+  dom.transcriptContent.appendChild(makeBlock());
   dom.transcriptBox.scrollTop = dom.transcriptBox.scrollHeight;
 
   // Append at bottom of Live Translate tab (English side)
-  dom.translateContentEn.appendChild(makeBlock(summary));
+  dom.translateContentEn.appendChild(makeBlock());
   dom.translateScrollEn.scrollTop = dom.translateScrollEn.scrollHeight;
 
-  // Append at bottom of Live Translate tab (Korean side — Korean summary)
-  dom.translateContentKo.appendChild(makeBlock(summaryKo || summary));
+  // Append at bottom of Live Translate tab (Korean side)
+  dom.translateContentKo.appendChild(makeBlock());
   dom.translateScrollKo.scrollTop = dom.translateScrollKo.scrollHeight;
 }
 
