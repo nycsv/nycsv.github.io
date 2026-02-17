@@ -121,6 +121,29 @@
   color: rgba(91, 43, 238, 0.4);
 }
 
+/* Inline summary block */
+.summary-block {
+  background: rgba(245, 158, 11, 0.05);
+  border: 1px solid rgba(245, 158, 11, 0.15);
+  border-left: 3px solid #f59e0b;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin: 16px 0;
+}
+.summary-block-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(245, 158, 11, 0.6);
+  margin-bottom: 6px;
+}
+.summary-block-text {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+
 /* Footer connection bars */
 .bar-connected .bar-1 { background: #10b981; }
 .bar-connected .bar-2 { background: #10b981; }

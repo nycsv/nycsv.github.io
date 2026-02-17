@@ -8,6 +8,9 @@
 // Fixed server URL
 const SERVER_URL = 'wss://ai.eesungkim.com/ws';
 
+// Summarization endpoint
+const SUMMARIZE_URL = 'http://localhost:8100/summarize';
+
 // State machine
 const State = {
   IDLE: 'IDLE',
@@ -37,6 +40,10 @@ let translationPartial = '';
 // Interpreter state
 let interpreterSentenceCount = 0;
 let interpreterBuffer = { source: '', text: '' };
+
+// Summarization state
+let lastSummarizedWordCount = 0;
+let summarizationInFlight = false;
 
 // Audio gating: only send audio after server ack
 let readyToSendAudio = false;
@@ -86,11 +93,15 @@ function init() {
     statusFooterDot: document.getElementById('status-footer-dot'),
     audioSource: document.getElementById('audio-source'),
     copyBtn: document.getElementById('copy-btn'),
+    summarizeBtn: document.getElementById('summarize-btn'),
+    transcriptContent: document.getElementById('transcript-content'),
     copyBtnEn: document.getElementById('copy-btn-en'),
     copyBtnKo: document.getElementById('copy-btn-ko'),
     tabLive: document.getElementById('tab-live'),
     tabTranslate: document.getElementById('tab-translate'),
     translateBox: document.getElementById('translate-box'),
+    translateContentEn: document.getElementById('translate-content-en'),
+    translateContentKo: document.getElementById('translate-content-ko'),
     translateCommittedEn: document.getElementById('translate-committed-en'),
     translatePartialEn: document.getElementById('translate-partial-en'),
     translateCommittedKo: document.getElementById('translate-committed-ko'),
@@ -108,6 +119,7 @@ function init() {
   dom.connectBtn.addEventListener('click', handleConnect);
   dom.micBtn.addEventListener('click', handleMicClick);
   dom.copyBtn.addEventListener('click', handleCopyClick);
+  dom.summarizeBtn.addEventListener('click', handleSummarizeClick);
   dom.copyBtnEn.addEventListener('click', () => handleTranslateCopy(dom.copyBtnEn, () => committedText + partialText));
   dom.copyBtnKo.addEventListener('click', () => handleTranslateCopy(dom.copyBtnKo, () => translationCommitted + translationPartial));
   dom.tabLive.addEventListener('click', () => setActiveTab('live'));
@@ -278,6 +290,12 @@ function handleCommittedText(data) {
   const newText = data.text || '';
   committedText += newText;
   updateTranscript();
+
+  // Auto-summarize every ~200 words
+  const wordCount = committedText.split(/\s+/).filter(Boolean).length;
+  if (!summarizationInFlight && wordCount - lastSummarizedWordCount >= 200) {
+    requestSummarization(committedText);
+  }
 }
 
 /**
@@ -480,6 +498,8 @@ async function startRecording() {
     partialText = '';
     translationCommitted = '';
     translationPartial = '';
+    lastSummarizedWordCount = 0;
+    summarizationInFlight = false;
     updateTranscript();
 
     // Reset interpreter
@@ -857,6 +877,83 @@ function clearError() {
   dom.errorMsg.textContent = '';
   dom.errorMsg.classList.add('hidden');
   dom.errorMsg.classList.remove('show');
+}
+
+/**
+ * Handle manual summarize button click
+ */
+async function handleSummarizeClick() {
+  const text = committedText + partialText;
+  if (!text.trim()) {
+    showError('No transcript to summarize');
+    setTimeout(clearError, 2000);
+    return;
+  }
+  await requestSummarization(text);
+}
+
+/**
+ * Request summarization from server
+ */
+async function requestSummarization(text) {
+  if (summarizationInFlight) return;
+  summarizationInFlight = true;
+
+  const wordCount = text.split(/\s+/).filter(Boolean).length;
+
+  try {
+    const resp = await fetch(SUMMARIZE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }),
+    });
+
+    if (!resp.ok) {
+      console.error('Summarization failed:', resp.status);
+      return;
+    }
+
+    const data = await resp.json();
+    if (data.summary) {
+      insertSummaryBlock(data.summary, wordCount);
+      lastSummarizedWordCount = wordCount;
+    }
+  } catch (err) {
+    console.error('Summarization error:', err);
+  } finally {
+    summarizationInFlight = false;
+  }
+}
+
+/**
+ * Insert a summary block into the transcript area
+ */
+function insertSummaryBlock(summary, wordCount) {
+  const escapedSummary = escapeHtml(summary);
+  const html = `
+    <div class="summary-block-label">Summary at ${wordCount} words</div>
+    <div class="summary-block-text">${escapedSummary}</div>`;
+
+  // Insert into Live Transcript tab
+  const block = document.createElement('div');
+  block.className = 'summary-block';
+  block.innerHTML = html;
+  dom.transcriptContent.insertBefore(block, dom.committedSpan);
+  dom.transcriptBox.scrollTop = dom.transcriptBox.scrollHeight;
+
+  // Insert into Live Translate tab (English side)
+  const blockEn = document.createElement('div');
+  blockEn.className = 'summary-block';
+  blockEn.innerHTML = html;
+  dom.translateContentEn.insertBefore(blockEn, dom.translateCommittedEn);
+  dom.translateScrollEn.scrollTop = dom.translateScrollEn.scrollHeight;
+
+  // Insert into Live Translate tab (Korean side)
+  const blockKo = document.createElement('div');
+  blockKo.className = 'summary-block';
+  blockKo.innerHTML = html;
+  dom.translateContentKo.insertBefore(blockKo, dom.translateCommittedKo);
+  dom.translateScrollKo.scrollTop = dom.translateScrollKo.scrollHeight;
 }
 
 /**
