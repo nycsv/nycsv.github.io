@@ -89,8 +89,7 @@ function init() {
     translatePartialEn: document.getElementById('translate-partial-en'),
     translateCommittedKo: document.getElementById('translate-committed-ko'),
     translatePartialKo: document.getElementById('translate-partial-ko'),
-    translateEnScroll: document.getElementById('translate-en-scroll'),
-    translateKoScroll: document.getElementById('translate-ko-scroll'),
+    translateScroll: document.getElementById('translate-scroll'),
   };
 
   // Attach event listeners
@@ -222,6 +221,18 @@ function handleWebSocketMessage(event) {
       handlePartialText(data);
       break;
 
+    case 'committed_translation':
+      handleCommittedTranslation(data);
+      break;
+
+    case 'partial_translation':
+      handlePartialTranslation(data);
+      break;
+
+    case 'final_translation':
+      handleFinalTranslation(data);
+      break;
+
     case 'ping':
       handlePing(data);
       break;
@@ -249,12 +260,33 @@ function handleWebSocketMessage(event) {
 function handleCommittedText(data) {
   const newText = data.text || '';
   committedText += newText;
+  updateTranscript();
+}
 
-  if (data.translation !== undefined) {
-    translationCommitted += data.translation;
-    translationPartial = '';
-  }
+/**
+ * Handle committed translation (finalized sentence translation)
+ */
+function handleCommittedTranslation(data) {
+  const tl = data.text || '';
+  translationCommitted += tl + ' ';
+  translationPartial = '';
+  updateTranscript();
+}
 
+/**
+ * Handle partial translation (in-progress preview)
+ */
+function handlePartialTranslation(data) {
+  translationPartial = data.translation || '';
+  updateTranscript();
+}
+
+/**
+ * Handle final_translation (full accumulated translation at end of session)
+ */
+function handleFinalTranslation(data) {
+  translationCommitted = data.translation || '';
+  translationPartial = '';
   updateTranscript();
 }
 
@@ -309,9 +341,6 @@ function handleFinalResult(data) {
   committedText = finalText;
   partialText = '';
   translationPartial = '';
-  if (data.translation !== undefined) {
-    translationCommitted = data.translation;
-  }
   updateTranscript();
   setState(State.CONNECTED);
   cleanup();
@@ -719,9 +748,8 @@ function updateTranscript() {
   dom.translateCommittedKo.textContent = translationCommitted;
   dom.translatePartialKo.textContent = translationPartial;
 
-  // Auto-scroll translate panels
-  dom.translateEnScroll.scrollTop = dom.translateEnScroll.scrollHeight;
-  dom.translateKoScroll.scrollTop = dom.translateKoScroll.scrollHeight;
+  // Auto-scroll translate panel
+  dom.translateScroll.scrollTop = dom.translateScroll.scrollHeight;
 }
 
 /**
