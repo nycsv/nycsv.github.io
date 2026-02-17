@@ -36,6 +36,7 @@ let translationPartial = '';
 
 // Interpreter state
 let interpreterSentenceCount = 0;
+let interpreterBuffer = { source: '', text: '' };
 
 // Audio gating: only send audio after server ack
 let readyToSendAudio = false;
@@ -289,8 +290,16 @@ function handleCommittedTranslation(data) {
   translationPartial = '';
   updateTranscript();
 
-  // Interpreter tab: add committed row
-  addInterpreterRow(src, tl);
+  // Interpreter tab: accumulate into buffer, flush to card only on sentence_end
+  interpreterBuffer.source += (interpreterBuffer.source ? ' ' : '') + src;
+  interpreterBuffer.text += (interpreterBuffer.text ? ' ' : '') + tl;
+
+  if (data.sentence_end) {
+    addInterpreterRow(interpreterBuffer.source, interpreterBuffer.text);
+    interpreterBuffer = { source: '', text: '' };
+  } else {
+    updateInterpreterBuffering(interpreterBuffer.source, interpreterBuffer.text);
+  }
 }
 
 /**
@@ -298,11 +307,13 @@ function handleCommittedTranslation(data) {
  */
 function handlePartialTranslation(data) {
   translationPartial = data.translation || '';
-  const src = data.source || '';
+  const partialSrc = data.source || '';
   updateTranscript();
 
-  // Interpreter tab: update pending row
-  updateInterpreterPending(src, translationPartial);
+  // Interpreter tab: pending row shows buffer + current partial
+  const combinedSrc = [interpreterBuffer.source, partialSrc].filter(Boolean).join(' ');
+  const combinedTl = [interpreterBuffer.text, translationPartial].filter(Boolean).join(' ');
+  updateInterpreterPending(combinedSrc, combinedTl);
 }
 
 /**
@@ -473,6 +484,7 @@ async function startRecording() {
 
     // Reset interpreter
     interpreterSentenceCount = 0;
+    interpreterBuffer = { source: '', text: '' };
     if (dom.interpreterRows) dom.interpreterRows.innerHTML = '';
     if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'flex';
 
@@ -878,6 +890,32 @@ function addInterpreterRow(source, translation) {
     </div>`;
 
   dom.interpreterRows.appendChild(row);
+
+  if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'none';
+
+  dom.interpreterScroll.scrollTop = dom.interpreterScroll.scrollHeight;
+}
+
+/**
+ * Show buffered-but-not-yet-sentence-end content as an intermediate row
+ */
+function updateInterpreterBuffering(source, translation) {
+  let pending = dom.interpreterRows.querySelector('.interpreter-pending');
+
+  if (!pending) {
+    pending = document.createElement('div');
+    pending.className = 'interpreter-row interpreter-pending';
+    dom.interpreterRows.appendChild(pending);
+  }
+
+  pending.innerHTML = `
+    <div class="flex items-start gap-3">
+      <span class="interpreter-row-num interpreter-row-num--pending">…</span>
+      <div class="flex-1 min-w-0">
+        <div class="text-slate-400 text-sm md:text-base font-medium leading-relaxed">${escapeHtml(source)}</div>
+        <div class="text-primary/60 text-sm md:text-base font-medium leading-relaxed mt-1">${escapeHtml(translation)}</div>
+      </div>
+    </div>`;
 
   if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'none';
 
