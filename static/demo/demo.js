@@ -89,7 +89,8 @@ function init() {
     translatePartialEn: document.getElementById('translate-partial-en'),
     translateCommittedKo: document.getElementById('translate-committed-ko'),
     translatePartialKo: document.getElementById('translate-partial-ko'),
-    translateScroll: document.getElementById('translate-scroll'),
+    translateScrollEn: document.getElementById('translate-scroll-en'),
+    translateScrollKo: document.getElementById('translate-scroll-ko'),
   };
 
   // Attach event listeners
@@ -748,8 +749,9 @@ function updateTranscript() {
   dom.translateCommittedKo.textContent = translationCommitted;
   dom.translatePartialKo.textContent = translationPartial;
 
-  // Auto-scroll translate panel
-  dom.translateScroll.scrollTop = dom.translateScroll.scrollHeight;
+  // Auto-scroll translate panels
+  dom.translateScrollEn.scrollTop = dom.translateScrollEn.scrollHeight;
+  dom.translateScrollKo.scrollTop = dom.translateScrollKo.scrollHeight;
 }
 
 /**

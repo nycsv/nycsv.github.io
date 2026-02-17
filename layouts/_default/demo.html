@@ -163,34 +163,31 @@
 
         <!-- Live Translate Panel -->
         <div id="translate-box" class="flex-1 overflow-hidden hidden">
-          <div id="translate-scroll" class="h-full overflow-y-auto px-4 py-4 md:px-8 md:py-6 custom-scrollbar">
-            <div class="max-w-4xl mx-auto space-y-6">
-              <!-- English transcript (top section) -->
-              <div>
-                <div class="flex items-center gap-2 mb-3">
-                  <span class="material-symbols-outlined text-slate-400 text-[16px]">translate</span>
-                  <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">English</span>
-                </div>
-                <div class="space-y-2">
-                  <span id="translate-committed-en"
-                    class="text-slate-100 leading-relaxed text-base md:text-lg font-medium"></span><span
-                    id="translate-partial-en"
-                    class="text-slate-500 leading-relaxed text-base md:text-lg font-medium italic"></span>
-                </div>
+          <div class="h-full flex">
+            <!-- English transcript (left side) -->
+            <div class="flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-6 custom-scrollbar border-r border-border-subtle/70">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="material-symbols-outlined text-slate-400 text-[16px]">translate</span>
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">English</span>
               </div>
-              <div class="border-t border-border-subtle/70"></div>
-              <!-- Korean translation (bottom section) -->
-              <div>
-                <div class="flex items-center gap-2 mb-3">
-                  <span class="material-symbols-outlined text-primary text-[16px]">g_translate</span>
-                  <span class="text-[10px] font-bold text-primary/70 uppercase tracking-widest">Korean Translation</span>
-                </div>
-                <div class="space-y-2">
-                  <span id="translate-committed-ko"
-                    class="text-slate-100 leading-relaxed text-base md:text-lg font-medium"></span><span
-                    id="translate-partial-ko"
-                    class="text-primary/70 leading-relaxed text-base md:text-lg font-medium italic"></span>
-                </div>
+              <div id="translate-scroll-en" class="space-y-2">
+                <span id="translate-committed-en"
+                  class="text-slate-100 leading-relaxed text-base md:text-lg font-medium"></span><span
+                  id="translate-partial-en"
+                  class="text-slate-500 leading-relaxed text-base md:text-lg font-medium italic"></span>
+              </div>
+            </div>
+            <!-- Korean translation (right side) -->
+            <div class="flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-6 custom-scrollbar">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="material-symbols-outlined text-primary text-[16px]">g_translate</span>
+                <span class="text-[10px] font-bold text-primary/70 uppercase tracking-widest">Korean Translation</span>
+              </div>
+              <div id="translate-scroll-ko" class="space-y-2">
+                <span id="translate-committed-ko"
+                  class="text-slate-100 leading-relaxed text-base md:text-lg font-medium"></span><span
+                  id="translate-partial-ko"
+                  class="text-primary/70 leading-relaxed text-base md:text-lg font-medium italic"></span>
               </div>
             </div>
           </div>
