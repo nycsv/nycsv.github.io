@@ -104,23 +104,23 @@
       <!-- Transcript Focus Area -->
       <div class="flex-1 flex flex-col bg-background-dark relative overflow-hidden">
 
-        <!-- Transcript toolbar -->
-        <div class="absolute top-4 right-4 md:right-8 flex items-center gap-2 z-20">
-          <button id="copy-btn"
-            class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold bg-surface border border-border-subtle text-slate-300 hover:text-white hover:border-slate-500 rounded-lg transition-all shadow-xl disabled:opacity-40">
-            <span class="material-symbols-outlined text-[16px]">content_copy</span>
-            Copy
-          </button>
-        </div>
-
         <!-- Tabs -->
-        <div class="flex px-4 md:px-8 border-b border-border-subtle/50 bg-background-dark/50 shrink-0">
+        <div class="flex items-center px-4 md:px-8 border-b border-border-subtle/50 bg-background-dark/50 shrink-0">
           <button id="tab-live"
             class="px-4 py-3 text-xs font-bold border-b-2 border-primary text-primary transition-colors">Live
             Transcript</button>
           <button id="tab-translate"
             class="px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-white hover:border-slate-500 transition-colors">Live
             Translate</button>
+          <button id="tab-interpreter"
+            class="px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-white hover:border-slate-500 transition-colors">
+            Interpreter</button>
+          <div class="ml-auto">
+            <button id="copy-btn" title="Copy transcript"
+              class="flex items-center justify-center w-6 h-6 rounded text-slate-500 hover:text-white hover:bg-white/10 transition-all">
+              <span class="material-symbols-outlined text-[15px]">content_copy</span>
+            </button>
+          </div>
         </div>
 
         <!-- Live Transcript Container -->
@@ -200,6 +200,25 @@
                   class="text-slate-100 leading-relaxed text-base md:text-lg font-medium"></span><span
                   id="translate-partial-ko"
                   class="text-primary/70 leading-relaxed text-base md:text-lg font-medium italic"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interpreter Panel (sentence-by-sentence) -->
+        <div id="interpreter-box" class="flex-1 overflow-hidden hidden">
+          <div id="interpreter-scroll" class="h-full overflow-y-auto px-4 py-4 md:px-8 md:py-6 custom-scrollbar">
+            <div id="interpreter-rows" class="max-w-4xl mx-auto space-y-3">
+              <!-- Rows are dynamically inserted by JS -->
+            </div>
+            <!-- Placeholder shown when empty -->
+            <div id="interpreter-placeholder" class="flex flex-col items-center justify-center h-64 text-center space-y-4">
+              <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center ring-4 ring-primary/5">
+                <span class="material-symbols-outlined text-primary text-3xl">interpreter_mode</span>
+              </div>
+              <div>
+                <p class="text-slate-400 text-sm font-medium">Sentence-by-sentence translation</p>
+                <p class="text-slate-600 text-xs mt-1">Each sentence appears as a paired card</p>
               </div>
             </div>
           </div>

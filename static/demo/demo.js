@@ -34,6 +34,9 @@ let partialText = '';
 let translationCommitted = '';
 let translationPartial = '';
 
+// Interpreter state
+let interpreterSentenceCount = 0;
+
 // Audio gating: only send audio after server ack
 let readyToSendAudio = false;
 let ackResolver = null;
@@ -93,6 +96,11 @@ function init() {
     translatePartialKo: document.getElementById('translate-partial-ko'),
     translateScrollEn: document.getElementById('translate-scroll-en'),
     translateScrollKo: document.getElementById('translate-scroll-ko'),
+    tabInterpreter: document.getElementById('tab-interpreter'),
+    interpreterBox: document.getElementById('interpreter-box'),
+    interpreterRows: document.getElementById('interpreter-rows'),
+    interpreterScroll: document.getElementById('interpreter-scroll'),
+    interpreterPlaceholder: document.getElementById('interpreter-placeholder'),
   };
 
   // Attach event listeners
@@ -103,6 +111,7 @@ function init() {
   dom.copyBtnKo.addEventListener('click', () => handleTranslateCopy(dom.copyBtnKo, () => translationCommitted + translationPartial));
   dom.tabLive.addEventListener('click', () => setActiveTab('live'));
   dom.tabTranslate.addEventListener('click', () => setActiveTab('translate'));
+  dom.tabInterpreter.addEventListener('click', () => setActiveTab('interpreter'));
 
   // Initial state
   setActiveTab('live');
@@ -115,9 +124,11 @@ function init() {
 function setActiveTab(tab) {
   dom.transcriptBox.classList.toggle('hidden', tab !== 'live');
   dom.translateBox.classList.toggle('hidden', tab !== 'translate');
+  dom.interpreterBox.classList.toggle('hidden', tab !== 'interpreter');
 
   updateTabButton(dom.tabLive, tab === 'live');
   updateTabButton(dom.tabTranslate, tab === 'translate');
+  updateTabButton(dom.tabInterpreter, tab === 'interpreter');
 }
 
 function updateTabButton(button, isActive) {
@@ -273,9 +284,13 @@ function handleCommittedText(data) {
  */
 function handleCommittedTranslation(data) {
   const tl = data.text || '';
+  const src = data.source || '';
   translationCommitted += tl + ' ';
   translationPartial = '';
   updateTranscript();
+
+  // Interpreter tab: add committed row
+  addInterpreterRow(src, tl);
 }
 
 /**
@@ -283,7 +298,11 @@ function handleCommittedTranslation(data) {
  */
 function handlePartialTranslation(data) {
   translationPartial = data.translation || '';
+  const src = data.source || '';
   updateTranscript();
+
+  // Interpreter tab: update pending row
+  updateInterpreterPending(src, translationPartial);
 }
 
 /**
@@ -377,16 +396,9 @@ async function handleCopyClick() {
   try {
     await navigator.clipboard.writeText(fullText);
 
-    // Show visual feedback
-    const btn = dom.copyBtn;
-    const originalHTML = btn.innerHTML;
-    btn.innerHTML = '<span class="material-symbols-outlined text-sm">check</span> Copied!';
-    btn.disabled = true;
-
-    setTimeout(() => {
-      btn.innerHTML = originalHTML;
-      btn.disabled = false;
-    }, 2000);
+    const icon = dom.copyBtn.querySelector('.material-symbols-outlined');
+    icon.textContent = 'check';
+    setTimeout(() => { icon.textContent = 'content_copy'; }, 2000);
   } catch (error) {
     console.error('Failed to copy to clipboard:', error);
     showError(i18n.errorCopyFailed || 'Failed to copy to clipboard');
@@ -458,6 +470,11 @@ async function startRecording() {
     translationCommitted = '';
     translationPartial = '';
     updateTranscript();
+
+    // Reset interpreter
+    interpreterSentenceCount = 0;
+    if (dom.interpreterRows) dom.interpreterRows.innerHTML = '';
+    if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'flex';
 
     // Show session start marker
     if (dom.sessionMarker) {
@@ -828,6 +845,74 @@ function clearError() {
   dom.errorMsg.textContent = '';
   dom.errorMsg.classList.add('hidden');
   dom.errorMsg.classList.remove('show');
+}
+
+/**
+ * Escape HTML to prevent XSS
+ */
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+/**
+ * Add a committed sentence row to the interpreter panel
+ */
+function addInterpreterRow(source, translation) {
+  // Remove any existing pending row
+  const pending = dom.interpreterRows.querySelector('.interpreter-pending');
+  if (pending) pending.remove();
+
+  interpreterSentenceCount++;
+
+  const row = document.createElement('div');
+  row.className = 'interpreter-row';
+  row.innerHTML = `
+    <div class="flex items-start gap-3">
+      <span class="interpreter-row-num">${interpreterSentenceCount}</span>
+      <div class="flex-1 min-w-0">
+        <div class="text-slate-100 text-sm md:text-base font-medium leading-relaxed">${escapeHtml(source)}</div>
+        <div class="text-primary/80 text-sm md:text-base font-medium leading-relaxed mt-1">${escapeHtml(translation)}</div>
+      </div>
+    </div>`;
+
+  dom.interpreterRows.appendChild(row);
+
+  if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'none';
+
+  dom.interpreterScroll.scrollTop = dom.interpreterScroll.scrollHeight;
+}
+
+/**
+ * Update the pending (in-progress) row in the interpreter panel
+ */
+function updateInterpreterPending(source, translation) {
+  let pending = dom.interpreterRows.querySelector('.interpreter-pending');
+
+  if (!source && !translation) {
+    if (pending) pending.remove();
+    return;
+  }
+
+  if (!pending) {
+    pending = document.createElement('div');
+    pending.className = 'interpreter-row interpreter-pending';
+    dom.interpreterRows.appendChild(pending);
+  }
+
+  pending.innerHTML = `
+    <div class="flex items-start gap-3">
+      <span class="interpreter-row-num interpreter-row-num--pending">~</span>
+      <div class="flex-1 min-w-0">
+        <div class="text-slate-500 text-sm md:text-base font-medium leading-relaxed italic">${escapeHtml(source)}</div>
+        <div class="text-primary/40 text-sm md:text-base font-medium leading-relaxed italic mt-1">${escapeHtml(translation)}</div>
+      </div>
+    </div>`;
+
+  if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'none';
+
+  dom.interpreterScroll.scrollTop = dom.interpreterScroll.scrollHeight;
 }
 
 // Start stats update loop (every 100ms)
