@@ -82,6 +82,8 @@ function init() {
     statusFooterDot: document.getElementById('status-footer-dot'),
     audioSource: document.getElementById('audio-source'),
     copyBtn: document.getElementById('copy-btn'),
+    copyBtnEn: document.getElementById('copy-btn-en'),
+    copyBtnKo: document.getElementById('copy-btn-ko'),
     tabLive: document.getElementById('tab-live'),
     tabTranslate: document.getElementById('tab-translate'),
     translateBox: document.getElementById('translate-box'),
@@ -97,6 +99,8 @@ function init() {
   dom.connectBtn.addEventListener('click', handleConnect);
   dom.micBtn.addEventListener('click', handleMicClick);
   dom.copyBtn.addEventListener('click', handleCopyClick);
+  dom.copyBtnEn.addEventListener('click', () => handleTranslateCopy(dom.copyBtnEn, () => committedText + partialText));
+  dom.copyBtnKo.addEventListener('click', () => handleTranslateCopy(dom.copyBtnKo, () => translationCommitted + translationPartial));
   dom.tabLive.addEventListener('click', () => setActiveTab('live'));
   dom.tabTranslate.addEventListener('click', () => setActiveTab('translate'));
 
@@ -383,6 +387,30 @@ async function handleCopyClick() {
       btn.innerHTML = originalHTML;
       btn.disabled = false;
     }, 2000);
+  } catch (error) {
+    console.error('Failed to copy to clipboard:', error);
+    showError(i18n.errorCopyFailed || 'Failed to copy to clipboard');
+    setTimeout(clearError, 2000);
+  }
+}
+
+/**
+ * Handle copy for translate panel buttons
+ */
+async function handleTranslateCopy(btn, getText) {
+  const text = getText();
+  if (!text.trim()) {
+    showError(i18n.errorNoText || 'No text to copy');
+    setTimeout(clearError, 2000);
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(text.trim());
+
+    const icon = btn.querySelector('.material-symbols-outlined');
+    icon.textContent = 'check';
+    setTimeout(() => { icon.textContent = 'content_copy'; }, 2000);
   } catch (error) {
     console.error('Failed to copy to clipboard:', error);
     showError(i18n.errorCopyFailed || 'Failed to copy to clipboard');
