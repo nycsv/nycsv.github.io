@@ -888,23 +888,36 @@ function clearError() {
  */
 async function handleSummarizeClick() {
   const text = committedText + partialText;
+  console.log('[summarize] button clicked, text length:', text.length, 'ws state:', ws?.readyState);
   if (!text.trim()) {
     showError('No transcript to summarize');
     setTimeout(clearError, 2000);
     return;
   }
-  await requestSummarization(text);
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    showError('Not connected — connect to server first');
+    setTimeout(clearError, 2000);
+    return;
+  }
+  requestSummarization(text);
 }
 
 /**
  * Request summarization via WebSocket
  */
 function requestSummarization(text) {
-  if (summarizationInFlight) return;
-  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  if (summarizationInFlight) {
+    console.log('[summarize] skipped — already in flight');
+    return;
+  }
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    console.log('[summarize] skipped — WebSocket not open');
+    return;
+  }
 
   summarizationInFlight = true;
   const wordCount = text.split(/\s+/).filter(Boolean).length;
+  console.log('[summarize] sending request, wordCount:', wordCount);
 
   ws.send(JSON.stringify({
     type: 'summarize',
@@ -919,42 +932,43 @@ function requestSummarization(text) {
 function handleSummaryResult(data) {
   summarizationInFlight = false;
   const summary = data.summary || '';
+  const summaryKo = data.summary_ko || '';
   const wordCount = data.word_count || 0;
+  console.log('[summarize] received summary, length:', summary.length, 'wordCount:', wordCount);
 
   if (summary) {
-    insertSummaryBlock(summary, wordCount);
+    insertSummaryBlock(summary, summaryKo, wordCount);
     lastSummarizedWordCount = wordCount;
+  } else {
+    console.warn('[summarize] empty summary received');
   }
 }
 
 /**
- * Insert a summary block into the transcript area
+ * Insert a summary block at the bottom of the transcript and translate panels
  */
-function insertSummaryBlock(summary, wordCount) {
-  const escapedSummary = escapeHtml(summary);
-  const html = `
-    <div class="summary-block-label">Summary at ${wordCount} words</div>
-    <div class="summary-block-text">${escapedSummary}</div>`;
+function insertSummaryBlock(summary, summaryKo, wordCount) {
+  const label = `Summary at ${wordCount} words`;
 
-  // Insert into Live Transcript tab
-  const block = document.createElement('div');
-  block.className = 'summary-block';
-  block.innerHTML = html;
-  dom.transcriptContent.insertBefore(block, dom.committedSpan);
+  function makeBlock(text) {
+    const block = document.createElement('div');
+    block.className = 'summary-block';
+    block.innerHTML = `
+      <div class="summary-block-label">${escapeHtml(label)}</div>
+      <div class="summary-block-text">${escapeHtml(text)}</div>`;
+    return block;
+  }
+
+  // Append at bottom of Live Transcript tab
+  dom.transcriptContent.appendChild(makeBlock(summary));
   dom.transcriptBox.scrollTop = dom.transcriptBox.scrollHeight;
 
-  // Insert into Live Translate tab (English side)
-  const blockEn = document.createElement('div');
-  blockEn.className = 'summary-block';
-  blockEn.innerHTML = html;
-  dom.translateContentEn.insertBefore(blockEn, dom.translateCommittedEn);
+  // Append at bottom of Live Translate tab (English side)
+  dom.translateContentEn.appendChild(makeBlock(summary));
   dom.translateScrollEn.scrollTop = dom.translateScrollEn.scrollHeight;
 
-  // Insert into Live Translate tab (Korean side)
-  const blockKo = document.createElement('div');
-  blockKo.className = 'summary-block';
-  blockKo.innerHTML = html;
-  dom.translateContentKo.insertBefore(blockKo, dom.translateCommittedKo);
+  // Append at bottom of Live Translate tab (Korean side — Korean summary)
+  dom.translateContentKo.appendChild(makeBlock(summaryKo || summary));
   dom.translateScrollKo.scrollTop = dom.translateScrollKo.scrollHeight;
 }
 
