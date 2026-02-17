@@ -83,8 +83,6 @@ function init() {
     audioSource: document.getElementById('audio-source'),
     copyBtn: document.getElementById('copy-btn'),
     tabLive: document.getElementById('tab-live'),
-    tabReview: document.getElementById('tab-review'),
-    reviewBox: document.getElementById('review-box'),
     tabTranslate: document.getElementById('tab-translate'),
     translateBox: document.getElementById('translate-box'),
     translateCommittedEn: document.getElementById('translate-committed-en'),
@@ -100,7 +98,6 @@ function init() {
   dom.micBtn.addEventListener('click', handleMicClick);
   dom.copyBtn.addEventListener('click', handleCopyClick);
   dom.tabLive.addEventListener('click', () => setActiveTab('live'));
-  dom.tabReview.addEventListener('click', () => setActiveTab('review'));
   dom.tabTranslate.addEventListener('click', () => setActiveTab('translate'));
 
   // Initial state
@@ -113,11 +110,9 @@ function init() {
  */
 function setActiveTab(tab) {
   dom.transcriptBox.classList.toggle('hidden', tab !== 'live');
-  dom.reviewBox.classList.toggle('hidden', tab !== 'review');
   dom.translateBox.classList.toggle('hidden', tab !== 'translate');
 
   updateTabButton(dom.tabLive, tab === 'live');
-  updateTabButton(dom.tabReview, tab === 'review');
   updateTabButton(dom.tabTranslate, tab === 'translate');
 }
 

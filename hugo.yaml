@@ -24,10 +24,6 @@ languages:
           name: "Review"
           url: "/reviews/"
           weight: 25
-        - identifier: demo
-          name: "Demo"
-          url: "/demo/"
-          weight: 5
         - identifier: search
           name: "Search"
           url: "/search/"
