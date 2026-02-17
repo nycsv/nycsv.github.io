@@ -8,8 +8,8 @@
 // Fixed server URL
 const SERVER_URL = 'wss://ai.eesungkim.com/ws';
 
-// Summarization endpoint
-const SUMMARIZE_URL = 'http://localhost:8100/summarize';
+// Pending summarization callback (resolved when server replies)
+let summarizeCallback = null;
 
 // State machine
 const State = {
@@ -276,6 +276,10 @@ function handleWebSocketMessage(event) {
 
     case 'final':
       handleFinalResult(data);
+      break;
+
+    case 'summary':
+      handleSummaryResult(data);
       break;
 
     default:
@@ -893,35 +897,33 @@ async function handleSummarizeClick() {
 }
 
 /**
- * Request summarization from server
+ * Request summarization via WebSocket
  */
-async function requestSummarization(text) {
+function requestSummarization(text) {
   if (summarizationInFlight) return;
-  summarizationInFlight = true;
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
 
+  summarizationInFlight = true;
   const wordCount = text.split(/\s+/).filter(Boolean).length;
 
-  try {
-    const resp = await fetch(SUMMARIZE_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
-    });
+  ws.send(JSON.stringify({
+    type: 'summarize',
+    text: text,
+    word_count: wordCount,
+  }));
+}
 
-    if (!resp.ok) {
-      console.error('Summarization failed:', resp.status);
-      return;
-    }
+/**
+ * Handle summary response from server
+ */
+function handleSummaryResult(data) {
+  summarizationInFlight = false;
+  const summary = data.summary || '';
+  const wordCount = data.word_count || 0;
 
-    const data = await resp.json();
-    if (data.summary) {
-      insertSummaryBlock(data.summary, wordCount);
-      lastSummarizedWordCount = wordCount;
-    }
-  } catch (err) {
-    console.error('Summarization error:', err);
-  } finally {
-    summarizationInFlight = false;
+  if (summary) {
+    insertSummaryBlock(summary, wordCount);
+    lastSummarizedWordCount = wordCount;
   }
 }
 
