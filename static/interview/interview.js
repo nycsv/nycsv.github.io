@@ -375,13 +375,14 @@ Rules:
     const cpp_kw    = /\b(int|long|double|float|bool|char|void|auto|const|static|return|if|else|for|while|do|try|catch|throw|class|struct|namespace|using|new|delete|nullptr|true|false|break|continue|public|private|protected|virtual|override|template|typename)\b/g;
 
     const strings   = /(&#34;(?:[^&]|&(?!#34;))*?&#34;|&#39;(?:[^&]|&(?!#39;))*?&#39;|`(?:[^`])*?`)/g;
-    const comments  = /(#[^\n]*|\/\/[^\n]*|\/\*[\s\S]*?\*\/)/g;
+    // Fix: Use negative lookahead to avoid matching HTML entities like &#34;
+    const comments  = /(#(?!\d+;)[^\n]*|\/\/[^\n]*|\/\*[\s\S]*?\*\/)/g;
     const numbers   = /\b(\d+(?:\.\d+)?)\b/g;
     const decorators= /(@\w+)/g;
 
-    // Apply in order: comments first (to avoid re-highlighting inside them)
-    escaped = escaped.replace(comments,  '<span class="sh-comment">$1</span>');
+    // Apply in order: strings first, then comments (to avoid re-highlighting inside them)
     escaped = escaped.replace(strings,   '<span class="sh-string">$1</span>');
+    escaped = escaped.replace(comments,  '<span class="sh-comment">$1</span>');
     escaped = escaped.replace(decorators,'<span class="sh-decorator">$1</span>');
 
     if (lang === 'python') {
