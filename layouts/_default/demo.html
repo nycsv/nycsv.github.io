@@ -30,6 +30,7 @@
     }
   </script>
   <link rel="stylesheet" href="{{ .Site.BaseURL }}/demo/demo.css">
+  <link rel="stylesheet" href="{{ .Site.BaseURL }}/interview/interview.css">
 </head>
 
 <body class="bg-background-dark font-display text-slate-100 antialiased overflow-hidden"
@@ -115,6 +116,9 @@
           <button id="tab-interpreter"
             class="px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-white hover:border-slate-500 transition-colors">
             Interpreter</button>
+          <button id="tab-interview"
+            class="px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-white hover:border-slate-500 transition-colors">
+            Interview</button>
           <div class="ml-auto flex items-center gap-1">
             <button id="summarize-btn" title="Summarize transcript"
               class="flex items-center justify-center w-6 h-6 rounded text-slate-500 hover:text-amber-400 hover:bg-amber-400/10 transition-all">
@@ -209,6 +213,91 @@
           </div>
         </div>
 
+        <!-- Interview Panel (split: transcript + AI assistant) -->
+        <div id="interview-box" class="flex-1 overflow-hidden hidden">
+          <div class="h-full flex">
+
+            <!-- Left: Live Transcript Mirror -->
+            <div class="interview-transcript-pane flex flex-col border-r border-border-subtle/70">
+              <div class="flex items-center justify-between px-4 py-2 border-b border-border-subtle/50 shrink-0">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-slate-400 text-[16px]">mic</span>
+                  <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Live Transcript</span>
+                </div>
+              </div>
+              <div id="interview-transcript-scroll" class="flex-1 overflow-y-auto px-4 py-4 custom-scrollbar">
+                <div id="interview-transcript-text" class="text-slate-300 leading-relaxed text-sm font-medium whitespace-pre-wrap break-words"></div>
+                <div id="interview-transcript-partial" class="text-slate-500 italic text-sm font-medium"></div>
+                <div id="interview-transcript-placeholder" class="flex flex-col items-center justify-center h-48 text-center space-y-3">
+                  <span class="material-symbols-outlined text-primary/40 text-3xl">record_voice_over</span>
+                  <p class="text-slate-600 text-xs">Start recording to see transcript</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: AI Interview Assistant -->
+            <div class="flex-1 flex flex-col min-w-0">
+
+              <!-- API Key + Controls bar -->
+              <div class="flex items-center gap-2 px-4 py-2 border-b border-border-subtle/50 shrink-0 flex-wrap">
+                <span class="material-symbols-outlined text-primary text-[16px]">smart_toy</span>
+                <span class="text-[10px] font-bold text-primary/70 uppercase tracking-widest hidden sm:inline">AI Assistant</span>
+                <div class="h-4 w-px bg-border-subtle hidden sm:block"></div>
+                <input id="interview-api-key"
+                  type="password"
+                  placeholder="Anthropic API Key (sk-ant-...)"
+                  class="flex-1 min-w-0 bg-background-dark border border-border-subtle rounded px-2 py-1 text-xs text-slate-300 placeholder-slate-600 focus:outline-none focus:border-primary font-mono" />
+                <select id="interview-model"
+                  class="bg-background-dark border border-border-subtle rounded px-2 py-1 text-xs text-slate-400 focus:outline-none focus:border-primary cursor-pointer shrink-0">
+                  <option value="claude-sonnet-4-6">Sonnet 4.6</option>
+                  <option value="claude-opus-4-6">Opus 4.6</option>
+                  <option value="claude-haiku-4-5-20251001">Haiku 4.5</option>
+                </select>
+                <button id="interview-analyze-btn"
+                  class="flex items-center gap-1.5 bg-primary hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0">
+                  <span class="material-symbols-outlined text-[14px]" id="interview-analyze-icon">psychology</span>
+                  <span id="interview-analyze-label">Analyze</span>
+                </button>
+                <button id="interview-clear-btn" title="Clear results"
+                  class="flex items-center justify-center w-6 h-6 rounded text-slate-600 hover:text-slate-400 hover:bg-white/5 transition-all shrink-0">
+                  <span class="material-symbols-outlined text-[15px]">delete_sweep</span>
+                </button>
+              </div>
+
+              <!-- AI Response Area -->
+              <div id="interview-response-scroll" class="flex-1 overflow-y-auto px-4 py-4 custom-scrollbar">
+
+                <!-- Placeholder -->
+                <div id="interview-placeholder" class="flex flex-col items-center justify-center h-full text-center space-y-4 py-12">
+                  <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center ring-4 ring-primary/5">
+                    <span class="material-symbols-outlined text-primary text-3xl">code_blocks</span>
+                  </div>
+                  <div>
+                    <p class="text-slate-400 text-sm font-medium">Coding Interview Assistant</p>
+                    <p class="text-slate-600 text-xs mt-1">Enter your API key, then click Analyze to solve the problem<br>described in the live transcript</p>
+                  </div>
+                  <div class="flex flex-col gap-2 text-xs text-slate-600 mt-2">
+                    <div class="flex items-center gap-2"><span class="material-symbols-outlined text-[14px] text-primary/50">check_circle</span>Algorithm & Data Structure problems</div>
+                    <div class="flex items-center gap-2"><span class="material-symbols-outlined text-[14px] text-primary/50">check_circle</span>ML System Design questions</div>
+                    <div class="flex items-center gap-2"><span class="material-symbols-outlined text-[14px] text-primary/50">check_circle</span>Time & Space complexity analysis</div>
+                  </div>
+                </div>
+
+                <!-- Thinking indicator -->
+                <div id="interview-thinking" class="hidden flex flex-col items-center justify-center h-32 gap-3">
+                  <div class="interview-spinner"></div>
+                  <p class="text-slate-500 text-xs">Analyzing problem...</p>
+                </div>
+
+                <!-- Response content (injected by JS) -->
+                <div id="interview-response-content" class="hidden space-y-4"></div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+
         <!-- Interpreter Panel (sentence-by-sentence) -->
         <div id="interpreter-box" class="flex-1 overflow-hidden hidden">
           <div id="interpreter-scroll" class="h-full overflow-y-auto px-4 py-4 md:px-8 md:py-6 custom-scrollbar">
@@ -280,6 +369,8 @@
 
   <!-- Main application script -->
   <script src="{{ .Site.BaseURL }}/demo/demo.js"></script>
+  <!-- Interview assistant script -->
+  <script src="{{ .Site.BaseURL }}/interview/interview.js"></script>
 
 </body>
 
