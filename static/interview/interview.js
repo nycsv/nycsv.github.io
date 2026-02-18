@@ -363,42 +363,105 @@ Rules:
   }
 
   // ──────────────────────────────────────────────
-  // Minimal syntax highlighter (Python / JS / Java / C++)
+  // Tokenizer-based syntax highlighter
+  // Works on RAW (unescaped) code to avoid HTML entity conflicts.
+  // Tokenizes into strings, comments, decorators, keywords, numbers, and plain code,
+  // then escapes each token individually before wrapping with <span>.
   // ──────────────────────────────────────────────
+
+  const LANG_KEYWORDS = {
+    python: {
+      kw: new Set('def,return,if,elif,else,for,while,in,not,and,or,import,from,class,pass,break,continue,yield,lambda,with,as,try,except,finally,raise,None,True,False,self,is,del,global,nonlocal,assert'.split(',')),
+      bi: new Set('print,len,range,int,str,float,list,dict,set,tuple,bool,type,enumerate,zip,map,filter,sorted,min,max,sum,abs,round,open,any,all,isinstance,hasattr,getattr,setattr,append,extend,pop,insert,remove,keys,values,items,get,update'.split(',')),
+    },
+    javascript: {
+      kw: new Set('function,return,if,else,for,while,let,const,var,new,this,class,extends,import,export,from,default,async,await,try,catch,finally,throw,typeof,instanceof,in,of,null,undefined,true,false,break,continue'.split(',')),
+    },
+    java: {
+      kw: new Set('public,private,protected,static,void,int,long,double,float,boolean,char,byte,short,class,interface,extends,implements,new,return,if,else,for,while,do,try,catch,finally,throw,throws,import,package,this,super,null,true,false,break,continue,final,abstract,enum'.split(',')),
+    },
+    cpp: {
+      kw: new Set('int,long,double,float,bool,char,void,auto,const,static,return,if,else,for,while,do,try,catch,throw,class,struct,namespace,using,new,delete,nullptr,true,false,break,continue,public,private,protected,virtual,override,template,typename'.split(',')),
+    },
+  };
+
+  // Master tokenizer regex — order matters: earlier alternatives win.
+  // Groups: 1=triple-dq-string, 2=triple-sq-string, 3=dq-string, 4=sq-string,
+  //         5=block-comment, 6=line-comment(// or #), 7=decorator,
+  //         8=word, 9=number, 10=other
+  const TOKEN_RE = /"""[\s\S]*?"""|'''[\s\S]*?'''|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|\/\*[\s\S]*?\*\/|\/\/[^\n]*|#[^\n]*|@\w+|\b[a-zA-Z_]\w*\b|\b\d+(?:\.\d+)?\b|[^\s]/g;
+
   function syntaxHighlight(code, lang) {
-    let escaped = escapeHtml(code);
+    const langDef = LANG_KEYWORDS[lang] || {};
+    const kwSet = langDef.kw || new Set();
+    const biSet = langDef.bi || new Set();
 
-    const python_kw = /\b(def|return|if|elif|else|for|while|in|not|and|or|import|from|class|pass|break|continue|yield|lambda|with|as|try|except|finally|raise|None|True|False|self|is|del|global|nonlocal|assert)\b/g;
-    const python_bi = /\b(print|len|range|int|str|float|list|dict|set|tuple|bool|type|enumerate|zip|map|filter|sorted|min|max|sum|abs|round|open|any|all|isinstance|hasattr|getattr|setattr|append|extend|pop|insert|remove|keys|values|items|get|update)\b/g;
-    const js_kw     = /\b(function|return|if|else|for|while|let|const|var|new|this|class|extends|import|export|from|default|async|await|try|catch|finally|throw|typeof|instanceof|in|of|null|undefined|true|false|break|continue)\b/g;
-    const java_kw   = /\b(public|private|protected|static|void|int|long|double|float|boolean|char|byte|short|class|interface|extends|implements|new|return|if|else|for|while|do|try|catch|finally|throw|throws|import|package|this|super|null|true|false|break|continue|final|abstract|enum)\b/g;
-    const cpp_kw    = /\b(int|long|double|float|bool|char|void|auto|const|static|return|if|else|for|while|do|try|catch|throw|class|struct|namespace|using|new|delete|nullptr|true|false|break|continue|public|private|protected|virtual|override|template|typename)\b/g;
+    const parts = [];
 
-    const strings   = /(&#34;(?:[^&]|&(?!#34;))*?&#34;|&#39;(?:[^&]|&(?!#39;))*?&#39;|`(?:[^`])*?`)/g;
-    // Fix: Use negative lookahead to avoid matching HTML entities like &#34;
-    const comments  = /(#(?!\d+;)[^\n]*|\/\/[^\n]*|\/\*[\s\S]*?\*\/)/g;
-    const numbers   = /\b(\d+(?:\.\d+)?)\b/g;
-    const decorators= /(@\w+)/g;
+    let match;
+    let lastIndex = 0;
 
-    // Apply in order: strings first, then comments (to avoid re-highlighting inside them)
-    escaped = escaped.replace(strings,   '<span class="sh-string">$1</span>');
-    escaped = escaped.replace(comments,  '<span class="sh-comment">$1</span>');
-    escaped = escaped.replace(decorators,'<span class="sh-decorator">$1</span>');
+    // Reset regex state
+    TOKEN_RE.lastIndex = 0;
 
-    if (lang === 'python') {
-      escaped = escaped.replace(python_kw, '<span class="sh-keyword">$1</span>');
-      escaped = escaped.replace(python_bi, '<span class="sh-builtin">$1</span>');
-    } else if (lang === 'javascript') {
-      escaped = escaped.replace(js_kw, '<span class="sh-keyword">$1</span>');
-    } else if (lang === 'java') {
-      escaped = escaped.replace(java_kw, '<span class="sh-keyword">$1</span>');
-    } else if (lang === 'cpp') {
-      escaped = escaped.replace(cpp_kw, '<span class="sh-keyword">$1</span>');
+    while ((match = TOKEN_RE.exec(code)) !== null) {
+      // Emit any whitespace / gap between tokens
+      if (match.index > lastIndex) {
+        parts.push(escapeHtml(code.slice(lastIndex, match.index)));
+      }
+      lastIndex = TOKEN_RE.lastIndex;
+
+      const tok = match[0];
+      const first = tok[0];
+      const first2 = tok.slice(0, 2);
+      const first3 = tok.slice(0, 3);
+
+      // Triple-quoted strings
+      if (first3 === '"""' || first3 === "'''") {
+        parts.push('<span class="sh-string">' + escapeHtml(tok) + '</span>');
+      }
+      // Double/single-quoted strings
+      else if ((first === '"' || first === "'") && tok.length > 1) {
+        parts.push('<span class="sh-string">' + escapeHtml(tok) + '</span>');
+      }
+      // Block comments
+      else if (first2 === '/*') {
+        parts.push('<span class="sh-comment">' + escapeHtml(tok) + '</span>');
+      }
+      // Line comments (// or #)
+      else if (first2 === '//' || first === '#') {
+        parts.push('<span class="sh-comment">' + escapeHtml(tok) + '</span>');
+      }
+      // Decorators
+      else if (first === '@') {
+        parts.push('<span class="sh-decorator">' + escapeHtml(tok) + '</span>');
+      }
+      // Words (identifiers / keywords)
+      else if (/^[a-zA-Z_]/.test(first)) {
+        if (kwSet.has(tok)) {
+          parts.push('<span class="sh-keyword">' + escapeHtml(tok) + '</span>');
+        } else if (biSet.has(tok)) {
+          parts.push('<span class="sh-builtin">' + escapeHtml(tok) + '</span>');
+        } else {
+          parts.push(escapeHtml(tok));
+        }
+      }
+      // Numbers
+      else if (/^\d/.test(first)) {
+        parts.push('<span class="sh-number">' + escapeHtml(tok) + '</span>');
+      }
+      // Everything else (operators, punctuation)
+      else {
+        parts.push(escapeHtml(tok));
+      }
     }
 
-    escaped = escaped.replace(numbers, '<span class="sh-number">$1</span>');
+    // Trailing whitespace
+    if (lastIndex < code.length) {
+      parts.push(escapeHtml(code.slice(lastIndex)));
+    }
 
-    return escaped;
+    return parts.join('');
   }
 
   // ──────────────────────────────────────────────
