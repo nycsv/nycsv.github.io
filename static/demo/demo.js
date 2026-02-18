@@ -115,6 +115,8 @@ function init() {
     interpreterPlaceholder: document.getElementById('interpreter-placeholder'),
     tabInterview: document.getElementById('tab-interview'),
     interviewBox: document.getElementById('interview-box'),
+    tabInterview2: document.getElementById('tab-interview2'),
+    interview2Box: document.getElementById('interview2-box'),
   };
 
   // Attach event listeners
@@ -128,6 +130,7 @@ function init() {
   dom.tabTranslate.addEventListener('click', () => setActiveTab('translate'));
   dom.tabInterpreter.addEventListener('click', () => setActiveTab('interpreter'));
   dom.tabInterview.addEventListener('click', () => setActiveTab('interview'));
+  dom.tabInterview2.addEventListener('click', () => setActiveTab('interview2'));
 
   // Initial state
   setActiveTab('live');
@@ -142,11 +145,13 @@ function setActiveTab(tab) {
   dom.translateBox.classList.toggle('hidden', tab !== 'translate');
   dom.interpreterBox.classList.toggle('hidden', tab !== 'interpreter');
   dom.interviewBox.classList.toggle('hidden', tab !== 'interview');
+  dom.interview2Box.classList.toggle('hidden', tab !== 'interview2');
 
   updateTabButton(dom.tabLive, tab === 'live');
   updateTabButton(dom.tabTranslate, tab === 'translate');
   updateTabButton(dom.tabInterpreter, tab === 'interpreter');
   updateTabButton(dom.tabInterview, tab === 'interview');
+  updateTabButton(dom.tabInterview2, tab === 'interview2');
 }
 
 function updateTabButton(button, isActive) {
