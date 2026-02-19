@@ -289,7 +289,7 @@ body::after {
   color: #475569;
 }
 .interp-header:last-child {
-  color: rgba(91, 43, 238, 0.4);
+  color: rgba(56, 189, 248, 0.6);
 }
 @media (min-width: 768px) {
   .interp-header { padding: 6px 32px; }
@@ -337,8 +337,8 @@ body::after {
   min-width: 20px;
   height: 18px;
   border-radius: 5px;
-  background: rgba(91, 43, 238, 0.1);
-  color: rgba(124, 58, 237, 0.7);
+  background: rgba(125, 211, 252, 0.1);
+  color: rgba(125, 211, 252, 0.8);
   font-size: 10px;
   font-weight: 700;
   margin-right: 8px;
@@ -347,8 +347,8 @@ body::after {
   flex-shrink: 0;
 }
 .interpreter-row-num--pending {
-  background: rgba(91, 43, 238, 0.05);
-  color: rgba(91, 43, 238, 0.3);
+  background: rgba(125, 211, 252, 0.05);
+  color: rgba(125, 211, 252, 0.3);
 }
 
 /* ─── Interpreter text styles ─── */
@@ -362,7 +362,7 @@ body::after {
   font-size: 0.9rem;
   font-weight: 500;
   line-height: 1.6;
-  color: rgba(124, 58, 237, 0.8);
+  color: #7dd3fc;
 }
 .interp-text-dim {
   font-size: 0.9rem;
@@ -374,7 +374,7 @@ body::after {
   font-size: 0.9rem;
   font-weight: 500;
   line-height: 1.6;
-  color: rgba(124, 58, 237, 0.5);
+  color: rgba(125, 211, 252, 0.45);
 }
 .interp-text-partial {
   font-size: 0.9rem;
@@ -387,7 +387,7 @@ body::after {
   font-size: 0.9rem;
   font-weight: 500;
   line-height: 1.6;
-  color: rgba(124, 58, 237, 0.35);
+  color: rgba(125, 211, 252, 0.35);
   font-style: italic;
 }
 
@@ -450,7 +450,7 @@ body::after {
 
 /* ─── Panel dividers with gradient ─── */
 .divider-gradient {
-  background: linear-gradient(to bottom, transparent, rgba(91, 43, 238, 0.2) 50%, transparent);
+  background: linear-gradient(to bottom, transparent, rgba(56, 189, 248, 0.15) 50%, transparent);
 }
 
 /* ─── Icon button hover effect ─── */
