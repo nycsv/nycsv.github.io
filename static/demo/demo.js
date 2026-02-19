@@ -145,6 +145,8 @@ function init() {
   dom.summarizeBtn.addEventListener('click', handleSummarizeClick);
   dom.summarizeBtnTranslate.addEventListener('click', handleSummarizeClick);
   dom.summarizeBtnInterpreter.addEventListener('click', handleSummarizeClick);
+  document.getElementById('summary-btn-transcript-footer')?.addEventListener('click', handleSummarizeClick);
+  document.getElementById('summary-btn-translate-footer')?.addEventListener('click', handleSummarizeClick);
   dom.copyBtnEn.addEventListener('click', () => handleTranslateCopy(dom.copyBtnEn, () => committedText + partialText));
   dom.copyBtnKo.addEventListener('click', () => handleTranslateCopy(dom.copyBtnKo, () => translationCommitted + translationPartial));
   dom.tabLive.addEventListener('click', () => setActiveTab('live'));
