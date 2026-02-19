@@ -393,26 +393,25 @@ body::after {
 
 /* ─── Inline summary block ─── */
 .summary-block {
-  background: rgba(245, 158, 11, 0.04);
-  border: 1px solid rgba(245, 158, 11, 0.12);
-  border-left: 3px solid rgba(245, 158, 11, 0.5);
-  border-radius: 12px;
-  padding: 14px 18px;
-  margin: 20px 0;
+  background: rgba(245, 158, 11, 0.06);
+  border: 1px solid rgba(245, 158, 11, 0.15);
+  border-radius: 8px;
+  padding: 16px 18px;
+  margin: 32px 0 24px 0;
   backdrop-filter: blur(8px);
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 .summary-block:hover {
-  background: rgba(245, 158, 11, 0.06);
-  border-left-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.25);
 }
 .summary-block-label {
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 9px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: rgba(245, 158, 11, 0.6);
-  margin-bottom: 8px;
+  letter-spacing: 0.15em;
+  color: rgba(245, 158, 11, 0.7);
+  margin-bottom: 10px;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -420,15 +419,16 @@ body::after {
 .summary-block-label::before {
   content: '';
   display: inline-block;
-  width: 4px;
-  height: 4px;
+  width: 3px;
+  height: 3px;
   border-radius: 50%;
   background: #f59e0b;
 }
 .summary-block-text {
-  font-size: 13px;
-  line-height: 1.7;
-  color: #cbd5e1;
+  font-size: 14px;
+  line-height: 1.75;
+  color: #f1f5f9;
+  letter-spacing: 0.3px;
 }
 
 /* ─── Footer connection bars ─── */
