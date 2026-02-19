@@ -7,8 +7,10 @@
   <title>{{ .Title }} - {{ .Site.Title }}</title>
   <meta name="description" content="Real-time speech recognition demo - Stream audio from your microphone">
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
     rel="stylesheet">
   <link rel="icon" type="image/x-icon" href="{{ .Site.BaseURL }}/favicon.ico">
   <script>
@@ -18,9 +20,12 @@
         extend: {
           colors: {
             "primary": "#5b2bee",
-            "background-dark": "#0b0b0c",
-            "surface": "#161618",
-            "border-subtle": "#2c2839",
+            "primary-light": "#7c3aed",
+            "background-dark": "#0a0a0c",
+            "surface": "#111113",
+            "surface-raised": "#18181b",
+            "border-subtle": "#1e1b2e",
+            "border-glow": "rgba(91,43,238,0.15)",
           },
           fontFamily: {
             "display": ["Inter", "sans-serif"]
@@ -43,196 +48,252 @@
 
       <!-- Error Message -->
       <div id="error-message"
-        class="asr-error-message hidden px-6 py-3 bg-red-500/10 border-b border-red-500/30 text-red-400 text-xs font-medium">
+        class="asr-error-message hidden px-6 py-3 bg-red-500/10 border-b border-red-500/30 text-red-400 text-xs font-semibold tracking-wide">
       </div>
 
-      <!-- Compact Control Header -->
+      <!-- ═══════════════════ Top Header Bar ═══════════════════ -->
       <header
-        class="h-16 border-b border-border-subtle bg-surface/30 px-4 md:px-6 flex items-center justify-between z-10 shrink-0">
-        <div class="flex items-center gap-2 md:gap-4">
-          <!-- Connect button + status -->
+        class="glass-strong border-b border-border-subtle px-4 md:px-6 py-3 flex items-center justify-between z-10 shrink-0">
+
+        <!-- Left: Brand + Connect + Mic -->
+        <div class="flex items-center gap-3 md:gap-4">
+
+          <!-- Brand mark -->
+          <div class="hidden md:flex items-center gap-2.5 pr-4 border-r border-border-subtle">
+            <div
+              class="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shadow-lg shadow-primary/20">
+              <span class="material-symbols-outlined text-white text-[18px]"
+                style="font-variation-settings: 'FILL' 1">graphic_eq</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-sm font-bold text-white tracking-tight leading-none">ASR Studio</span>
+              <span class="text-[9px] font-semibold text-slate-500 uppercase tracking-widest leading-none mt-0.5">Real-time</span>
+            </div>
+          </div>
+
+          <!-- Connect button -->
           <button id="connect-btn"
-            class="flex items-center gap-1.5 bg-primary hover:bg-primary/90 text-white text-sm font-bold px-3 py-2 rounded-lg transition-all">
+            class="btn-primary flex items-center gap-1.5 text-white text-sm font-bold px-4 py-2 rounded-xl">
             <span class="material-symbols-outlined text-[18px]">power_settings_new</span>
             <span class="hidden sm:inline">Connect</span>
           </button>
+
+          <!-- Status indicator -->
           <div class="flex items-center gap-1.5">
             <span class="asr-status-dot idle" id="status-dot"></span>
-            <span id="status-text" class="text-xs text-slate-500 hidden sm:inline">Disconnected</span>
+            <span id="status-text" class="text-[11px] text-slate-500 font-medium hidden sm:inline">Disconnected</span>
           </div>
+
           <div class="h-6 w-px bg-border-subtle"></div>
+
           <!-- Mic button -->
           <button id="mic-btn"
-            class="asr-mic-button flex items-center gap-2 bg-primary text-white p-2 sm:px-4 sm:py-2 rounded-lg text-sm font-bold hover:bg-primary/90 transition-all shadow-md shadow-primary/10 disabled:opacity-40 disabled:cursor-not-allowed"
+            class="asr-mic-button btn-primary flex items-center gap-2 text-white p-2 sm:px-5 sm:py-2 rounded-xl text-sm font-bold shadow-lg shadow-primary/15 disabled:opacity-30 disabled:cursor-not-allowed disabled:shadow-none"
             disabled>
             <span class="material-symbols-outlined text-[22px]" id="mic-icon">mic</span>
             <span id="mic-label" class="hidden sm:inline">Connect first</span>
           </button>
-          <div class="h-6 w-px bg-border-subtle hidden md:block"></div>
-          <div class="hidden md:flex items-center gap-4 text-slate-400">
-            <div class="flex items-center gap-2">
+
+          <!-- Mic status & latency badges -->
+          <div class="hidden lg:flex items-center gap-2">
+            <div class="stat-badge flex items-center gap-1.5">
               <span id="mic-ready-dot" class="w-2 h-2 rounded-full bg-slate-600"></span>
-              <span id="mic-ready-text" class="text-xs font-medium">Mic: Standby</span>
+              <span id="mic-ready-text" class="text-[10px] font-semibold text-slate-400">Mic: Standby</span>
             </div>
-            <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-[16px]">speed</span>
-              <span class="text-xs font-medium"><span id="stat-latency">-</span> latency</span>
+            <div class="stat-badge flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[14px] text-primary-light/60">speed</span>
+              <span class="text-[10px] font-semibold text-slate-400"><span id="stat-latency">-</span></span>
             </div>
           </div>
         </div>
-        <div class="flex items-center gap-2">
+
+        <!-- Right: Audio source + Waveform -->
+        <div class="flex items-center gap-3">
           <!-- Audio source dropdown -->
           <select id="audio-source"
-            class="bg-background-dark border border-border-subtle rounded-lg px-2 py-1.5 text-xs font-medium text-slate-300 focus:outline-none focus:border-primary cursor-pointer">
+            class="bg-background-dark/80 border border-border-subtle rounded-xl px-3 py-1.5 text-[11px] font-semibold text-slate-300 focus:outline-none focus:border-primary/50 cursor-pointer transition-all">
             <option value="mic">Microphone</option>
             <option value="system">System Audio</option>
             <option value="both">Both</option>
           </select>
+
           <!-- Mini waveform visualizer -->
           <div id="waveform"
-            class="flex items-end gap-0.5 bg-background-dark/50 border border-border-subtle px-3 py-1.5 rounded-lg h-10">
-            <div class="waveform-bar-mini w-1 h-2 bg-slate-600 rounded-full"></div>
-            <div class="waveform-bar-mini w-1 h-4 bg-slate-500 rounded-full"></div>
-            <div class="waveform-bar-mini w-1 h-2 bg-slate-600 rounded-full"></div>
-            <div class="waveform-bar-mini w-1 h-3 bg-slate-500 rounded-full"></div>
-            <div class="waveform-bar-mini w-1 h-5 bg-primary rounded-full"></div>
-            <div class="waveform-bar-mini w-1 h-3 bg-slate-500 rounded-full"></div>
-            <div class="waveform-bar-mini w-1 h-4 bg-slate-600 rounded-full"></div>
+            class="flex items-end gap-[3px] bg-background-dark/60 border border-border-subtle px-3 py-2 rounded-xl h-10">
+            <div class="waveform-bar-mini w-[3px] h-2 bg-slate-700 rounded-full"></div>
+            <div class="waveform-bar-mini w-[3px] h-4 bg-slate-600 rounded-full"></div>
+            <div class="waveform-bar-mini w-[3px] h-2 bg-slate-700 rounded-full"></div>
+            <div class="waveform-bar-mini w-[3px] h-3 bg-slate-600 rounded-full"></div>
+            <div class="waveform-bar-mini w-[3px] h-5 bg-primary/50 rounded-full"></div>
+            <div class="waveform-bar-mini w-[3px] h-3 bg-slate-600 rounded-full"></div>
+            <div class="waveform-bar-mini w-[3px] h-4 bg-slate-700 rounded-full"></div>
           </div>
         </div>
       </header>
 
-      <!-- Transcript Focus Area -->
+      <!-- ═══════════════════ Content Area ═══════════════════ -->
       <div class="flex-1 flex flex-col bg-background-dark relative overflow-hidden">
 
-        <!-- Tabs -->
-        <div class="flex items-center px-4 md:px-8 border-b border-border-subtle/50 bg-background-dark/50 shrink-0">
-          <button id="tab-live"
-            class="px-4 py-3 text-xs font-bold border-b-2 border-primary text-primary transition-colors">Live
-            Transcript</button>
-          <button id="tab-translate"
-            class="px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-white hover:border-slate-500 transition-colors">Live
-            Translate</button>
-          <button id="tab-interpreter"
-            class="px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-white hover:border-slate-500 transition-colors">
-            Interpreter</button>
-          <button id="tab-interview"
-            class="px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-white hover:border-slate-500 transition-colors hidden">
-            Interview</button>
-          <button id="tab-interview2"
-            class="px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-white hover:border-slate-500 transition-colors hidden">
-            Interview2</button>
-          <div class="ml-auto flex items-center gap-1">
+        <!-- Tab Navigation -->
+        <div
+          class="flex items-center px-4 md:px-8 border-b border-border-subtle/40 bg-surface/40 shrink-0">
+          <div class="flex items-center gap-1">
+            <button id="tab-live"
+              class="tab-btn tab-active px-4 py-3 text-xs font-bold text-primary transition-colors">Live
+              Transcript</button>
+            <button id="tab-translate"
+              class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors">Live
+              Translate</button>
+            <button id="tab-interpreter"
+              class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors">
+              Interpreter</button>
+            <button id="tab-interview"
+              class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors hidden">
+              Interview</button>
+            <button id="tab-interview2"
+              class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors hidden">
+              Interview2</button>
+          </div>
+          <div class="ml-auto flex items-center gap-1.5">
             <button id="summarize-btn" title="Summarize transcript"
-              class="flex items-center justify-center w-6 h-6 rounded text-slate-500 hover:text-amber-400 hover:bg-amber-400/10 transition-all">
-              <span class="material-symbols-outlined text-[15px]">summarize</span>
+              class="icon-btn flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:text-amber-400 hover:bg-amber-400/10 transition-all">
+              <span class="material-symbols-outlined text-[16px]">summarize</span>
             </button>
             <button id="copy-btn" title="Copy transcript"
-              class="flex items-center justify-center w-6 h-6 rounded text-slate-500 hover:text-white hover:bg-white/10 transition-all">
-              <span class="material-symbols-outlined text-[15px]">content_copy</span>
+              class="icon-btn flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:text-white hover:bg-white/10 transition-all">
+              <span class="material-symbols-outlined text-[16px]">content_copy</span>
             </button>
           </div>
         </div>
 
-        <!-- Live Transcript Container -->
-        <div id="transcript-box" class="flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-8 relative custom-scrollbar">
+        <!-- ─── Live Transcript Container ─── -->
+        <div id="transcript-box" class="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-8 relative custom-scrollbar">
 
-          <!-- Session start marker (hidden until recording starts) -->
-          <div id="session-marker" class="hidden flex items-center justify-center gap-4 py-4 mb-6">
-            <div class="h-px flex-1 bg-border-subtle"></div>
+          <!-- Session start marker -->
+          <div id="session-marker" class="hidden flex items-center justify-center gap-4 py-4 mb-8">
+            <div class="h-px flex-1 bg-gradient-to-r from-transparent via-border-subtle to-transparent"></div>
             <span id="session-marker-time"
-              class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Session Started</span>
-            <div class="h-px flex-1 bg-border-subtle"></div>
+              class="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em] px-3 py-1 rounded-full bg-surface border border-border-subtle">Session
+              Started</span>
+            <div class="h-px flex-1 bg-gradient-to-r from-transparent via-border-subtle to-transparent"></div>
           </div>
 
           <!-- Transcript content -->
           <div class="max-w-4xl mx-auto">
             <div id="transcript-content" class="space-y-2">
               <span id="transcript-committed"
-                class="text-slate-100 leading-relaxed text-base md:text-lg font-medium"></span><span
+                class="text-slate-100 leading-[1.8] text-base md:text-lg font-medium"></span><span
                 id="transcript-partial"
-                class="text-slate-500 leading-relaxed text-base md:text-lg font-medium italic"></span><span
+                class="text-slate-500 leading-[1.8] text-base md:text-lg font-medium italic"></span><span
                 id="transcript-cursor" class="asr-transcript-cursor"></span>
             </div>
+
             <!-- Placeholder -->
             <div id="transcript-placeholder"
-              class="flex flex-col items-center justify-center h-64 text-center space-y-4">
-              <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center ring-4 ring-primary/5">
-                <span class="material-symbols-outlined text-primary text-3xl">mic_none</span>
+              class="flex flex-col items-center justify-center h-72 text-center space-y-5">
+              <div
+                class="w-20 h-20 rounded-2xl gradient-primary flex items-center justify-center shadow-xl shadow-primary/20 placeholder-ring">
+                <span class="material-symbols-outlined text-white text-4xl">mic_none</span>
               </div>
               <div>
-                <p class="text-slate-400 text-sm font-medium">Connect to a server and start transcribing</p>
-                <p class="text-slate-600 text-xs mt-1">Transcription will appear here in real-time</p>
+                <p class="text-slate-300 text-sm font-semibold">Ready to transcribe</p>
+                <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Connect to the server and click the mic
+                  button<br>to start real-time speech recognition</p>
+              </div>
+              <div class="flex items-center gap-6 mt-2">
+                <div class="flex items-center gap-1.5 text-slate-600">
+                  <span class="material-symbols-outlined text-[14px] text-primary/40">translate</span>
+                  <span class="text-[10px] font-semibold">Translation</span>
+                </div>
+                <div class="flex items-center gap-1.5 text-slate-600">
+                  <span class="material-symbols-outlined text-[14px] text-primary/40">interpreter_mode</span>
+                  <span class="text-[10px] font-semibold">Interpreter</span>
+                </div>
+                <div class="flex items-center gap-1.5 text-slate-600">
+                  <span class="material-symbols-outlined text-[14px] text-primary/40">summarize</span>
+                  <span class="text-[10px] font-semibold">Summary</span>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Bottom gradient -->
-          <div class="fixed bottom-10 left-0 right-0 h-16 transcript-gradient pointer-events-none z-10">
-          </div>
+          <div class="fixed bottom-10 left-0 right-0 h-16 transcript-gradient pointer-events-none z-10"></div>
         </div>
 
-        <!-- Live Translate Panel -->
+        <!-- ─── Live Translate Panel ─── -->
         <div id="translate-box" class="flex-1 overflow-hidden hidden">
           <div class="h-full flex">
-            <!-- English transcript (left side) -->
-            <div id="translate-scroll-en" class="flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-6 custom-scrollbar border-r border-border-subtle/70">
-              <div class="flex items-center justify-between mb-3">
+            <!-- English transcript -->
+            <div id="translate-scroll-en"
+              class="flex-1 overflow-y-auto px-4 py-5 md:px-8 md:py-6 custom-scrollbar border-r border-border-subtle/30">
+              <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-slate-400 text-[16px]">translate</span>
-                  <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">English</span>
+                  <div
+                    class="w-6 h-6 rounded-md bg-slate-800 flex items-center justify-center border border-slate-700/50">
+                    <span class="material-symbols-outlined text-slate-400 text-[14px]">translate</span>
+                  </div>
+                  <span class="section-label text-slate-500">English</span>
                 </div>
                 <button id="copy-btn-en" title="Copy English text"
-                  class="flex items-center justify-center w-6 h-6 rounded text-slate-500 hover:text-white hover:bg-white/10 transition-all">
+                  class="icon-btn flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:text-white hover:bg-white/10 transition-all">
                   <span class="material-symbols-outlined text-[15px]">content_copy</span>
                 </button>
               </div>
               <div id="translate-content-en" class="space-y-2">
                 <span id="translate-committed-en"
-                  class="text-slate-100 leading-relaxed text-base md:text-lg font-medium"></span><span
+                  class="text-slate-100 leading-[1.8] text-base md:text-lg font-medium"></span><span
                   id="translate-partial-en"
-                  class="text-slate-500 leading-relaxed text-base md:text-lg font-medium italic"></span>
+                  class="text-slate-500 leading-[1.8] text-base md:text-lg font-medium italic"></span>
               </div>
             </div>
-            <!-- Korean translation (right side) -->
-            <div id="translate-scroll-ko" class="flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-6 custom-scrollbar">
-              <div class="flex items-center justify-between mb-3">
+            <!-- Gradient divider -->
+            <div class="w-px divider-gradient"></div>
+            <!-- Korean translation -->
+            <div id="translate-scroll-ko"
+              class="flex-1 overflow-y-auto px-4 py-5 md:px-8 md:py-6 custom-scrollbar">
+              <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-primary text-[16px]">g_translate</span>
-                  <span class="text-[10px] font-bold text-primary/70 uppercase tracking-widest">Korean Translation</span>
+                  <div
+                    class="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center border border-primary/15">
+                    <span class="material-symbols-outlined text-primary-light text-[14px]">g_translate</span>
+                  </div>
+                  <span class="section-label text-primary/60">Korean Translation</span>
                 </div>
                 <button id="copy-btn-ko" title="Copy Korean translation"
-                  class="flex items-center justify-center w-6 h-6 rounded text-slate-500 hover:text-primary/80 hover:bg-primary/10 transition-all">
+                  class="icon-btn flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:text-primary/80 hover:bg-primary/10 transition-all">
                   <span class="material-symbols-outlined text-[15px]">content_copy</span>
                 </button>
               </div>
               <div id="translate-content-ko" class="space-y-2">
                 <span id="translate-committed-ko"
-                  class="text-slate-100 leading-relaxed text-base md:text-lg font-medium"></span><span
+                  class="text-slate-100 leading-[1.8] text-base md:text-lg font-medium"></span><span
                   id="translate-partial-ko"
-                  class="text-primary/70 leading-relaxed text-base md:text-lg font-medium italic"></span>
+                  class="text-primary/60 leading-[1.8] text-base md:text-lg font-medium italic"></span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Interview Panel (split: transcript + AI assistant) -->
+        <!-- ─── Interview Panel ─── -->
         <div id="interview-box" class="flex-1 overflow-hidden hidden">
           <div class="h-full flex">
-
             <!-- Left: Live Transcript Mirror -->
-            <div class="interview-transcript-pane flex flex-col border-r border-border-subtle/70">
-              <div class="flex items-center justify-between px-4 py-2 border-b border-border-subtle/50 shrink-0">
+            <div class="interview-transcript-pane flex flex-col border-r border-border-subtle/30">
+              <div
+                class="flex items-center justify-between px-4 py-2.5 border-b border-border-subtle/30 shrink-0 bg-surface/30">
                 <div class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-slate-400 text-[16px]">mic</span>
-                  <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Live Transcript</span>
+                  <span class="material-symbols-outlined text-slate-500 text-[16px]">mic</span>
+                  <span class="section-label text-slate-500">Live Transcript</span>
                 </div>
               </div>
               <div id="interview-transcript-scroll" class="flex-1 overflow-y-auto px-4 py-4 custom-scrollbar">
-                <div id="interview-transcript-text" class="text-slate-300 leading-relaxed text-sm font-medium whitespace-pre-wrap break-words"></div>
+                <div id="interview-transcript-text"
+                  class="text-slate-300 leading-relaxed text-sm font-medium whitespace-pre-wrap break-words"></div>
                 <div id="interview-transcript-partial" class="text-slate-500 italic text-sm font-medium"></div>
-                <div id="interview-transcript-placeholder" class="flex flex-col items-center justify-center h-48 text-center space-y-3">
-                  <span class="material-symbols-outlined text-primary/40 text-3xl">record_voice_over</span>
+                <div id="interview-transcript-placeholder"
+                  class="flex flex-col items-center justify-center h-48 text-center space-y-3">
+                  <span class="material-symbols-outlined text-primary/30 text-3xl">record_voice_over</span>
                   <p class="text-slate-600 text-xs">Start recording to see transcript</p>
                 </div>
               </div>
@@ -240,187 +301,193 @@
 
             <!-- Right: AI Interview Assistant -->
             <div class="flex-1 flex flex-col min-w-0">
-
               <!-- API Key + Controls bar -->
-              <div class="flex items-center gap-2 px-4 py-2 border-b border-border-subtle/50 shrink-0 flex-wrap">
-                <span class="material-symbols-outlined text-primary text-[16px]">smart_toy</span>
-                <span class="text-[10px] font-bold text-primary/70 uppercase tracking-widest hidden sm:inline">AI Assistant</span>
+              <div
+                class="flex items-center gap-2 px-4 py-2.5 border-b border-border-subtle/30 shrink-0 flex-wrap bg-surface/30">
+                <div class="w-6 h-6 rounded-md gradient-primary flex items-center justify-center shrink-0">
+                  <span class="material-symbols-outlined text-white text-[14px]">smart_toy</span>
+                </div>
+                <span class="section-label text-primary/60 hidden sm:inline">AI Assistant</span>
                 <div class="h-4 w-px bg-border-subtle hidden sm:block"></div>
-                <input id="interview-api-key"
-                  type="password"
-                  placeholder="Anthropic API Key (sk-ant-...)"
-                  class="flex-1 min-w-0 bg-background-dark border border-border-subtle rounded px-2 py-1 text-xs text-slate-300 placeholder-slate-600 focus:outline-none focus:border-primary font-mono" />
+                <input id="interview-api-key" type="password" placeholder="Anthropic API Key (sk-ant-...)"
+                  class="flex-1 min-w-0 bg-background-dark/80 border border-border-subtle rounded-lg px-3 py-1.5 text-xs text-slate-300 placeholder-slate-600 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 font-mono transition-all" />
                 <select id="interview-model"
-                  class="bg-background-dark border border-border-subtle rounded px-2 py-1 text-xs text-slate-400 focus:outline-none focus:border-primary cursor-pointer shrink-0">
+                  class="bg-background-dark/80 border border-border-subtle rounded-lg px-2 py-1.5 text-xs text-slate-400 focus:outline-none focus:border-primary/50 cursor-pointer shrink-0 transition-all">
                   <option value="claude-sonnet-4-6">Sonnet 4.6</option>
                   <option value="claude-opus-4-6">Opus 4.6</option>
                   <option value="claude-haiku-4-5-20251001">Haiku 4.5</option>
                 </select>
                 <button id="interview-analyze-btn"
-                  class="flex items-center gap-1.5 bg-primary hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0">
+                  class="btn-primary flex items-center gap-1.5 text-white text-xs font-bold px-4 py-1.5 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed shrink-0">
                   <span class="material-symbols-outlined text-[14px]" id="interview-analyze-icon">psychology</span>
                   <span id="interview-analyze-label">Analyze</span>
                 </button>
                 <button id="interview-clear-btn" title="Clear results"
-                  class="flex items-center justify-center w-6 h-6 rounded text-slate-600 hover:text-slate-400 hover:bg-white/5 transition-all shrink-0">
+                  class="icon-btn flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:text-slate-400 hover:bg-white/5 transition-all shrink-0">
                   <span class="material-symbols-outlined text-[15px]">delete_sweep</span>
                 </button>
               </div>
 
               <!-- AI Response Area -->
               <div id="interview-response-scroll" class="flex-1 overflow-y-auto px-4 py-4 custom-scrollbar">
-
-                <!-- Placeholder -->
-                <div id="interview-placeholder" class="flex flex-col items-center justify-center h-full text-center space-y-4 py-12">
-                  <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center ring-4 ring-primary/5">
-                    <span class="material-symbols-outlined text-primary text-3xl">code_blocks</span>
+                <div id="interview-placeholder"
+                  class="flex flex-col items-center justify-center h-full text-center space-y-5 py-12">
+                  <div
+                    class="w-20 h-20 rounded-2xl gradient-primary flex items-center justify-center shadow-xl shadow-primary/20 placeholder-ring">
+                    <span class="material-symbols-outlined text-white text-4xl">code_blocks</span>
                   </div>
                   <div>
-                    <p class="text-slate-400 text-sm font-medium">Coding Interview Assistant</p>
-                    <p class="text-slate-600 text-xs mt-1">Enter your API key, then click Analyze to solve the problem<br>described in the live transcript</p>
+                    <p class="text-slate-300 text-sm font-semibold">Coding Interview Assistant</p>
+                    <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Enter your API key, then click Analyze to
+                      solve<br>the problem described in the live transcript</p>
                   </div>
-                  <div class="flex flex-col gap-2 text-xs text-slate-600 mt-2">
-                    <div class="flex items-center gap-2"><span class="material-symbols-outlined text-[14px] text-primary/50">check_circle</span>Algorithm & Data Structure problems</div>
-                    <div class="flex items-center gap-2"><span class="material-symbols-outlined text-[14px] text-primary/50">check_circle</span>ML System Design questions</div>
-                    <div class="flex items-center gap-2"><span class="material-symbols-outlined text-[14px] text-primary/50">check_circle</span>Time & Space complexity analysis</div>
+                  <div class="flex flex-col gap-2.5 text-xs text-slate-500 mt-2">
+                    <div class="flex items-center gap-2"><span
+                        class="material-symbols-outlined text-[14px] text-primary/50">check_circle</span>Algorithm &
+                      Data Structure problems</div>
+                    <div class="flex items-center gap-2"><span
+                        class="material-symbols-outlined text-[14px] text-primary/50">check_circle</span>ML System
+                      Design questions</div>
+                    <div class="flex items-center gap-2"><span
+                        class="material-symbols-outlined text-[14px] text-primary/50">check_circle</span>Time & Space
+                      complexity analysis</div>
                   </div>
                 </div>
-
-                <!-- Thinking indicator -->
                 <div id="interview-thinking" class="hidden flex flex-col items-center justify-center h-32 gap-3">
                   <div class="interview-spinner"></div>
-                  <p class="text-slate-500 text-xs">Analyzing problem...</p>
+                  <p class="text-slate-500 text-xs font-medium">Analyzing problem...</p>
                 </div>
-
-                <!-- Response content (injected by JS) -->
                 <div id="interview-response-content" class="hidden space-y-4"></div>
-
               </div>
             </div>
-
           </div>
         </div>
 
-        <!-- Interview2 Panel (local Qwen model — same layout as Interview) -->
+        <!-- ─── Interview2 Panel (local LLM) ─── -->
         <div id="interview2-box" class="flex-1 overflow-hidden hidden">
           <div class="h-full flex">
-
             <!-- Left: Live Transcript Mirror -->
-            <div class="interview-transcript-pane flex flex-col border-r border-border-subtle/70">
-              <div class="flex items-center justify-between px-4 py-2 border-b border-border-subtle/50 shrink-0">
+            <div class="interview-transcript-pane flex flex-col border-r border-border-subtle/30">
+              <div
+                class="flex items-center justify-between px-4 py-2.5 border-b border-border-subtle/30 shrink-0 bg-surface/30">
                 <div class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-slate-400 text-[16px]">mic</span>
-                  <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Live Transcript</span>
+                  <span class="material-symbols-outlined text-slate-500 text-[16px]">mic</span>
+                  <span class="section-label text-slate-500">Live Transcript</span>
                 </div>
               </div>
               <div id="interview2-transcript-scroll" class="flex-1 overflow-y-auto px-4 py-4 custom-scrollbar">
-                <div id="interview2-transcript-text" class="text-slate-300 leading-relaxed text-sm font-medium whitespace-pre-wrap break-words"></div>
+                <div id="interview2-transcript-text"
+                  class="text-slate-300 leading-relaxed text-sm font-medium whitespace-pre-wrap break-words"></div>
                 <div id="interview2-transcript-partial" class="text-slate-500 italic text-sm font-medium"></div>
-                <div id="interview2-transcript-placeholder" class="flex flex-col items-center justify-center h-48 text-center space-y-3">
-                  <span class="material-symbols-outlined text-primary/40 text-3xl">record_voice_over</span>
+                <div id="interview2-transcript-placeholder"
+                  class="flex flex-col items-center justify-center h-48 text-center space-y-3">
+                  <span class="material-symbols-outlined text-primary/30 text-3xl">record_voice_over</span>
                   <p class="text-slate-600 text-xs">Start recording to see transcript</p>
                 </div>
               </div>
             </div>
 
-            <!-- Right: AI Interview Assistant (Local Qwen) -->
+            <!-- Right: Local LLM Assistant -->
             <div class="flex-1 flex flex-col min-w-0">
-
-              <!-- Server URL + Controls bar -->
-              <div class="flex items-center gap-2 px-4 py-2 border-b border-border-subtle/50 shrink-0 flex-wrap">
-                <span class="material-symbols-outlined text-emerald-400 text-[16px]">memory</span>
-                <span class="text-[10px] font-bold text-emerald-400/70 uppercase tracking-widest hidden sm:inline">Local LLM</span>
+              <!-- Server URL + Controls -->
+              <div
+                class="flex items-center gap-2 px-4 py-2.5 border-b border-border-subtle/30 shrink-0 flex-wrap bg-surface/30">
+                <div
+                  class="w-6 h-6 rounded-md bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shrink-0">
+                  <span class="material-symbols-outlined text-white text-[14px]">memory</span>
+                </div>
+                <span class="section-label text-emerald-400/60 hidden sm:inline">Local LLM</span>
                 <div class="h-4 w-px bg-border-subtle hidden sm:block"></div>
-                <input id="interview2-server-url"
-                  type="text"
+                <input id="interview2-server-url" type="text"
                   placeholder="Server URL (e.g. https://ai.eesungkim.com)"
-                  class="flex-1 min-w-0 bg-background-dark border border-border-subtle rounded px-2 py-1 text-xs text-slate-300 placeholder-slate-600 focus:outline-none focus:border-primary font-mono" />
+                  class="flex-1 min-w-0 bg-background-dark/80 border border-border-subtle rounded-lg px-3 py-1.5 text-xs text-slate-300 placeholder-slate-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 font-mono transition-all" />
                 <button id="interview2-analyze-btn"
-                  class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0">
+                  class="btn-emerald flex items-center gap-1.5 text-white text-xs font-bold px-4 py-1.5 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed shrink-0">
                   <span class="material-symbols-outlined text-[14px]" id="interview2-analyze-icon">psychology</span>
                   <span id="interview2-analyze-label">Analyze</span>
                 </button>
                 <button id="interview2-clear-btn" title="Clear results"
-                  class="flex items-center justify-center w-6 h-6 rounded text-slate-600 hover:text-slate-400 hover:bg-white/5 transition-all shrink-0">
+                  class="icon-btn flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:text-slate-400 hover:bg-white/5 transition-all shrink-0">
                   <span class="material-symbols-outlined text-[15px]">delete_sweep</span>
                 </button>
               </div>
 
               <!-- AI Response Area -->
               <div id="interview2-response-scroll" class="flex-1 overflow-y-auto px-4 py-4 custom-scrollbar">
-
-                <!-- Placeholder -->
-                <div id="interview2-placeholder" class="flex flex-col items-center justify-center h-full text-center space-y-4 py-12">
-                  <div class="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center ring-4 ring-emerald-500/5">
-                    <span class="material-symbols-outlined text-emerald-400 text-3xl">code_blocks</span>
+                <div id="interview2-placeholder"
+                  class="flex flex-col items-center justify-center h-full text-center space-y-5 py-12">
+                  <div
+                    class="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-xl shadow-emerald-500/20 placeholder-ring">
+                    <span class="material-symbols-outlined text-white text-4xl">code_blocks</span>
                   </div>
                   <div>
-                    <p class="text-slate-400 text-sm font-medium">Local LLM Interview Assistant</p>
-                    <p class="text-slate-600 text-xs mt-1">Uses Qwen2.5-Coder-7B running on local GPU<br>Click Analyze to solve the problem in the transcript</p>
+                    <p class="text-slate-300 text-sm font-semibold">Local LLM Interview Assistant</p>
+                    <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Uses Qwen2.5-Coder-7B running on local
+                      GPU<br>Click Analyze to solve the problem in the transcript</p>
                   </div>
-                  <div class="flex flex-col gap-2 text-xs text-slate-600 mt-2">
-                    <div class="flex items-center gap-2"><span class="material-symbols-outlined text-[14px] text-emerald-500/50">check_circle</span>Algorithm & Data Structure problems</div>
-                    <div class="flex items-center gap-2"><span class="material-symbols-outlined text-[14px] text-emerald-500/50">check_circle</span>ML System Design questions</div>
-                    <div class="flex items-center gap-2"><span class="material-symbols-outlined text-[14px] text-emerald-500/50">check_circle</span>No API key required — runs locally</div>
+                  <div class="flex flex-col gap-2.5 text-xs text-slate-500 mt-2">
+                    <div class="flex items-center gap-2"><span
+                        class="material-symbols-outlined text-[14px] text-emerald-500/50">check_circle</span>Algorithm
+                      & Data Structure problems</div>
+                    <div class="flex items-center gap-2"><span
+                        class="material-symbols-outlined text-[14px] text-emerald-500/50">check_circle</span>ML System
+                      Design questions</div>
+                    <div class="flex items-center gap-2"><span
+                        class="material-symbols-outlined text-[14px] text-emerald-500/50">check_circle</span>No API key
+                      required — runs locally</div>
                   </div>
                 </div>
-
-                <!-- Thinking indicator -->
                 <div id="interview2-thinking" class="hidden flex flex-col items-center justify-center h-32 gap-3">
                   <div class="interview-spinner"></div>
-                  <p class="text-slate-500 text-xs">Analyzing problem (local model)...</p>
+                  <p class="text-slate-500 text-xs font-medium">Analyzing problem (local model)...</p>
                 </div>
-
-                <!-- Response content (injected by JS) -->
                 <div id="interview2-response-content" class="hidden space-y-4"></div>
-
               </div>
             </div>
-
           </div>
         </div>
 
-        <!-- Interpreter Panel (sentence-by-sentence) -->
+        <!-- ─── Interpreter Panel ─── -->
         <div id="interpreter-box" class="flex-1 overflow-hidden hidden">
-          <div id="interpreter-scroll" class="h-full overflow-y-auto px-4 py-4 md:px-8 md:py-6 custom-scrollbar">
+          <div id="interpreter-scroll" class="h-full overflow-y-auto px-4 py-5 md:px-8 md:py-6 custom-scrollbar">
             <div id="interpreter-rows" class="max-w-4xl mx-auto space-y-3">
-              <!-- Rows are dynamically inserted by JS -->
+              <!-- Rows dynamically inserted by JS -->
             </div>
-            <!-- Placeholder shown when empty -->
-            <div id="interpreter-placeholder" class="flex flex-col items-center justify-center h-64 text-center space-y-4">
-              <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center ring-4 ring-primary/5">
-                <span class="material-symbols-outlined text-primary text-3xl">interpreter_mode</span>
+            <div id="interpreter-placeholder"
+              class="flex flex-col items-center justify-center h-72 text-center space-y-5">
+              <div
+                class="w-20 h-20 rounded-2xl gradient-primary flex items-center justify-center shadow-xl shadow-primary/20 placeholder-ring">
+                <span class="material-symbols-outlined text-white text-4xl">interpreter_mode</span>
               </div>
               <div>
-                <p class="text-slate-400 text-sm font-medium">Sentence-by-sentence translation</p>
-                <p class="text-slate-600 text-xs mt-1">Each sentence appears as a paired card</p>
+                <p class="text-slate-300 text-sm font-semibold">Sentence-by-sentence translation</p>
+                <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Each sentence appears as a paired card
+                  with<br>source and translation side by side</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Status Bar Footer -->
+      <!-- ═══════════════════ Status Bar Footer ═══════════════════ -->
       <footer
-        class="h-10 bg-surface border-t border-border-subtle px-3 md:px-6 flex items-center justify-between text-slate-500 shrink-0">
-        <div class="hidden md:flex items-center gap-6">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-[16px]">schedule</span>
-            <span class="text-xs font-medium">Duration: <span id="stat-duration">-</span></span>
+        class="glass-strong border-t border-border-subtle px-3 md:px-6 py-2 flex items-center justify-between text-slate-500 shrink-0">
+        <div class="hidden md:flex items-center gap-3">
+          <div class="stat-badge flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[14px] text-slate-500">schedule</span>
+            <span class="text-[10px] font-semibold"><span id="stat-duration">-</span></span>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-[16px]">stacked_bar_chart</span>
-            <span class="text-xs font-medium">Buffer: <span id="stat-buffer">-</span></span>
+          <div class="stat-badge flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[14px] text-slate-500">stacked_bar_chart</span>
+            <span class="text-[10px] font-semibold">Buffer: <span id="stat-buffer">-</span></span>
           </div>
         </div>
-        <div class="flex items-center gap-4">
-          <div class="flex items-center gap-2">
-            <span class="text-[10px] font-bold uppercase tracking-widest" id="stat-status">IDLE</span>
-            <div class="flex gap-0.5" id="status-footer-dot">
-              <div class="w-1 h-2 bg-slate-600 rounded-full"></div>
-              <div class="w-1 h-3 bg-slate-600 rounded-full"></div>
-              <div class="w-1 h-4 bg-slate-600 rounded-full"></div>
-            </div>
+        <div class="flex items-center gap-3">
+          <span class="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-600" id="stat-status">IDLE</span>
+          <div class="flex gap-[3px]" id="status-footer-dot">
+            <div class="w-1 h-2 bg-slate-700 rounded-full transition-all duration-300"></div>
+            <div class="w-1 h-3 bg-slate-700 rounded-full transition-all duration-300"></div>
+            <div class="w-1 h-4 bg-slate-700 rounded-full transition-all duration-300"></div>
           </div>
         </div>
       </footer>

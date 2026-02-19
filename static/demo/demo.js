@@ -155,10 +155,9 @@ function setActiveTab(tab) {
 }
 
 function updateTabButton(button, isActive) {
+  button.classList.toggle('tab-active', isActive);
   button.classList.toggle('text-primary', isActive);
-  button.classList.toggle('border-primary', isActive);
-  button.classList.toggle('text-slate-400', !isActive);
-  button.classList.toggle('border-transparent', !isActive);
+  button.classList.toggle('text-slate-500', !isActive);
 }
 
 /**
@@ -758,14 +757,14 @@ function updateUI() {
     dom.connectBtn.querySelector('.material-symbols-outlined').textContent = 'power_settings_new';
     if (btnTextSpan) btnTextSpan.textContent = i18n.btnConnect || 'Connect';
     dom.connectBtn.disabled = currentState === State.CONNECTING;
-    dom.connectBtn.classList.remove('bg-red-500/80', 'hover:bg-red-500');
-    dom.connectBtn.classList.add('bg-primary', 'hover:bg-primary/90');
+    dom.connectBtn.classList.remove('btn-danger');
+    dom.connectBtn.classList.add('btn-primary');
   } else {
     dom.connectBtn.querySelector('.material-symbols-outlined').textContent = 'power_settings_new';
     if (btnTextSpan) btnTextSpan.textContent = i18n.btnDisconnect || 'Disconnect';
     dom.connectBtn.disabled = currentState === State.RECORDING || currentState === State.STOPPING;
-    dom.connectBtn.classList.remove('bg-primary', 'hover:bg-primary/90');
-    dom.connectBtn.classList.add('bg-red-500/80', 'hover:bg-red-500');
+    dom.connectBtn.classList.remove('btn-primary');
+    dom.connectBtn.classList.add('btn-danger');
   }
 
   // Mic button
@@ -789,8 +788,8 @@ function updateUI() {
       dom.micReadyText.textContent = 'Microphone Ready';
     } else {
       dom.micLabel.textContent = i18n.micLabelConnect || 'Connect first';
-      dom.micReadyDot.className = 'w-2 h-2 rounded-full bg-white/30';
-      dom.micReadyText.textContent = 'Microphone Standby';
+      dom.micReadyDot.className = 'w-2 h-2 rounded-full bg-slate-600';
+      dom.micReadyText.textContent = 'Mic: Standby';
     }
   }
 
