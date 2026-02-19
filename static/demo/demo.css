@@ -391,32 +391,17 @@ body::after {
   font-style: italic;
 }
 
-/* ─── Summary footer (fixed at bottom of panels) ─── */
+/* ─── Summary footer (pinned at panel bottom, outside scroll area) ─── */
 #summary-footer-transcript,
 #summary-footer-translate {
-  background: linear-gradient(to top, rgba(10, 10, 12, 0.98) 0%, rgba(10, 10, 12, 0.9) 100%);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(17, 17, 19, 0.96);
   border-top: 1px solid rgba(100, 116, 139, 0.1);
-  z-index: 30;
-}
-
-#summary-footer-transcript {
-  max-width: 56rem;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 #summary-content-transcript,
 #summary-content-translate {
-  transition: opacity 0.2s ease;
   color: #f1f5f9;
   word-break: break-word;
-}
-
-#summary-content-transcript,
-#summary-content-translate {
-  display: block;
 }
 
 #summary-footer-transcript.hidden,

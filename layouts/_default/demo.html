@@ -239,25 +239,26 @@
               </div>
             </div>
 
-            <!-- Summary Footer -->
-            <div id="summary-footer-transcript" class="hidden sticky bottom-0 mt-16 pt-4 pb-3 border-t border-border-subtle/15">
-              <div class="flex items-center justify-between gap-2 mb-2">
-                <div class="flex items-center gap-2 shrink-0">
-                  <span class="material-symbols-outlined text-slate-400 text-[16px]">mic</span>
-                  <span class="text-[9px] font-bold text-slate-500 uppercase tracking-[0.12em]">Live Transcript</span>
-                </div>
-                <button id="summary-btn-transcript-footer" title="Regenerate summary"
-                  class="icon-btn flex items-center justify-center w-6 h-6 rounded-lg text-slate-600 hover:text-amber-400 hover:bg-amber-400/10 transition-all shrink-0">
-                  <span class="material-symbols-outlined text-[14px]">summarize</span>
-                </button>
-              </div>
-              <div id="summary-content-transcript" class="text-slate-100 leading-[1.8] text-base md:text-lg font-medium"></div>
-            </div>
           </div>
 
           <!-- Bottom gradient -->
           <div class="fixed bottom-10 left-0 right-0 h-16 transcript-gradient pointer-events-none z-10"></div>
           </div><!-- end transcript-box -->
+
+          <!-- Summary Footer: outside scroll area, fixed at panel bottom -->
+          <div id="summary-footer-transcript" class="hidden shrink-0 px-4 md:px-8 pt-4 pb-3 border-t border-border-subtle/15">
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-slate-400 text-[16px]">mic</span>
+                <span class="text-[9px] font-bold text-slate-500 uppercase tracking-[0.12em]">Live Transcript</span>
+              </div>
+              <button id="summary-btn-transcript-footer" title="Regenerate summary"
+                class="icon-btn flex items-center justify-center w-6 h-6 rounded-lg text-slate-600 hover:text-amber-400 hover:bg-amber-400/10 transition-all shrink-0">
+                <span class="material-symbols-outlined text-[14px]">summarize</span>
+              </button>
+            </div>
+            <div id="summary-content-transcript" class="text-slate-100 leading-[1.8] text-base md:text-lg font-medium"></div>
+          </div>
         </div><!-- end transcript-panel -->
 
         <!-- ─── Live Translate Panel ─── -->
@@ -327,7 +328,7 @@
             </div>
           </div>
           <!-- Summary Footer -->
-          <div id="summary-footer-translate" class="hidden sticky bottom-0 px-4 md:px-8 py-4 border-t border-border-subtle/15">
+          <div id="summary-footer-translate" class="hidden shrink-0 px-4 md:px-8 py-4 border-t border-border-subtle/15">
             <div class="flex items-center justify-between gap-3 mb-2">
               <div class="flex items-center gap-3 shrink-0">
                 <div class="flex items-center gap-1.5">
