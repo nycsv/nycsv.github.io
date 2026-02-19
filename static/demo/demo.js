@@ -123,6 +123,10 @@ function init() {
     interpreterJumpBtn: document.getElementById('interpreter-jump-btn'),
     interpreterCountBadge: document.getElementById('interpreter-count-badge'),
     interpreterCopyBtn: document.getElementById('interpreter-copy-btn'),
+    summaryFooterTranscript: document.getElementById('summary-footer-transcript'),
+    summaryContentTranscript: document.getElementById('summary-content-transcript'),
+    summaryFooterTranslate: document.getElementById('summary-footer-translate'),
+    summaryContentTranslate: document.getElementById('summary-content-translate'),
     tabInterview: document.getElementById('tab-interview'),
     interviewBox: document.getElementById('interview-box'),
     tabInterview2: document.getElementById('tab-interview2'),
@@ -709,6 +713,13 @@ async function startRecording() {
     translationPartial = '';
     lastSummarizedWordCount = 0;
     summarizationInFlight = false;
+
+    // Hide summary footers
+    dom.summaryContentTranscript.classList.add('hidden');
+    dom.summaryFooterTranscript.classList.add('hidden');
+    dom.summaryContentTranslate.classList.add('hidden');
+    dom.summaryFooterTranslate.classList.add('hidden');
+
     updateTranscript();
 
     // Reset interpreter
@@ -1163,33 +1174,18 @@ function handleSummaryResult(data) {
 }
 
 /**
- * Insert a summary block at the bottom of the transcript and translate panels,
- * replacing any previously generated summary block.
+ * Display summary in the footer of transcript and translate panels
  */
 function insertSummaryBlock(summary, wordCount) {
-  const label = `Summary at ${wordCount} words`;
+  // Display summary in Live Transcript footer
+  dom.summaryContentTranscript.textContent = summary;
+  dom.summaryContentTranscript.classList.remove('hidden');
+  dom.summaryFooterTranscript.classList.remove('hidden');
 
-  function makeBlock() {
-    const block = document.createElement('div');
-    block.className = 'summary-block';
-    block.innerHTML = `
-      <div class="summary-block-label">${escapeHtml(label)}</div>
-      <div class="summary-block-text">${escapeHtml(summary)}</div>`;
-    return block;
-  }
-
-  function replaceSummary(container, scrollEl) {
-    const existing = container.querySelector('.summary-block');
-    if (existing) existing.remove();
-    container.appendChild(makeBlock());
-    scrollEl.scrollTop = scrollEl.scrollHeight;
-  }
-
-  // Replace summary in Live Transcript tab
-  replaceSummary(dom.transcriptContent, dom.transcriptBox);
-
-  // Replace summary in Live Translate tab (English side only — no summary on Korean side)
-  replaceSummary(dom.translateContentEn, dom.translateScrollEn);
+  // Display summary in Live Translate footer
+  dom.summaryContentTranslate.textContent = summary;
+  dom.summaryContentTranslate.classList.remove('hidden');
+  dom.summaryFooterTranslate.classList.remove('hidden');
 }
 
 /**
