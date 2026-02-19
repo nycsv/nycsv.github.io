@@ -441,6 +441,7 @@ function handleWebSocketMessage(event) {
 function handleCommittedText(data) {
   const newText = data.text || '';
   committedText += newText;
+  partialText = '';  // Clear partial — committed text replaces it
   updateTranscript();
 
   // Auto-summarize every ~200 words
@@ -1147,14 +1148,13 @@ function addInterpreterRow(source, translation) {
   interpreterSentenceCount++;
 
   const row = document.createElement('div');
-  row.className = 'interpreter-row flex';
+  row.className = 'interpreter-row';
   row.innerHTML = `
-    <div class="flex-1 px-4 md:px-8 py-3 border-r border-border-subtle/15">
-      <span class="interpreter-row-num">${interpreterSentenceCount}</span>
-      <span class="interpreter-src text-slate-200 text-sm md:text-base font-medium leading-relaxed">${escapeHtml(source)}</span>
+    <div class="interp-col-en">
+      <span class="interpreter-row-num">${interpreterSentenceCount}</span><span class="interpreter-src">${escapeHtml(source)}</span>
     </div>
-    <div class="flex-1 px-4 md:px-8 py-3">
-      <span class="interpreter-tl text-primary/80 text-sm md:text-base font-medium leading-relaxed">${escapeHtml(translation)}</span>
+    <div class="interp-col-ko">
+      <span class="interpreter-tl">${escapeHtml(translation)}</span>
     </div>`;
 
   dom.interpreterRows.appendChild(row);
@@ -1173,17 +1173,16 @@ function updateInterpreterBuffering(source, translation) {
 
   if (!pending) {
     pending = document.createElement('div');
-    pending.className = 'interpreter-row interpreter-pending flex';
+    pending.className = 'interpreter-row interpreter-pending';
     dom.interpreterRows.appendChild(pending);
   }
 
   pending.innerHTML = `
-    <div class="flex-1 px-4 md:px-8 py-3 border-r border-border-subtle/10">
-      <span class="interpreter-row-num interpreter-row-num--pending">…</span>
-      <span class="text-slate-400 text-sm md:text-base font-medium leading-relaxed">${escapeHtml(source)}</span>
+    <div class="interp-col-en">
+      <span class="interpreter-row-num interpreter-row-num--pending">…</span><span class="interp-text-dim">${escapeHtml(source)}</span>
     </div>
-    <div class="flex-1 px-4 md:px-8 py-3">
-      <span class="text-primary/50 text-sm md:text-base font-medium leading-relaxed">${escapeHtml(translation)}</span>
+    <div class="interp-col-ko">
+      <span class="interp-text-ko-dim">${escapeHtml(translation)}</span>
     </div>`;
 
   if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'none';
@@ -1209,12 +1208,11 @@ function updateInterpreterPending(source, translation) {
   }
 
   pending.innerHTML = `
-    <div class="flex-1 px-4 md:px-8 py-3 border-r border-border-subtle/10">
-      <span class="interpreter-row-num interpreter-row-num--pending">~</span>
-      <span class="text-slate-500 text-sm md:text-base font-medium leading-relaxed italic">${escapeHtml(source)}</span>
+    <div class="interp-col-en">
+      <span class="interpreter-row-num interpreter-row-num--pending">~</span><span class="interp-text-partial">${escapeHtml(source)}</span>
     </div>
-    <div class="flex-1 px-4 md:px-8 py-3">
-      <span class="text-primary/35 text-sm md:text-base font-medium leading-relaxed italic">${escapeHtml(translation)}</span>
+    <div class="interp-col-ko">
+      <span class="interp-text-ko-partial">${escapeHtml(translation)}</span>
     </div>`;
 
   if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'none';

@@ -464,7 +464,7 @@
         </div>
 
         <!-- ─── Interpreter Panel ─── -->
-        <div id="interpreter-box" class="flex-1 overflow-hidden hidden relative flex flex-col">
+        <div id="interpreter-box" class="flex-1 overflow-hidden hidden relative">
           <!-- Interpreter toolbar -->
           <div class="flex items-center justify-between px-4 md:px-8 py-2 border-b border-border-subtle/30 bg-surface/30 shrink-0">
             <div class="flex items-center gap-2">
@@ -487,13 +487,9 @@
             </div>
           </div>
           <!-- Column headers -->
-          <div class="flex border-b border-border-subtle/20 shrink-0">
-            <div class="flex-1 px-4 md:px-8 py-1.5 border-r border-border-subtle/20">
-              <span class="section-label text-slate-600">Source (EN)</span>
-            </div>
-            <div class="flex-1 px-4 md:px-8 py-1.5">
-              <span class="section-label text-primary/40">Translation (KO)</span>
-            </div>
+          <div class="interp-col-headers border-b border-border-subtle/20 shrink-0">
+            <div class="interp-header">Source (EN)</div>
+            <div class="interp-header">Translation (KO)</div>
           </div>
           <!-- Scroll area — two-column rows -->
           <div id="interpreter-scroll" class="flex-1 overflow-y-auto custom-scrollbar">
