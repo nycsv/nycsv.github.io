@@ -81,6 +81,7 @@ function init() {
     micReadyDot: document.getElementById('mic-ready-dot'),
     micReadyText: document.getElementById('mic-ready-text'),
     waveform: document.getElementById('waveform'),
+    transcriptPanel: document.getElementById('transcript-panel'),
     transcriptBox: document.getElementById('transcript-box'),
     committedSpan: document.getElementById('transcript-committed'),
     partialSpan: document.getElementById('transcript-partial'),
@@ -97,6 +98,8 @@ function init() {
     audioSource: document.getElementById('audio-source'),
     copyBtn: document.getElementById('copy-btn'),
     summarizeBtn: document.getElementById('summarize-btn'),
+    summarizeBtnTranslate: document.getElementById('summarize-btn-translate'),
+    summarizeBtnInterpreter: document.getElementById('summarize-btn-interpreter'),
     transcriptContent: document.getElementById('transcript-content'),
     copyBtnEn: document.getElementById('copy-btn-en'),
     copyBtnKo: document.getElementById('copy-btn-ko'),
@@ -124,6 +127,11 @@ function init() {
     interviewBox: document.getElementById('interview-box'),
     tabInterview2: document.getElementById('tab-interview2'),
     interview2Box: document.getElementById('interview2-box'),
+    audioTrackIndicators: document.getElementById('audio-track-indicators'),
+    indicatorMic: document.getElementById('indicator-mic'),
+    indicatorMicLabel: document.getElementById('indicator-mic-label'),
+    indicatorSys: document.getElementById('indicator-sys'),
+    indicatorSysLabel: document.getElementById('indicator-sys-label'),
   };
 
   // Attach event listeners
@@ -131,6 +139,8 @@ function init() {
   dom.micBtn.addEventListener('click', handleMicClick);
   dom.copyBtn.addEventListener('click', handleCopyClick);
   dom.summarizeBtn.addEventListener('click', handleSummarizeClick);
+  dom.summarizeBtnTranslate.addEventListener('click', handleSummarizeClick);
+  dom.summarizeBtnInterpreter.addEventListener('click', handleSummarizeClick);
   dom.copyBtnEn.addEventListener('click', () => handleTranslateCopy(dom.copyBtnEn, () => committedText + partialText));
   dom.copyBtnKo.addEventListener('click', () => handleTranslateCopy(dom.copyBtnKo, () => translationCommitted + translationPartial));
   dom.tabLive.addEventListener('click', () => setActiveTab('live'));
@@ -263,6 +273,52 @@ function interpreterScrollToBottom() {
 }
 
 /**
+ * Update audio track indicators in footer
+ */
+function updateTrackIndicators() {
+  if (!dom.audioTrackIndicators) return;
+
+  const micTracks = mediaStream ? mediaStream.getAudioTracks() : [];
+  const sysTracks = displayStream ? displayStream.getAudioTracks() : [];
+  const anyActive = micTracks.length > 0 || sysTracks.length > 0;
+
+  // Show/hide the whole block
+  dom.audioTrackIndicators.style.display = anyActive ? 'flex' : 'none';
+
+  // Mic indicator
+  if (dom.indicatorMic && dom.indicatorMicLabel) {
+    if (micTracks.length > 0) {
+      const t = micTracks[0];
+      dom.indicatorMicLabel.textContent = t.readyState === 'live' ? 'Live' : t.readyState;
+      dom.indicatorMicLabel.style.color = t.readyState === 'live' ? '#10b981' : '#ef4444';
+      dom.indicatorMic.querySelector('.material-symbols-outlined').style.color =
+        t.readyState === 'live' ? '#10b981' : '#ef4444';
+      console.log('[mic]', t.label || 'unnamed', '| state:', t.readyState, '| settings:', t.getSettings());
+    } else {
+      dom.indicatorMicLabel.textContent = '--';
+      dom.indicatorMicLabel.style.color = '';
+      dom.indicatorMic.querySelector('.material-symbols-outlined').style.color = '';
+    }
+  }
+
+  // System audio indicator
+  if (dom.indicatorSys && dom.indicatorSysLabel) {
+    if (sysTracks.length > 0) {
+      const t = sysTracks[0];
+      dom.indicatorSysLabel.textContent = t.readyState === 'live' ? 'Live' : t.readyState;
+      dom.indicatorSysLabel.style.color = t.readyState === 'live' ? '#10b981' : '#ef4444';
+      dom.indicatorSys.querySelector('.material-symbols-outlined').style.color =
+        t.readyState === 'live' ? '#10b981' : '#ef4444';
+      console.log('[sys]', t.label || 'unnamed', '| state:', t.readyState, '| settings:', t.getSettings());
+    } else {
+      dom.indicatorSysLabel.textContent = '--';
+      dom.indicatorSysLabel.style.color = '';
+      dom.indicatorSys.querySelector('.material-symbols-outlined').style.color = '';
+    }
+  }
+}
+
+/**
  * Update interpreter sentence count badge
  */
 function updateInterpreterCountBadge() {
@@ -280,7 +336,7 @@ function updateInterpreterCountBadge() {
  * Tab switching
  */
 function setActiveTab(tab) {
-  dom.transcriptBox.classList.toggle('hidden', tab !== 'live');
+  dom.transcriptPanel.classList.toggle('hidden', tab !== 'live');
   dom.translateBox.classList.toggle('hidden', tab !== 'translate');
   dom.interpreterBox.classList.toggle('hidden', tab !== 'interpreter');
   dom.interviewBox.classList.toggle('hidden', tab !== 'interview');
@@ -716,6 +772,9 @@ async function startRecording() {
       });
     }
 
+    // Log and show track diagnostics
+    updateTrackIndicators();
+
     // Create AudioContext
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -855,6 +914,9 @@ function cleanup() {
   bufferFillPct = null;
   readyToSendAudio = false;
   ackResolver = null;
+
+  // Clear track indicators
+  if (dom.audioTrackIndicators) dom.audioTrackIndicators.style.display = 'none';
 }
 
 /**
@@ -1101,7 +1163,8 @@ function handleSummaryResult(data) {
 }
 
 /**
- * Insert a summary block at the bottom of the transcript and translate panels
+ * Insert a summary block at the bottom of the transcript and translate panels,
+ * replacing any previously generated summary block.
  */
 function insertSummaryBlock(summary, wordCount) {
   const label = `Summary at ${wordCount} words`;
@@ -1115,17 +1178,18 @@ function insertSummaryBlock(summary, wordCount) {
     return block;
   }
 
-  // Append at bottom of Live Transcript tab
-  dom.transcriptContent.appendChild(makeBlock());
-  dom.transcriptBox.scrollTop = dom.transcriptBox.scrollHeight;
+  function replaceSummary(container, scrollEl) {
+    const existing = container.querySelector('.summary-block');
+    if (existing) existing.remove();
+    container.appendChild(makeBlock());
+    scrollEl.scrollTop = scrollEl.scrollHeight;
+  }
 
-  // Append at bottom of Live Translate tab (English side)
-  dom.translateContentEn.appendChild(makeBlock());
-  dom.translateScrollEn.scrollTop = dom.translateScrollEn.scrollHeight;
+  // Replace summary in Live Transcript tab
+  replaceSummary(dom.transcriptContent, dom.transcriptBox);
 
-  // Append at bottom of Live Translate tab (Korean side)
-  dom.translateContentKo.appendChild(makeBlock());
-  dom.translateScrollKo.scrollTop = dom.translateScrollKo.scrollHeight;
+  // Replace summary in Live Translate tab (English side only — no summary on Korean side)
+  replaceSummary(dom.translateContentEn, dom.translateScrollEn);
 }
 
 /**
