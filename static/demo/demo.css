@@ -145,6 +145,14 @@ body::after {
   transform: translateY(0);
   box-shadow: 0 1px 4px rgba(91, 43, 238, 0.2);
 }
+.btn-primary:disabled,
+.btn-primary[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  pointer-events: auto;
+}
 .btn-primary::after {
   content: '';
   position: absolute;
@@ -175,16 +183,7 @@ body::after {
 
 /* ─── Mic button states ─── */
 .asr-mic-button {
-  position: relative;
-  overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.asr-mic-button::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 50%);
-  pointer-events: none;
 }
 
 .asr-mic-button.recording {
@@ -263,43 +262,35 @@ body::after {
   background: rgba(148, 163, 184, 0.3);
 }
 
-/* ─── Interpreter tab - sentence cards ─── */
+/* ─── Interpreter tab - two-column rows ─── */
 .interpreter-row {
-  background: rgba(22, 22, 24, 0.5);
-  border: 1px solid rgba(91, 43, 238, 0.1);
-  border-left: 3px solid rgba(91, 43, 238, 0.4);
-  border-radius: 12px;
-  padding: 16px 18px;
-  backdrop-filter: blur(8px);
-  transition: all 0.3s ease;
+  transition: background 0.15s ease;
 }
 .interpreter-row:hover {
-  background: rgba(22, 22, 24, 0.7);
-  border-left-color: rgba(91, 43, 238, 0.7);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  transform: translateX(2px);
+  background: rgba(91, 43, 238, 0.03);
 }
 .interpreter-row.interpreter-pending {
-  border-left-color: rgba(91, 43, 238, 0.15);
-  opacity: 0.6;
+  opacity: 0.55;
 }
 .interpreter-row-num {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, rgba(91, 43, 238, 0.2), rgba(91, 43, 238, 0.1));
-  color: rgba(124, 58, 237, 0.9);
-  font-size: 11px;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: rgba(91, 43, 238, 0.1);
+  color: rgba(124, 58, 237, 0.7);
+  font-size: 10px;
   font-weight: 700;
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-right: 8px;
+  padding: 0 5px;
+  vertical-align: middle;
 }
 .interpreter-row-num--pending {
   background: rgba(91, 43, 238, 0.05);
-  color: rgba(91, 43, 238, 0.35);
+  color: rgba(91, 43, 238, 0.3);
 }
 
 /* ─── Inline summary block ─── */
@@ -490,13 +481,9 @@ body::after {
   color: #94a3b8;
 }
 
-/* ─── Interpreter sentence card: improved two-column layout ─── */
-.interpreter-row .interpreter-lang-label {
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 4px;
+/* ─── Interpreter row hover stripe ─── */
+.interpreter-row:nth-child(even) {
+  background: rgba(255, 255, 255, 0.01);
 }
 
 /* ─── Jump to bottom FAB ─── */
@@ -510,6 +497,5 @@ body::after {
 
 /* ─── Responsive mobile tweaks ─── */
 @media (max-width: 640px) {
-  .interpreter-row { padding: 12px 14px; }
   .summary-block { padding: 12px 14px; }
 }

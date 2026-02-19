@@ -87,7 +87,7 @@
 
           <!-- Mic button -->
           <button id="mic-btn"
-            class="asr-mic-button btn-primary flex items-center gap-2 text-white p-2 sm:px-5 sm:py-2 rounded-xl text-sm font-bold shadow-lg shadow-primary/15 disabled:opacity-30 disabled:cursor-not-allowed disabled:shadow-none"
+            class="asr-mic-button gradient-primary flex items-center gap-2 text-white p-2.5 sm:px-5 sm:py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
             disabled>
             <span class="material-symbols-outlined text-[22px]" id="mic-icon">mic</span>
             <span id="mic-label" class="hidden sm:inline">Connect first</span>
@@ -464,7 +464,7 @@
         </div>
 
         <!-- ─── Interpreter Panel ─── -->
-        <div id="interpreter-box" class="flex-1 overflow-hidden hidden relative">
+        <div id="interpreter-box" class="flex-1 overflow-hidden hidden relative flex flex-col">
           <!-- Interpreter toolbar -->
           <div class="flex items-center justify-between px-4 md:px-8 py-2 border-b border-border-subtle/30 bg-surface/30 shrink-0">
             <div class="flex items-center gap-2">
@@ -475,40 +475,47 @@
               <span id="interpreter-count-badge" class="hidden text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-primary/10 text-primary/70">0</span>
             </div>
             <div class="flex items-center gap-2">
-              <!-- Pin to bottom toggle -->
               <button id="interpreter-pin-btn" title="Auto-scroll to latest"
                 class="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold transition-all interpreter-pin-active bg-primary/10 text-primary border border-primary/20">
                 <span class="material-symbols-outlined text-[14px]">vertical_align_bottom</span>
                 <span class="hidden sm:inline">Auto-scroll</span>
               </button>
-              <!-- Copy interpreter -->
               <button id="interpreter-copy-btn" title="Copy all sentences"
                 class="icon-btn flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:text-white hover:bg-white/10 transition-all">
                 <span class="material-symbols-outlined text-[15px]">content_copy</span>
               </button>
             </div>
           </div>
-          <!-- Scroll area -->
-          <div id="interpreter-scroll" class="h-full overflow-y-auto px-4 py-5 md:px-8 md:py-6 custom-scrollbar" style="height: calc(100% - 40px);">
-            <div id="interpreter-rows" class="max-w-4xl mx-auto space-y-3">
+          <!-- Column headers -->
+          <div class="flex border-b border-border-subtle/20 shrink-0">
+            <div class="flex-1 px-4 md:px-8 py-1.5 border-r border-border-subtle/20">
+              <span class="section-label text-slate-600">Source (EN)</span>
+            </div>
+            <div class="flex-1 px-4 md:px-8 py-1.5">
+              <span class="section-label text-primary/40">Translation (KO)</span>
+            </div>
+          </div>
+          <!-- Scroll area — two-column rows -->
+          <div id="interpreter-scroll" class="flex-1 overflow-y-auto custom-scrollbar">
+            <div id="interpreter-rows" class="divide-y divide-border-subtle/15">
               <!-- Rows dynamically inserted by JS -->
             </div>
             <div id="interpreter-placeholder"
               class="flex flex-col items-center justify-center h-72 text-center space-y-5">
               <div
-                class="w-20 h-20 rounded-2xl gradient-primary flex items-center justify-center shadow-xl shadow-primary/20 placeholder-ring">
-                <span class="material-symbols-outlined text-white text-4xl">interpreter_mode</span>
+                class="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shadow-xl shadow-primary/20 placeholder-ring">
+                <span class="material-symbols-outlined text-white text-3xl">interpreter_mode</span>
               </div>
               <div>
                 <p class="text-slate-300 text-sm font-semibold">Sentence-by-sentence interpretation</p>
-                <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Each sentence appears as a paired card
-                  with<br>source text and translation together</p>
+                <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Source and translation appear side by
+                  side<br>as each sentence is completed</p>
               </div>
             </div>
           </div>
           <!-- Jump to bottom FAB -->
           <button id="interpreter-jump-btn"
-            class="hidden absolute bottom-6 right-6 md:right-10 w-10 h-10 rounded-full gradient-primary text-white shadow-lg shadow-primary/30 flex items-center justify-center hover:shadow-xl hover:shadow-primary/40 transition-all z-20">
+            class="hidden absolute bottom-6 right-6 md:right-10 w-10 h-10 rounded-full gradient-primary text-white shadow-lg shadow-primary/30 items-center justify-center hover:shadow-xl hover:shadow-primary/40 transition-all z-20">
             <span class="material-symbols-outlined text-[20px]">keyboard_double_arrow_down</span>
           </button>
         </div>

@@ -1147,20 +1147,14 @@ function addInterpreterRow(source, translation) {
   interpreterSentenceCount++;
 
   const row = document.createElement('div');
-  row.className = 'interpreter-row';
+  row.className = 'interpreter-row flex';
   row.innerHTML = `
-    <div class="flex items-start gap-3">
+    <div class="flex-1 px-4 md:px-8 py-3 border-r border-border-subtle/15">
       <span class="interpreter-row-num">${interpreterSentenceCount}</span>
-      <div class="flex-1 min-w-0 space-y-1.5">
-        <div>
-          <div class="interpreter-lang-label text-slate-600">EN</div>
-          <div class="interpreter-src text-slate-100 text-sm md:text-base font-medium leading-relaxed">${escapeHtml(source)}</div>
-        </div>
-        <div class="border-t border-border-subtle/30 pt-1.5">
-          <div class="interpreter-lang-label text-primary/50">KO</div>
-          <div class="interpreter-tl text-primary/80 text-sm md:text-base font-medium leading-relaxed">${escapeHtml(translation)}</div>
-        </div>
-      </div>
+      <span class="interpreter-src text-slate-200 text-sm md:text-base font-medium leading-relaxed">${escapeHtml(source)}</span>
+    </div>
+    <div class="flex-1 px-4 md:px-8 py-3">
+      <span class="interpreter-tl text-primary/80 text-sm md:text-base font-medium leading-relaxed">${escapeHtml(translation)}</span>
     </div>`;
 
   dom.interpreterRows.appendChild(row);
@@ -1179,23 +1173,17 @@ function updateInterpreterBuffering(source, translation) {
 
   if (!pending) {
     pending = document.createElement('div');
-    pending.className = 'interpreter-row interpreter-pending';
+    pending.className = 'interpreter-row interpreter-pending flex';
     dom.interpreterRows.appendChild(pending);
   }
 
   pending.innerHTML = `
-    <div class="flex items-start gap-3">
+    <div class="flex-1 px-4 md:px-8 py-3 border-r border-border-subtle/10">
       <span class="interpreter-row-num interpreter-row-num--pending">…</span>
-      <div class="flex-1 min-w-0 space-y-1.5">
-        <div>
-          <div class="interpreter-lang-label text-slate-700">EN</div>
-          <div class="text-slate-400 text-sm md:text-base font-medium leading-relaxed">${escapeHtml(source)}</div>
-        </div>
-        <div class="border-t border-border-subtle/20 pt-1.5">
-          <div class="interpreter-lang-label text-primary/30">KO</div>
-          <div class="text-primary/60 text-sm md:text-base font-medium leading-relaxed">${escapeHtml(translation)}</div>
-        </div>
-      </div>
+      <span class="text-slate-400 text-sm md:text-base font-medium leading-relaxed">${escapeHtml(source)}</span>
+    </div>
+    <div class="flex-1 px-4 md:px-8 py-3">
+      <span class="text-primary/50 text-sm md:text-base font-medium leading-relaxed">${escapeHtml(translation)}</span>
     </div>`;
 
   if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'none';
@@ -1221,18 +1209,12 @@ function updateInterpreterPending(source, translation) {
   }
 
   pending.innerHTML = `
-    <div class="flex items-start gap-3">
+    <div class="flex-1 px-4 md:px-8 py-3 border-r border-border-subtle/10">
       <span class="interpreter-row-num interpreter-row-num--pending">~</span>
-      <div class="flex-1 min-w-0 space-y-1.5">
-        <div>
-          <div class="interpreter-lang-label text-slate-700">EN</div>
-          <div class="text-slate-500 text-sm md:text-base font-medium leading-relaxed italic">${escapeHtml(source)}</div>
-        </div>
-        <div class="border-t border-border-subtle/15 pt-1.5">
-          <div class="interpreter-lang-label text-primary/25">KO</div>
-          <div class="text-primary/40 text-sm md:text-base font-medium leading-relaxed italic">${escapeHtml(translation)}</div>
-        </div>
-      </div>
+      <span class="text-slate-500 text-sm md:text-base font-medium leading-relaxed italic">${escapeHtml(source)}</span>
+    </div>
+    <div class="flex-1 px-4 md:px-8 py-3">
+      <span class="text-primary/35 text-sm md:text-base font-medium leading-relaxed italic">${escapeHtml(translation)}</span>
     </div>`;
 
   if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'none';
