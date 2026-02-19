@@ -414,9 +414,9 @@ body::after {
   word-break: break-word;
 }
 
-#summary-content-transcript.hidden,
-#summary-content-translate.hidden {
-  display: none;
+#summary-content-transcript,
+#summary-content-translate {
+  display: block;
 }
 
 #summary-footer-transcript.hidden,

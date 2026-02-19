@@ -1177,14 +1177,11 @@ function handleSummaryResult(data) {
  * Display summary in the footer of transcript and translate panels
  */
 function insertSummaryBlock(summary, wordCount) {
-  // Display summary in Live Transcript footer
+  // Display summary in both footers
   dom.summaryContentTranscript.textContent = summary;
-  dom.summaryContentTranscript.classList.remove('hidden');
   dom.summaryFooterTranscript.classList.remove('hidden');
 
-  // Display summary in Live Translate footer
   dom.summaryContentTranslate.textContent = summary;
-  dom.summaryContentTranslate.classList.remove('hidden');
   dom.summaryFooterTranslate.classList.remove('hidden');
 }
 
