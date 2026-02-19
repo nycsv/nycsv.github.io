@@ -1,5 +1,5 @@
 ---
-title: "Streaming Demo"
+title: "BT Studio"
 layout: "demo"
 url: "/demo/"
 ---

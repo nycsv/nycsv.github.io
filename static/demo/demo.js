@@ -1,5 +1,5 @@
 /**
- * Streaming Demo - Main Client
+ * BT Studio - Main Client
  *
  * WebSocket-based real-time speech recognition client
  * Captures microphone audio, resamples to 16kHz PCM16LE, streams to ASR server
@@ -60,6 +60,9 @@ let dom = {};
 // i18n strings (injected by template)
 let i18n = {};
 
+// Interpreter auto-scroll state
+let interpreterAutoScroll = true;
+
 /**
  * Initialize application
  */
@@ -113,6 +116,10 @@ function init() {
     interpreterRows: document.getElementById('interpreter-rows'),
     interpreterScroll: document.getElementById('interpreter-scroll'),
     interpreterPlaceholder: document.getElementById('interpreter-placeholder'),
+    interpreterPinBtn: document.getElementById('interpreter-pin-btn'),
+    interpreterJumpBtn: document.getElementById('interpreter-jump-btn'),
+    interpreterCountBadge: document.getElementById('interpreter-count-badge'),
+    interpreterCopyBtn: document.getElementById('interpreter-copy-btn'),
     tabInterview: document.getElementById('tab-interview'),
     interviewBox: document.getElementById('interview-box'),
     tabInterview2: document.getElementById('tab-interview2'),
@@ -132,9 +139,141 @@ function init() {
   dom.tabInterview.addEventListener('click', () => setActiveTab('interview'));
   dom.tabInterview2.addEventListener('click', () => setActiveTab('interview2'));
 
+  // Audio source toggle buttons
+  initAudioSourceToggle();
+
+  // Interpreter scroll & controls
+  initInterpreterControls();
+
   // Initial state
   setActiveTab('live');
   updateUI();
+}
+
+/**
+ * Initialize audio source toggle buttons
+ */
+function initAudioSourceToggle() {
+  const btns = document.querySelectorAll('.audio-src-btn');
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.disabled) return;
+      btns.forEach(b => b.classList.remove('audio-src-active'));
+      btn.classList.add('audio-src-active');
+      dom.audioSource.value = btn.dataset.source;
+    });
+  });
+}
+
+/**
+ * Initialize interpreter scroll behavior and controls
+ */
+function initInterpreterControls() {
+  // Pin/unpin auto-scroll
+  if (dom.interpreterPinBtn) {
+    dom.interpreterPinBtn.addEventListener('click', () => {
+      interpreterAutoScroll = !interpreterAutoScroll;
+      updateInterpreterPinUI();
+      if (interpreterAutoScroll) {
+        dom.interpreterScroll.scrollTop = dom.interpreterScroll.scrollHeight;
+      }
+    });
+  }
+
+  // Jump to bottom button
+  if (dom.interpreterJumpBtn) {
+    dom.interpreterJumpBtn.addEventListener('click', () => {
+      dom.interpreterScroll.scrollTop = dom.interpreterScroll.scrollHeight;
+      interpreterAutoScroll = true;
+      updateInterpreterPinUI();
+    });
+  }
+
+  // Detect manual scroll → disable auto-scroll, show jump button
+  if (dom.interpreterScroll) {
+    dom.interpreterScroll.addEventListener('scroll', () => {
+      const el = dom.interpreterScroll;
+      const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+      if (!atBottom && interpreterAutoScroll) {
+        interpreterAutoScroll = false;
+        updateInterpreterPinUI();
+      }
+      if (atBottom && !interpreterAutoScroll) {
+        interpreterAutoScroll = true;
+        updateInterpreterPinUI();
+      }
+      // Show/hide jump button
+      if (dom.interpreterJumpBtn) {
+        dom.interpreterJumpBtn.classList.toggle('hidden', atBottom);
+        if (!atBottom) dom.interpreterJumpBtn.style.display = 'flex';
+      }
+    });
+  }
+
+  // Copy all interpreter sentences
+  if (dom.interpreterCopyBtn) {
+    dom.interpreterCopyBtn.addEventListener('click', async () => {
+      const rows = dom.interpreterRows.querySelectorAll('.interpreter-row:not(.interpreter-pending)');
+      if (!rows.length) {
+        showError('No sentences to copy');
+        setTimeout(clearError, 2000);
+        return;
+      }
+      const lines = [];
+      rows.forEach((row, i) => {
+        const src = row.querySelector('.interpreter-src')?.textContent || '';
+        const tl = row.querySelector('.interpreter-tl')?.textContent || '';
+        lines.push(`${i + 1}. ${src}\n   ${tl}`);
+      });
+      try {
+        await navigator.clipboard.writeText(lines.join('\n\n'));
+        const icon = dom.interpreterCopyBtn.querySelector('.material-symbols-outlined');
+        icon.textContent = 'check';
+        setTimeout(() => { icon.textContent = 'content_copy'; }, 2000);
+      } catch (e) {
+        showError('Failed to copy');
+        setTimeout(clearError, 2000);
+      }
+    });
+  }
+}
+
+/**
+ * Update interpreter pin button UI
+ */
+function updateInterpreterPinUI() {
+  if (!dom.interpreterPinBtn) return;
+  if (interpreterAutoScroll) {
+    dom.interpreterPinBtn.classList.remove('interpreter-pin-inactive');
+    dom.interpreterPinBtn.classList.add('interpreter-pin-active', 'bg-primary/10', 'text-primary', 'border-primary/20');
+    dom.interpreterPinBtn.classList.remove('bg-transparent', 'text-slate-500', 'border-transparent');
+  } else {
+    dom.interpreterPinBtn.classList.add('interpreter-pin-inactive');
+    dom.interpreterPinBtn.classList.remove('interpreter-pin-active', 'bg-primary/10', 'text-primary', 'border-primary/20');
+  }
+}
+
+/**
+ * Scroll interpreter to bottom if auto-scroll is on
+ */
+function interpreterScrollToBottom() {
+  if (interpreterAutoScroll && dom.interpreterScroll) {
+    dom.interpreterScroll.scrollTop = dom.interpreterScroll.scrollHeight;
+  }
+}
+
+/**
+ * Update interpreter sentence count badge
+ */
+function updateInterpreterCountBadge() {
+  if (dom.interpreterCountBadge) {
+    if (interpreterSentenceCount > 0) {
+      dom.interpreterCountBadge.textContent = interpreterSentenceCount;
+      dom.interpreterCountBadge.classList.remove('hidden');
+    } else {
+      dom.interpreterCountBadge.classList.add('hidden');
+    }
+  }
 }
 
 /**
@@ -517,9 +656,12 @@ async function startRecording() {
 
     // Reset interpreter
     interpreterSentenceCount = 0;
+    interpreterAutoScroll = true;
     interpreterBuffer = { source: '', text: '' };
     if (dom.interpreterRows) dom.interpreterRows.innerHTML = '';
     if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'flex';
+    updateInterpreterCountBadge();
+    updateInterpreterPinUI();
 
     // Show session start marker
     if (dom.sessionMarker) {
@@ -810,9 +952,14 @@ function updateUI() {
   }
 
   // Disable audio source selector while recording
+  const srcDisabled = currentState === State.RECORDING || currentState === State.STOPPING;
   if (dom.audioSource) {
-    dom.audioSource.disabled = currentState === State.RECORDING || currentState === State.STOPPING;
+    dom.audioSource.disabled = srcDisabled;
   }
+  // Also disable toggle buttons
+  document.querySelectorAll('.audio-src-btn').forEach(btn => {
+    btn.disabled = srcDisabled;
+  });
 
   // Status text in footer
   dom.statStatus.textContent = currentState;
@@ -1004,9 +1151,15 @@ function addInterpreterRow(source, translation) {
   row.innerHTML = `
     <div class="flex items-start gap-3">
       <span class="interpreter-row-num">${interpreterSentenceCount}</span>
-      <div class="flex-1 min-w-0">
-        <div class="text-slate-100 text-sm md:text-base font-medium leading-relaxed">${escapeHtml(source)}</div>
-        <div class="text-primary/80 text-sm md:text-base font-medium leading-relaxed mt-1">${escapeHtml(translation)}</div>
+      <div class="flex-1 min-w-0 space-y-1.5">
+        <div>
+          <div class="interpreter-lang-label text-slate-600">EN</div>
+          <div class="interpreter-src text-slate-100 text-sm md:text-base font-medium leading-relaxed">${escapeHtml(source)}</div>
+        </div>
+        <div class="border-t border-border-subtle/30 pt-1.5">
+          <div class="interpreter-lang-label text-primary/50">KO</div>
+          <div class="interpreter-tl text-primary/80 text-sm md:text-base font-medium leading-relaxed">${escapeHtml(translation)}</div>
+        </div>
       </div>
     </div>`;
 
@@ -1014,7 +1167,8 @@ function addInterpreterRow(source, translation) {
 
   if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'none';
 
-  dom.interpreterScroll.scrollTop = dom.interpreterScroll.scrollHeight;
+  updateInterpreterCountBadge();
+  interpreterScrollToBottom();
 }
 
 /**
@@ -1032,15 +1186,21 @@ function updateInterpreterBuffering(source, translation) {
   pending.innerHTML = `
     <div class="flex items-start gap-3">
       <span class="interpreter-row-num interpreter-row-num--pending">…</span>
-      <div class="flex-1 min-w-0">
-        <div class="text-slate-400 text-sm md:text-base font-medium leading-relaxed">${escapeHtml(source)}</div>
-        <div class="text-primary/60 text-sm md:text-base font-medium leading-relaxed mt-1">${escapeHtml(translation)}</div>
+      <div class="flex-1 min-w-0 space-y-1.5">
+        <div>
+          <div class="interpreter-lang-label text-slate-700">EN</div>
+          <div class="text-slate-400 text-sm md:text-base font-medium leading-relaxed">${escapeHtml(source)}</div>
+        </div>
+        <div class="border-t border-border-subtle/20 pt-1.5">
+          <div class="interpreter-lang-label text-primary/30">KO</div>
+          <div class="text-primary/60 text-sm md:text-base font-medium leading-relaxed">${escapeHtml(translation)}</div>
+        </div>
       </div>
     </div>`;
 
   if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'none';
 
-  dom.interpreterScroll.scrollTop = dom.interpreterScroll.scrollHeight;
+  interpreterScrollToBottom();
 }
 
 /**
@@ -1063,15 +1223,21 @@ function updateInterpreterPending(source, translation) {
   pending.innerHTML = `
     <div class="flex items-start gap-3">
       <span class="interpreter-row-num interpreter-row-num--pending">~</span>
-      <div class="flex-1 min-w-0">
-        <div class="text-slate-500 text-sm md:text-base font-medium leading-relaxed italic">${escapeHtml(source)}</div>
-        <div class="text-primary/40 text-sm md:text-base font-medium leading-relaxed italic mt-1">${escapeHtml(translation)}</div>
+      <div class="flex-1 min-w-0 space-y-1.5">
+        <div>
+          <div class="interpreter-lang-label text-slate-700">EN</div>
+          <div class="text-slate-500 text-sm md:text-base font-medium leading-relaxed italic">${escapeHtml(source)}</div>
+        </div>
+        <div class="border-t border-border-subtle/15 pt-1.5">
+          <div class="interpreter-lang-label text-primary/25">KO</div>
+          <div class="text-primary/40 text-sm md:text-base font-medium leading-relaxed italic">${escapeHtml(translation)}</div>
+        </div>
       </div>
     </div>`;
 
   if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'none';
 
-  dom.interpreterScroll.scrollTop = dom.interpreterScroll.scrollHeight;
+  interpreterScrollToBottom();
 }
 
 // Start stats update loop (every 100ms)

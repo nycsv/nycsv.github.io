@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ .Title }} - {{ .Site.Title }}</title>
-  <meta name="description" content="Real-time speech recognition demo - Stream audio from your microphone">
+  <meta name="description" content="BT Studio - Real-time speech recognition, translation & interpretation">
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
@@ -62,12 +62,11 @@
           <div class="hidden md:flex items-center gap-2.5 pr-4 border-r border-border-subtle">
             <div
               class="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shadow-lg shadow-primary/20">
-              <span class="material-symbols-outlined text-white text-[18px]"
-                style="font-variation-settings: 'FILL' 1">graphic_eq</span>
+              <span class="text-white text-sm font-extrabold tracking-tight">BT</span>
             </div>
             <div class="flex flex-col">
-              <span class="text-sm font-bold text-white tracking-tight leading-none">ASR Studio</span>
-              <span class="text-[9px] font-semibold text-slate-500 uppercase tracking-widest leading-none mt-0.5">Real-time</span>
+              <span class="text-sm font-bold text-white tracking-tight leading-none">BT Studio</span>
+              <span class="text-[9px] font-semibold text-slate-500 uppercase tracking-widest leading-none mt-0.5">Speech AI</span>
             </div>
           </div>
 
@@ -109,9 +108,26 @@
 
         <!-- Right: Audio source + Waveform -->
         <div class="flex items-center gap-3">
-          <!-- Audio source dropdown -->
-          <select id="audio-source"
-            class="bg-background-dark/80 border border-border-subtle rounded-xl px-3 py-1.5 text-[11px] font-semibold text-slate-300 focus:outline-none focus:border-primary/50 cursor-pointer transition-all">
+          <!-- Audio source selector -->
+          <div class="flex items-center gap-1 bg-background-dark/60 border border-border-subtle rounded-xl p-0.5">
+            <button type="button" data-source="mic"
+              class="audio-src-btn audio-src-active flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all">
+              <span class="material-symbols-outlined text-[14px]">mic</span>
+              <span class="hidden sm:inline">Mic</span>
+            </button>
+            <button type="button" data-source="system"
+              class="audio-src-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all">
+              <span class="material-symbols-outlined text-[14px]">desktop_windows</span>
+              <span class="hidden sm:inline">System</span>
+            </button>
+            <button type="button" data-source="both"
+              class="audio-src-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all">
+              <span class="material-symbols-outlined text-[14px]">merge</span>
+              <span class="hidden sm:inline">Both</span>
+            </button>
+          </div>
+          <!-- Hidden select for JS compatibility -->
+          <select id="audio-source" class="hidden">
             <option value="mic">Microphone</option>
             <option value="system">System Audio</option>
             <option value="both">Both</option>
@@ -448,8 +464,32 @@
         </div>
 
         <!-- ─── Interpreter Panel ─── -->
-        <div id="interpreter-box" class="flex-1 overflow-hidden hidden">
-          <div id="interpreter-scroll" class="h-full overflow-y-auto px-4 py-5 md:px-8 md:py-6 custom-scrollbar">
+        <div id="interpreter-box" class="flex-1 overflow-hidden hidden relative">
+          <!-- Interpreter toolbar -->
+          <div class="flex items-center justify-between px-4 md:px-8 py-2 border-b border-border-subtle/30 bg-surface/30 shrink-0">
+            <div class="flex items-center gap-2">
+              <div class="w-5 h-5 rounded bg-primary/10 flex items-center justify-center">
+                <span class="material-symbols-outlined text-primary-light text-[13px]">interpreter_mode</span>
+              </div>
+              <span class="section-label text-slate-500">Interpreter</span>
+              <span id="interpreter-count-badge" class="hidden text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-primary/10 text-primary/70">0</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <!-- Pin to bottom toggle -->
+              <button id="interpreter-pin-btn" title="Auto-scroll to latest"
+                class="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold transition-all interpreter-pin-active bg-primary/10 text-primary border border-primary/20">
+                <span class="material-symbols-outlined text-[14px]">vertical_align_bottom</span>
+                <span class="hidden sm:inline">Auto-scroll</span>
+              </button>
+              <!-- Copy interpreter -->
+              <button id="interpreter-copy-btn" title="Copy all sentences"
+                class="icon-btn flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:text-white hover:bg-white/10 transition-all">
+                <span class="material-symbols-outlined text-[15px]">content_copy</span>
+              </button>
+            </div>
+          </div>
+          <!-- Scroll area -->
+          <div id="interpreter-scroll" class="h-full overflow-y-auto px-4 py-5 md:px-8 md:py-6 custom-scrollbar" style="height: calc(100% - 40px);">
             <div id="interpreter-rows" class="max-w-4xl mx-auto space-y-3">
               <!-- Rows dynamically inserted by JS -->
             </div>
@@ -460,12 +500,17 @@
                 <span class="material-symbols-outlined text-white text-4xl">interpreter_mode</span>
               </div>
               <div>
-                <p class="text-slate-300 text-sm font-semibold">Sentence-by-sentence translation</p>
+                <p class="text-slate-300 text-sm font-semibold">Sentence-by-sentence interpretation</p>
                 <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Each sentence appears as a paired card
-                  with<br>source and translation side by side</p>
+                  with<br>source text and translation together</p>
               </div>
             </div>
           </div>
+          <!-- Jump to bottom FAB -->
+          <button id="interpreter-jump-btn"
+            class="hidden absolute bottom-6 right-6 md:right-10 w-10 h-10 rounded-full gradient-primary text-white shadow-lg shadow-primary/30 flex items-center justify-center hover:shadow-xl hover:shadow-primary/40 transition-all z-20">
+            <span class="material-symbols-outlined text-[20px]">keyboard_double_arrow_down</span>
+          </button>
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 /**
- * Streaming Demo - Premium Dark Theme
+ * BT Studio - Premium Dark Theme
  */
 
 /* ─── Material Symbols ─── */
@@ -451,6 +451,61 @@ body::after {
   pointer-events: none;
   z-index: 50;
   margin-bottom: 6px;
+}
+
+/* ─── Audio source toggle buttons ─── */
+.audio-src-btn {
+  color: #64748b;
+  background: transparent;
+}
+.audio-src-btn:hover:not(.audio-src-active) {
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.04);
+}
+.audio-src-active {
+  color: #e2e8f0 !important;
+  background: linear-gradient(135deg, rgba(91, 43, 238, 0.2), rgba(91, 43, 238, 0.1)) !important;
+  box-shadow: 0 1px 4px rgba(91, 43, 238, 0.15);
+}
+.audio-src-btn:disabled,
+.audio-src-btn[disabled] {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ─── Interpreter pin toggle ─── */
+.interpreter-pin-active {
+  background: rgba(91, 43, 238, 0.1);
+  color: rgba(124, 58, 237, 0.9);
+  border-color: rgba(91, 43, 238, 0.2);
+}
+.interpreter-pin-inactive {
+  background: transparent;
+  color: #64748b;
+  border-color: transparent;
+}
+.interpreter-pin-inactive:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: #94a3b8;
+}
+
+/* ─── Interpreter sentence card: improved two-column layout ─── */
+.interpreter-row .interpreter-lang-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+}
+
+/* ─── Jump to bottom FAB ─── */
+#interpreter-jump-btn {
+  animation: fade-in-up 0.2s ease-out;
+}
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ─── Responsive mobile tweaks ─── */
