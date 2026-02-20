@@ -1181,9 +1181,11 @@ function handleSummaryResult(data) {
 function insertSummaryBlock(summary, wordCount) {
   // Display summary in both footers
   dom.summaryContentTranscript.textContent = summary;
+  dom.summaryContentTranscript.classList.remove('hidden');
   dom.summaryFooterTranscript.classList.remove('hidden');
 
   dom.summaryContentTranslate.textContent = summary;
+  dom.summaryContentTranslate.classList.remove('hidden');
   dom.summaryFooterTranslate.classList.remove('hidden');
 }
 
