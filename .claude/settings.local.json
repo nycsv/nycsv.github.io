@@ -8,5 +8,8 @@
       "Bash(xargs:*)",
       "Bash(hugo:*)"
     ]
-  }
+  },
+  "disabledMcpjsonServers": [
+    "gpu-monitor"
+  ]
 }

@@ -125,7 +125,9 @@ function init() {
     interpreterJumpBtn: document.getElementById('interpreter-jump-btn'),
     interpreterCountBadge: document.getElementById('interpreter-count-badge'),
     interpreterCopyBtn: document.getElementById('interpreter-copy-btn'),
+    transcriptPinBtn: document.getElementById('transcript-pin-btn'),
     transcriptJumpBtn: document.getElementById('transcript-jump-btn'),
+    translatePinBtn: document.getElementById('translate-pin-btn'),
     translateJumpBtn: document.getElementById('translate-jump-btn'),
     summaryFooterTranscript: document.getElementById('summary-footer-transcript'),
     summaryContentTranscript: document.getElementById('summary-content-transcript'),
@@ -270,10 +272,27 @@ function initTranscriptScrollBehavior() {
     dom.transcriptBox.addEventListener('scroll', () => {
       const el = dom.transcriptBox;
       const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
-      transcriptAutoScroll = atBottom;
+      if (!atBottom && transcriptAutoScroll) {
+        transcriptAutoScroll = false;
+        updateTranscriptPinUI();
+      }
+      if (atBottom && !transcriptAutoScroll) {
+        transcriptAutoScroll = true;
+        updateTranscriptPinUI();
+      }
       if (dom.transcriptJumpBtn) {
         dom.transcriptJumpBtn.classList.toggle('hidden', atBottom);
         if (!atBottom) dom.transcriptJumpBtn.style.display = 'flex';
+      }
+    });
+  }
+  if (dom.transcriptPinBtn) {
+    dom.transcriptPinBtn.addEventListener('click', () => {
+      transcriptAutoScroll = !transcriptAutoScroll;
+      updateTranscriptPinUI();
+      if (transcriptAutoScroll) {
+        dom.transcriptBox.scrollTop = dom.transcriptBox.scrollHeight;
+        if (dom.transcriptJumpBtn) dom.transcriptJumpBtn.classList.add('hidden');
       }
     });
   }
@@ -281,6 +300,7 @@ function initTranscriptScrollBehavior() {
     dom.transcriptJumpBtn.addEventListener('click', () => {
       dom.transcriptBox.scrollTop = dom.transcriptBox.scrollHeight;
       transcriptAutoScroll = true;
+      updateTranscriptPinUI();
       dom.transcriptJumpBtn.classList.add('hidden');
     });
   }
@@ -294,7 +314,14 @@ function initTranscriptScrollBehavior() {
       ? dom.translateScrollKo.scrollHeight - dom.translateScrollKo.scrollTop - dom.translateScrollKo.clientHeight < 60
       : true;
     const atBottom = atBottomEn && atBottomKo;
-    translateAutoScroll = atBottom;
+    if (!atBottom && translateAutoScroll) {
+      translateAutoScroll = false;
+      updateTranslatePinUI();
+    }
+    if (atBottom && !translateAutoScroll) {
+      translateAutoScroll = true;
+      updateTranslatePinUI();
+    }
     if (dom.translateJumpBtn) {
       dom.translateJumpBtn.classList.toggle('hidden', atBottom);
       if (!atBottom) dom.translateJumpBtn.style.display = 'flex';
@@ -302,11 +329,23 @@ function initTranscriptScrollBehavior() {
   };
   if (dom.translateScrollEn) dom.translateScrollEn.addEventListener('scroll', onTranslateScroll);
   if (dom.translateScrollKo) dom.translateScrollKo.addEventListener('scroll', onTranslateScroll);
+  if (dom.translatePinBtn) {
+    dom.translatePinBtn.addEventListener('click', () => {
+      translateAutoScroll = !translateAutoScroll;
+      updateTranslatePinUI();
+      if (translateAutoScroll) {
+        if (dom.translateScrollEn) dom.translateScrollEn.scrollTop = dom.translateScrollEn.scrollHeight;
+        if (dom.translateScrollKo) dom.translateScrollKo.scrollTop = dom.translateScrollKo.scrollHeight;
+        if (dom.translateJumpBtn) dom.translateJumpBtn.classList.add('hidden');
+      }
+    });
+  }
   if (dom.translateJumpBtn) {
     dom.translateJumpBtn.addEventListener('click', () => {
       if (dom.translateScrollEn) dom.translateScrollEn.scrollTop = dom.translateScrollEn.scrollHeight;
       if (dom.translateScrollKo) dom.translateScrollKo.scrollTop = dom.translateScrollKo.scrollHeight;
       translateAutoScroll = true;
+      updateTranslatePinUI();
       dom.translateJumpBtn.classList.add('hidden');
     });
   }
@@ -324,6 +363,36 @@ function updateInterpreterPinUI() {
   } else {
     dom.interpreterPinBtn.classList.add('interpreter-pin-inactive');
     dom.interpreterPinBtn.classList.remove('interpreter-pin-active', 'bg-primary/10', 'text-primary', 'border-primary/20');
+  }
+}
+
+/**
+ * Update transcript pin button UI
+ */
+function updateTranscriptPinUI() {
+  if (!dom.transcriptPinBtn) return;
+  if (transcriptAutoScroll) {
+    dom.transcriptPinBtn.classList.remove('interpreter-pin-inactive');
+    dom.transcriptPinBtn.classList.add('interpreter-pin-active', 'bg-primary/10', 'text-primary', 'border-primary/20');
+    dom.transcriptPinBtn.classList.remove('bg-transparent', 'text-slate-500', 'border-transparent');
+  } else {
+    dom.transcriptPinBtn.classList.add('interpreter-pin-inactive');
+    dom.transcriptPinBtn.classList.remove('interpreter-pin-active', 'bg-primary/10', 'text-primary', 'border-primary/20');
+  }
+}
+
+/**
+ * Update translate pin button UI
+ */
+function updateTranslatePinUI() {
+  if (!dom.translatePinBtn) return;
+  if (translateAutoScroll) {
+    dom.translatePinBtn.classList.remove('interpreter-pin-inactive');
+    dom.translatePinBtn.classList.add('interpreter-pin-active', 'bg-primary/10', 'text-primary', 'border-primary/20');
+    dom.translatePinBtn.classList.remove('bg-transparent', 'text-slate-500', 'border-transparent');
+  } else {
+    dom.translatePinBtn.classList.add('interpreter-pin-inactive');
+    dom.translatePinBtn.classList.remove('interpreter-pin-active', 'bg-primary/10', 'text-primary', 'border-primary/20');
   }
 }
 
@@ -785,6 +854,8 @@ async function startRecording() {
     // Reset scroll state
     transcriptAutoScroll = true;
     translateAutoScroll = true;
+    updateTranscriptPinUI();
+    updateTranslatePinUI();
     if (dom.transcriptJumpBtn) dom.transcriptJumpBtn.classList.add('hidden');
     if (dom.translateJumpBtn) dom.translateJumpBtn.classList.add('hidden');
 
