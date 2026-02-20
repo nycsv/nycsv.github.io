@@ -91,8 +91,6 @@ function init() {
     partialSpan: document.getElementById('transcript-partial'),
     cursor: document.getElementById('transcript-cursor'),
     placeholder: document.getElementById('transcript-placeholder'),
-    sessionMarker: document.getElementById('session-marker'),
-    sessionMarkerTime: document.getElementById('session-marker-time'),
     errorMsg: document.getElementById('error-message'),
     statLatency: document.getElementById('stat-latency'),
     statDuration: document.getElementById('stat-duration'),
@@ -798,15 +796,6 @@ async function startRecording() {
     if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'flex';
     updateInterpreterCountBadge();
     updateInterpreterPinUI();
-
-    // Show session start marker
-    if (dom.sessionMarker) {
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      if (dom.sessionMarkerTime) dom.sessionMarkerTime.textContent = `Session Started at ${timeStr}`;
-      dom.sessionMarker.classList.remove('hidden');
-      dom.sessionMarker.classList.add('flex');
-    }
 
     const audioSource = getAudioSource();
     const needMic = audioSource === 'mic' || audioSource === 'both';

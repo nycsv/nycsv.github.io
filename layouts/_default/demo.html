@@ -192,15 +192,6 @@
           </div>
           <div id="transcript-box" class="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-8 relative custom-scrollbar">
 
-          <!-- Session start marker -->
-          <div id="session-marker" class="hidden flex items-center justify-center gap-4 py-4 mb-8">
-            <div class="h-px flex-1 bg-gradient-to-r from-transparent via-border-subtle to-transparent"></div>
-            <span id="session-marker-time"
-              class="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em] px-3 py-1 rounded-full bg-surface border border-border-subtle">Session
-              Started</span>
-            <div class="h-px flex-1 bg-gradient-to-r from-transparent via-border-subtle to-transparent"></div>
-          </div>
-
           <!-- Transcript content -->
           <div class="max-w-4xl mx-auto">
             <div id="transcript-content" class="space-y-2">
@@ -561,8 +552,14 @@
           </div>
           <!-- Column headers -->
           <div class="interp-col-headers border-b border-border-subtle/20 shrink-0">
-            <div class="interp-header">Source (EN)</div>
-            <div class="interp-header">Translation (KO)</div>
+            <div class="interp-header flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[13px]">translate</span>
+              <span>English</span>
+            </div>
+            <div class="interp-header flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[13px]">g_translate</span>
+              <span>Korean Translation</span>
+            </div>
           </div>
           <!-- Scroll area — two-column rows -->
           <div id="interpreter-scroll" class="flex-1 overflow-y-auto custom-scrollbar">
