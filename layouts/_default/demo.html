@@ -173,7 +173,7 @@
         </div>
 
         <!-- ─── Live Transcript Panel ─── -->
-        <div id="transcript-panel" class="flex-1 flex flex-col overflow-hidden">
+        <div id="transcript-panel" class="flex-1 flex flex-col overflow-hidden relative">
           <div class="flex items-center justify-between px-4 md:px-8 py-2 border-b border-border-subtle/30 bg-surface/30 shrink-0">
             <div class="flex items-center gap-2">
               <span class="material-symbols-outlined text-slate-500 text-[16px]">mic</span>
@@ -261,10 +261,15 @@
             </div>
             <div id="summary-content-transcript" class="text-slate-100 leading-[1.8] text-base md:text-lg font-medium"></div>
           </div>
+          <!-- Jump to bottom FAB -->
+          <button id="transcript-jump-btn"
+            class="hidden absolute bottom-6 right-6 md:right-10 w-10 h-10 rounded-full gradient-primary text-white shadow-lg shadow-primary/30 items-center justify-center hover:shadow-xl hover:shadow-primary/40 transition-all z-20">
+            <span class="material-symbols-outlined text-[20px]">keyboard_double_arrow_down</span>
+          </button>
         </div><!-- end transcript-panel -->
 
         <!-- ─── Live Translate Panel ─── -->
-        <div id="translate-box" class="flex-1 flex flex-col overflow-hidden hidden">
+        <div id="translate-box" class="flex-1 flex flex-col overflow-hidden hidden relative">
           <div class="flex items-center justify-between px-4 md:px-8 py-2 border-b border-border-subtle/30 bg-surface/30 shrink-0">
             <div class="flex items-center gap-2">
               <div class="w-5 h-5 rounded bg-slate-800 flex items-center justify-center">
@@ -348,6 +353,11 @@
             </div>
             <div id="summary-content-translate" class="text-slate-100 leading-[1.8] text-base md:text-lg font-medium"></div>
           </div>
+          <!-- Jump to bottom FAB -->
+          <button id="translate-jump-btn"
+            class="hidden absolute bottom-6 right-6 md:right-10 w-10 h-10 rounded-full gradient-primary text-white shadow-lg shadow-primary/30 items-center justify-center hover:shadow-xl hover:shadow-primary/40 transition-all z-20">
+            <span class="material-symbols-outlined text-[20px]">keyboard_double_arrow_down</span>
+          </button>
         </div>
 
         <!-- ─── Interview Panel ─── -->

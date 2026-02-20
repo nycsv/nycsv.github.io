@@ -63,6 +63,10 @@ let i18n = {};
 // Interpreter auto-scroll state
 let interpreterAutoScroll = true;
 
+// Transcript / translate auto-scroll state
+let transcriptAutoScroll = true;
+let translateAutoScroll = true;
+
 /**
  * Initialize application
  */
@@ -123,6 +127,8 @@ function init() {
     interpreterJumpBtn: document.getElementById('interpreter-jump-btn'),
     interpreterCountBadge: document.getElementById('interpreter-count-badge'),
     interpreterCopyBtn: document.getElementById('interpreter-copy-btn'),
+    transcriptJumpBtn: document.getElementById('transcript-jump-btn'),
+    translateJumpBtn: document.getElementById('translate-jump-btn'),
     summaryFooterTranscript: document.getElementById('summary-footer-transcript'),
     summaryContentTranscript: document.getElementById('summary-content-transcript'),
     summaryFooterTranslate: document.getElementById('summary-footer-translate'),
@@ -160,6 +166,9 @@ function init() {
 
   // Interpreter scroll & controls
   initInterpreterControls();
+
+  // Transcript / translate scroll behavior
+  initTranscriptScrollBehavior();
 
   // Initial state
   setActiveTab('live');
@@ -250,6 +259,57 @@ function initInterpreterControls() {
         showError('Failed to copy');
         setTimeout(clearError, 2000);
       }
+    });
+  }
+}
+
+/**
+ * Initialize transcript and translate scroll behavior (pause on manual scroll, jump button)
+ */
+function initTranscriptScrollBehavior() {
+  // ── Live Transcript ──
+  if (dom.transcriptBox) {
+    dom.transcriptBox.addEventListener('scroll', () => {
+      const el = dom.transcriptBox;
+      const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+      transcriptAutoScroll = atBottom;
+      if (dom.transcriptJumpBtn) {
+        dom.transcriptJumpBtn.classList.toggle('hidden', atBottom);
+        if (!atBottom) dom.transcriptJumpBtn.style.display = 'flex';
+      }
+    });
+  }
+  if (dom.transcriptJumpBtn) {
+    dom.transcriptJumpBtn.addEventListener('click', () => {
+      dom.transcriptBox.scrollTop = dom.transcriptBox.scrollHeight;
+      transcriptAutoScroll = true;
+      dom.transcriptJumpBtn.classList.add('hidden');
+    });
+  }
+
+  // ── Live Translate ──
+  const onTranslateScroll = (el) => {
+    const atBottomEn = dom.translateScrollEn
+      ? dom.translateScrollEn.scrollHeight - dom.translateScrollEn.scrollTop - dom.translateScrollEn.clientHeight < 60
+      : true;
+    const atBottomKo = dom.translateScrollKo
+      ? dom.translateScrollKo.scrollHeight - dom.translateScrollKo.scrollTop - dom.translateScrollKo.clientHeight < 60
+      : true;
+    const atBottom = atBottomEn && atBottomKo;
+    translateAutoScroll = atBottom;
+    if (dom.translateJumpBtn) {
+      dom.translateJumpBtn.classList.toggle('hidden', atBottom);
+      if (!atBottom) dom.translateJumpBtn.style.display = 'flex';
+    }
+  };
+  if (dom.translateScrollEn) dom.translateScrollEn.addEventListener('scroll', onTranslateScroll);
+  if (dom.translateScrollKo) dom.translateScrollKo.addEventListener('scroll', onTranslateScroll);
+  if (dom.translateJumpBtn) {
+    dom.translateJumpBtn.addEventListener('click', () => {
+      if (dom.translateScrollEn) dom.translateScrollEn.scrollTop = dom.translateScrollEn.scrollHeight;
+      if (dom.translateScrollKo) dom.translateScrollKo.scrollTop = dom.translateScrollKo.scrollHeight;
+      translateAutoScroll = true;
+      dom.translateJumpBtn.classList.add('hidden');
     });
   }
 }
@@ -724,6 +784,12 @@ async function startRecording() {
 
     updateTranscript();
 
+    // Reset scroll state
+    transcriptAutoScroll = true;
+    translateAutoScroll = true;
+    if (dom.transcriptJumpBtn) dom.transcriptJumpBtn.classList.add('hidden');
+    if (dom.translateJumpBtn) dom.translateJumpBtn.classList.add('hidden');
+
     // Reset interpreter
     interpreterSentenceCount = 0;
     interpreterAutoScroll = true;
@@ -1053,8 +1119,10 @@ function updateTranscript() {
     dom.placeholder.style.display = (committedText || partialText) ? 'none' : 'flex';
   }
 
-  // Auto-scroll to bottom
-  dom.transcriptBox.scrollTop = dom.transcriptBox.scrollHeight;
+  // Auto-scroll to bottom (paused when user has scrolled up)
+  if (transcriptAutoScroll) {
+    dom.transcriptBox.scrollTop = dom.transcriptBox.scrollHeight;
+  }
 
   // Update translate tab mirrors
   dom.translateCommittedEn.textContent = committedText;
@@ -1062,9 +1130,11 @@ function updateTranscript() {
   dom.translateCommittedKo.textContent = translationCommitted;
   dom.translatePartialKo.textContent = translationPartial;
 
-  // Auto-scroll translate panels
-  dom.translateScrollEn.scrollTop = dom.translateScrollEn.scrollHeight;
-  dom.translateScrollKo.scrollTop = dom.translateScrollKo.scrollHeight;
+  // Auto-scroll translate panels (paused when user has scrolled up)
+  if (translateAutoScroll) {
+    dom.translateScrollEn.scrollTop = dom.translateScrollEn.scrollHeight;
+    dom.translateScrollKo.scrollTop = dom.translateScrollKo.scrollHeight;
+  }
 }
 
 /**
