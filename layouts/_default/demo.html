@@ -55,7 +55,7 @@
       <header
         class="glass-strong border-b border-border-subtle px-4 md:px-6 py-3 flex items-center justify-between z-10 shrink-0">
 
-        <!-- Left: Brand + Connect + Mic -->
+        <!-- Left: Brand + Start/Stop + Status -->
         <div class="flex items-center gap-3 md:gap-4">
 
           <!-- Brand mark -->
@@ -69,13 +69,6 @@
               <span class="text-[9px] font-semibold text-slate-500 uppercase tracking-widest leading-none mt-0.5">Speech AI</span>
             </div>
           </a>
-
-          <!-- Disconnect button (hidden until connected) -->
-          <button id="connect-btn"
-            class="btn-danger hidden flex items-center gap-1.5 text-white text-sm font-bold px-4 py-2 rounded-xl">
-            <span class="material-symbols-outlined text-[18px]">power_settings_new</span>
-            <span class="hidden sm:inline">Disconnect</span>
-          </button>
 
           <!-- Status indicator -->
           <div class="flex items-center gap-1.5">
@@ -643,7 +636,6 @@
       statusConnected: 'Connected',
       statusRecording: 'Recording',
       statusStopping: 'Stopping...',
-      btnDisconnect: 'Disconnect',
       errorConnection: '[Connection error] Server is not running',
       errorDisconnected: 'Disconnected from server',
       errorMicAccess: 'Microphone access denied',

@@ -76,7 +76,6 @@ function init() {
 
   // Cache DOM elements
   dom = {
-    connectBtn: document.getElementById('connect-btn'),
     statusDot: document.getElementById('status-dot'),
     statusText: document.getElementById('status-text'),
     micBtn: document.getElementById('mic-btn'),
@@ -145,7 +144,6 @@ function init() {
   };
 
   // Attach event listeners
-  dom.connectBtn.addEventListener('click', handleConnect);
   dom.micBtn.addEventListener('click', handleMicClick);
   dom.copyBtn.addEventListener('click', handleCopyClick);
   dom.summarizeBtn.addEventListener('click', handleSummarizeClick);
@@ -489,15 +487,6 @@ function updateTabButton(button, isActive) {
 }
 
 /**
- * Handle disconnect button click
- */
-async function handleConnect() {
-  if (currentState === State.CONNECTED) {
-    disconnectWebSocket();
-  }
-}
-
-/**
  * Connect to WebSocket server and immediately start recording
  */
 async function connectAndStart() {
@@ -558,6 +547,12 @@ async function connectAndStart() {
     // Step 2: Connected — now start recording
     setState(State.CONNECTED);
     await startRecording();
+
+    // If still CONNECTED after startRecording, it means recording failed
+    // (success sets state to RECORDING). Clean up by disconnecting.
+    if (currentState === State.CONNECTED) {
+      disconnectWebSocket();
+    }
 
   } catch (error) {
     console.error('Failed to connect and start:', error);
@@ -774,15 +769,14 @@ function handleFinalResult(data) {
 }
 
 /**
- * Handle mic button click (primary action: connect+start / start / stop)
+ * Handle mic button click (single button: start / stop+disconnect)
  */
 async function handleMicClick() {
   if (currentState === State.IDLE) {
     await connectAndStart();
-  } else if (currentState === State.CONNECTED) {
-    await startRecording();
   } else if (currentState === State.RECORDING) {
     await stopRecording();
+    disconnectWebSocket();
   }
 }
 
@@ -1129,18 +1123,7 @@ function updateUI() {
       break;
   }
 
-  // Disconnect button — only visible when connected (hidden in IDLE/CONNECTING)
-  dom.connectBtn.classList.toggle('hidden', currentState === State.IDLE || currentState === State.CONNECTING);
-  if (currentState !== State.IDLE && currentState !== State.CONNECTING) {
-    const btnTextSpan = dom.connectBtn.querySelector('span:last-child');
-    dom.connectBtn.querySelector('.material-symbols-outlined').textContent = 'power_settings_new';
-    if (btnTextSpan) btnTextSpan.textContent = i18n.btnDisconnect || 'Disconnect';
-    dom.connectBtn.disabled = currentState === State.RECORDING || currentState === State.STOPPING;
-    dom.connectBtn.classList.remove('btn-primary');
-    dom.connectBtn.classList.add('btn-danger');
-  }
-
-  // Mic button — primary action (connect+start / restart / stop)
+  // Mic button — single button (start / stop+disconnect)
   dom.micBtn.disabled = currentState === State.CONNECTING || currentState === State.STOPPING;
 
   if (currentState === State.RECORDING) {
