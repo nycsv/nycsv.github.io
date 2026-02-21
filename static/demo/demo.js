@@ -32,6 +32,7 @@ let workletNode = null;
 // Transcription state
 let committedText = '';
 let partialText = '';
+let lastCommittedRaw = '';  // Track last raw committed chunk for formatted replacement
 
 // Translation state
 let translationCommitted = '';
@@ -609,6 +610,10 @@ function handleWebSocketMessage(event) {
       handleCommittedText(data);
       break;
 
+    case 'committed_formatted':
+      handleCommittedFormatted(data);
+      break;
+
     case 'partial':
       handlePartialText(data);
       break;
@@ -655,6 +660,7 @@ function handleWebSocketMessage(event) {
  */
 function handleCommittedText(data) {
   const newText = data.text || '';
+  lastCommittedRaw = newText;  // Track for formatted replacement
   committedText += newText;
   partialText = '';  // Clear partial — committed text replaces it
   updateTranscript();
@@ -663,6 +669,24 @@ function handleCommittedText(data) {
   const wordCount = committedText.split(/\s+/).filter(Boolean).length;
   if (!summarizationInFlight && wordCount - lastSummarizedWordCount >= 200) {
     requestSummarization(committedText);
+  }
+}
+
+/**
+ * Handle committed_formatted text from server (ITN + punctuation + capitalization).
+ * Replaces the last raw committed chunk with the formatted version.
+ */
+function handleCommittedFormatted(data) {
+  const formatted = data.text || '';
+  const rawText = data.raw_text || '';
+
+  if (!rawText || !formatted || formatted === rawText) return;
+
+  // Replace the last occurrence of the raw text in committedText
+  const idx = committedText.lastIndexOf(rawText);
+  if (idx !== -1) {
+    committedText = committedText.substring(0, idx) + formatted + committedText.substring(idx + rawText.length);
+    updateTranscript();
   }
 }
 
@@ -865,6 +889,7 @@ async function startRecording() {
     // Reset transcription and translation
     committedText = '';
     partialText = '';
+    lastCommittedRaw = '';
     translationCommitted = '';
     translationPartial = '';
     lastSummarizedWordCount = 0;
