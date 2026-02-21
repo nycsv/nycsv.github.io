@@ -70,11 +70,11 @@
             </div>
           </a>
 
-          <!-- Connect button -->
+          <!-- Disconnect button (hidden until connected) -->
           <button id="connect-btn"
-            class="btn-primary flex items-center gap-1.5 text-white text-sm font-bold px-4 py-2 rounded-xl">
+            class="btn-danger hidden flex items-center gap-1.5 text-white text-sm font-bold px-4 py-2 rounded-xl">
             <span class="material-symbols-outlined text-[18px]">power_settings_new</span>
-            <span class="hidden sm:inline">Connect</span>
+            <span class="hidden sm:inline">Disconnect</span>
           </button>
 
           <!-- Status indicator -->
@@ -85,12 +85,11 @@
 
           <div class="h-6 w-px bg-border-subtle"></div>
 
-          <!-- Mic button -->
+          <!-- Start/Stop button (connects + starts transcription in one click) -->
           <button id="mic-btn"
-            class="asr-mic-button gradient-primary flex items-center gap-2 text-white p-2.5 sm:px-5 sm:py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-            disabled>
+            class="asr-mic-button gradient-primary flex items-center gap-2 text-white p-2.5 sm:px-5 sm:py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
             <span class="material-symbols-outlined text-[22px]" id="mic-icon">mic</span>
-            <span id="mic-label" class="hidden sm:inline">Connect first</span>
+            <span id="mic-label" class="hidden sm:inline">Start Transcribing</span>
           </button>
 
           <!-- Mic status & latency badges -->
@@ -216,8 +215,7 @@
               </div>
               <div>
                 <p class="text-slate-300 text-sm font-semibold">Ready to transcribe</p>
-                <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Connect to the server and click the mic
-                  button<br>to start real-time speech recognition</p>
+                <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Click Start Transcribing<br>to begin real-time speech recognition</p>
               </div>
               <div class="flex items-center gap-6 mt-2">
                 <div class="flex items-center gap-1.5 text-slate-600">
@@ -639,13 +637,12 @@
     window.ASR_I18N = {
       micLabelStart: 'Start Transcribing',
       micLabelStop: 'Stop',
-      micLabelConnect: 'Connect first',
+      micLabelConnecting: 'Connecting...',
       statusIdle: 'Disconnected',
       statusConnecting: 'Connecting...',
       statusConnected: 'Connected',
       statusRecording: 'Recording',
       statusStopping: 'Stopping...',
-      btnConnect: 'Connect',
       btnDisconnect: 'Disconnect',
       errorConnection: '[Connection error] Server is not running',
       errorDisconnected: 'Disconnected from server',

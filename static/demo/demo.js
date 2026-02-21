@@ -489,50 +489,82 @@ function updateTabButton(button, isActive) {
 }
 
 /**
- * Handle connect button click
+ * Handle disconnect button click
  */
 async function handleConnect() {
-  if (currentState === State.IDLE) {
-    await connectWebSocket(SERVER_URL);
-  } else if (currentState === State.CONNECTED) {
+  if (currentState === State.CONNECTED) {
     disconnectWebSocket();
   }
 }
 
 /**
- * Connect to WebSocket server
+ * Connect to WebSocket server and immediately start recording
  */
-async function connectWebSocket(url) {
+async function connectAndStart() {
   setState(State.CONNECTING);
   clearError();
 
   try {
-    ws = new WebSocket(url);
+    // Step 1: Connect WebSocket and wait for session_start
+    await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('Connection timeout')), 10000);
 
-    ws.onopen = () => {
-      console.log('WebSocket connected');
-    };
+      ws = new WebSocket(SERVER_URL);
 
-    ws.onmessage = handleWebSocketMessage;
+      ws.onopen = () => {
+        console.log('WebSocket connected');
+      };
 
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      showError(i18n.errorConnection || '[Connection error] Server is not running');
-      setState(State.IDLE);
-    };
+      ws.onmessage = (event) => {
+        let data;
+        try { data = JSON.parse(event.data); } catch (e) { return; }
+        if (data.type === 'session_start') {
+          sessionId = data.session_id;
+          console.log('Session started:', sessionId);
+          clearTimeout(timeout);
 
-    ws.onclose = () => {
-      console.log('WebSocket closed');
-      if (currentState !== State.IDLE) {
-        setState(State.IDLE);
-        showError(i18n.errorDisconnected || 'Disconnected from server');
-      }
-      cleanup();
-    };
+          // Set up persistent handlers for the connection lifetime
+          ws.onmessage = handleWebSocketMessage;
+          ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            showError(i18n.errorConnection || '[Connection error] Server is not running');
+            setState(State.IDLE);
+          };
+          ws.onclose = () => {
+            console.log('WebSocket closed');
+            if (currentState !== State.IDLE) {
+              setState(State.IDLE);
+              showError(i18n.errorDisconnected || 'Disconnected from server');
+            }
+            cleanup();
+          };
+
+          resolve();
+        }
+      };
+
+      ws.onerror = (error) => {
+        clearTimeout(timeout);
+        console.error('WebSocket connection error:', error);
+        reject(new Error('Connection failed'));
+      };
+
+      ws.onclose = () => {
+        clearTimeout(timeout);
+        reject(new Error('Connection closed'));
+      };
+    });
+
+    // Step 2: Connected — now start recording
+    setState(State.CONNECTED);
+    await startRecording();
+
   } catch (error) {
-    console.error('Failed to connect:', error);
-    showError(i18n.errorConnection || 'Failed to connect');
+    console.error('Failed to connect and start:', error);
+    showError(i18n.errorConnection || 'Failed to connect to server');
+    if (ws) { ws.close(); ws = null; }
     setState(State.IDLE);
+    cleanup();
   }
 }
 
@@ -742,10 +774,12 @@ function handleFinalResult(data) {
 }
 
 /**
- * Handle mic button click
+ * Handle mic button click (primary action: connect+start / start / stop)
  */
 async function handleMicClick() {
-  if (currentState === State.CONNECTED) {
+  if (currentState === State.IDLE) {
+    await connectAndStart();
+  } else if (currentState === State.CONNECTED) {
     await startRecording();
   } else if (currentState === State.RECORDING) {
     await stopRecording();
@@ -1095,15 +1129,10 @@ function updateUI() {
       break;
   }
 
-  // Connect button
-  const btnTextSpan = dom.connectBtn.querySelector('span:last-child');
-  if (currentState === State.IDLE || currentState === State.CONNECTING) {
-    dom.connectBtn.querySelector('.material-symbols-outlined').textContent = 'power_settings_new';
-    if (btnTextSpan) btnTextSpan.textContent = i18n.btnConnect || 'Connect';
-    dom.connectBtn.disabled = currentState === State.CONNECTING;
-    dom.connectBtn.classList.remove('btn-danger');
-    dom.connectBtn.classList.add('btn-primary');
-  } else {
+  // Disconnect button — only visible when connected (hidden in IDLE/CONNECTING)
+  dom.connectBtn.classList.toggle('hidden', currentState === State.IDLE || currentState === State.CONNECTING);
+  if (currentState !== State.IDLE && currentState !== State.CONNECTING) {
+    const btnTextSpan = dom.connectBtn.querySelector('span:last-child');
     dom.connectBtn.querySelector('.material-symbols-outlined').textContent = 'power_settings_new';
     if (btnTextSpan) btnTextSpan.textContent = i18n.btnDisconnect || 'Disconnect';
     dom.connectBtn.disabled = currentState === State.RECORDING || currentState === State.STOPPING;
@@ -1111,27 +1140,32 @@ function updateUI() {
     dom.connectBtn.classList.add('btn-danger');
   }
 
-  // Mic button
-  const micEnabled = currentState === State.CONNECTED || currentState === State.RECORDING;
-  dom.micBtn.disabled = !micEnabled;
+  // Mic button — primary action (connect+start / restart / stop)
+  dom.micBtn.disabled = currentState === State.CONNECTING || currentState === State.STOPPING;
 
   if (currentState === State.RECORDING) {
     dom.micBtn.classList.add('recording');
     dom.micIcon.textContent = 'stop';
-    dom.micLabel.textContent = i18n.micLabelStop || 'Click to stop';
+    dom.micLabel.textContent = i18n.micLabelStop || 'Stop';
     dom.micReadyDot.className = 'w-2 h-2 rounded-full bg-red-500 animate-pulse';
     dom.micReadyText.textContent = 'Recording';
     dom.waveform.classList.add('waveform-active');
+  } else if (currentState === State.CONNECTING) {
+    dom.micBtn.classList.remove('recording');
+    dom.micIcon.textContent = 'hourglass_empty';
+    dom.micLabel.textContent = i18n.micLabelConnecting || 'Connecting...';
+    dom.micReadyDot.className = 'w-2 h-2 rounded-full bg-yellow-500 animate-pulse';
+    dom.micReadyText.textContent = 'Connecting...';
+    dom.waveform.classList.remove('waveform-active');
   } else {
     dom.micBtn.classList.remove('recording');
     dom.micIcon.textContent = 'mic';
+    dom.micLabel.textContent = i18n.micLabelStart || 'Start Transcribing';
     dom.waveform.classList.remove('waveform-active');
     if (currentState === State.CONNECTED) {
-      dom.micLabel.textContent = i18n.micLabelStart || 'Click to start transcribing';
       dom.micReadyDot.className = 'w-2 h-2 rounded-full bg-green-500 animate-pulse';
-      dom.micReadyText.textContent = 'Microphone Ready';
+      dom.micReadyText.textContent = 'Ready';
     } else {
-      dom.micLabel.textContent = i18n.micLabelConnect || 'Connect first';
       dom.micReadyDot.className = 'w-2 h-2 rounded-full bg-slate-600';
       dom.micReadyText.textContent = 'Mic: Standby';
     }
