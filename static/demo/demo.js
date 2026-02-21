@@ -93,7 +93,6 @@ function init() {
     errorMsg: document.getElementById('error-message'),
     statLatency: document.getElementById('stat-latency'),
     statDuration: document.getElementById('stat-duration'),
-    statStatus: document.getElementById('stat-status'),
     statBuffer: document.getElementById('stat-buffer'),
     statusFooterDot: document.getElementById('status-footer-dot'),
     audioSource: document.getElementById('audio-source'),
@@ -1143,7 +1142,7 @@ function updateUI() {
   } else {
     dom.micBtn.classList.remove('recording');
     dom.micIcon.textContent = 'mic';
-    dom.micLabel.textContent = i18n.micLabelStart || 'Start Transcribing';
+    dom.micLabel.textContent = i18n.micLabelStart || 'Start';
     dom.waveform.classList.remove('waveform-active');
     if (currentState === State.CONNECTED) {
       dom.micReadyDot.className = 'w-2 h-2 rounded-full bg-green-500 animate-pulse';
@@ -1180,8 +1179,6 @@ function updateUI() {
     btn.disabled = srcDisabled;
   });
 
-  // Status text in footer
-  dom.statStatus.textContent = currentState;
 }
 
 /**
@@ -1232,9 +1229,6 @@ function updateStats() {
   } else {
     dom.statDuration.textContent = '-';
   }
-
-  // Status
-  dom.statStatus.textContent = currentState;
 
   // Buffer fill
   if (bufferFillPct !== null) {

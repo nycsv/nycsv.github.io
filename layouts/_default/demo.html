@@ -70,19 +70,11 @@
             </div>
           </a>
 
-          <!-- Status indicator -->
-          <div class="flex items-center gap-1.5">
-            <span class="asr-status-dot idle" id="status-dot"></span>
-            <span id="status-text" class="text-[11px] text-slate-500 font-medium hidden sm:inline">Disconnected</span>
-          </div>
-
-          <div class="h-6 w-px bg-border-subtle"></div>
-
           <!-- Start/Stop button (connects + starts transcription in one click) -->
           <button id="mic-btn"
-            class="asr-mic-button gradient-primary flex items-center gap-2 text-white p-2.5 sm:px-5 sm:py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
+            class="asr-mic-button gradient-primary flex items-center justify-center gap-2 text-white p-2.5 sm:px-5 sm:py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none sm:w-[100px]">
             <span class="material-symbols-outlined text-[22px]" id="mic-icon">mic</span>
-            <span id="mic-label" class="hidden sm:inline">Start Transcribing</span>
+            <span id="mic-label" class="hidden sm:inline">Start</span>
           </button>
 
           <!-- Mic status & latency badges -->
@@ -613,7 +605,11 @@
               <span id="indicator-sys-label" class="text-[10px] font-semibold text-slate-600">--</span>
             </div>
           </div>
-          <span class="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-600" id="stat-status">IDLE</span>
+          <!-- Status indicator (moved from header) -->
+          <div class="flex items-center gap-1.5">
+            <span class="asr-status-dot idle" id="status-dot"></span>
+            <span id="status-text" class="text-[10px] text-slate-500 font-semibold">Disconnected</span>
+          </div>
           <div class="flex gap-[3px]" id="status-footer-dot">
             <div class="w-1 h-2 bg-slate-700 rounded-full transition-all duration-300"></div>
             <div class="w-1 h-3 bg-slate-700 rounded-full transition-all duration-300"></div>
@@ -628,7 +624,7 @@
   <!-- i18n strings for JavaScript -->
   <script>
     window.ASR_I18N = {
-      micLabelStart: 'Start Transcribing',
+      micLabelStart: 'Start',
       micLabelStop: 'Stop',
       micLabelConnecting: 'Connecting...',
       statusIdle: 'Disconnected',
