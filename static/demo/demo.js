@@ -30,9 +30,11 @@ let displayStream = null;
 let workletNode = null;
 
 // Transcription state
-let committedText = '';
+let committedText = '';     // computed display string: formattedPrefix + raw tail
 let partialText = '';
-let lastCommittedRaw = '';  // Track last raw committed chunk for formatted replacement
+let _rawCommitted = '';         // all raw committed chunks accumulated
+let _formattedPrefix = '';      // formatted version (may lag behind raw)
+let _formattedRawLength = 0;    // how many chars of _rawCommitted are covered by _formattedPrefix
 
 // Translation state
 let translationCommitted = '';
@@ -660,8 +662,8 @@ function handleWebSocketMessage(event) {
  */
 function handleCommittedText(data) {
   const newText = data.text || '';
-  lastCommittedRaw = newText;  // Track for formatted replacement
-  committedText += newText;
+  _rawCommitted += newText;
+  committedText = _formattedPrefix + _rawCommitted.substring(_formattedRawLength);
   partialText = '';  // Clear partial — committed text replaces it
   updateTranscript();
 
@@ -674,20 +676,20 @@ function handleCommittedText(data) {
 
 /**
  * Handle committed_formatted text from server (ITN + punctuation + capitalization).
- * Replaces the last raw committed chunk with the formatted version.
+ * The server sends the formatted version of ALL accumulated committed text so far.
+ * raw_length tells us how many chars of raw text were covered by this formatting.
+ * Display = formattedPrefix + raw tail (any raw chunks that arrived after formatting).
  */
 function handleCommittedFormatted(data) {
   const formatted = data.text || '';
-  const rawText = data.raw_text || '';
+  const rawLength = data.raw_length || 0;
 
-  if (!rawText || !formatted || formatted === rawText) return;
+  if (!formatted || rawLength <= _formattedRawLength) return;
 
-  // Replace the last occurrence of the raw text in committedText
-  const idx = committedText.lastIndexOf(rawText);
-  if (idx !== -1) {
-    committedText = committedText.substring(0, idx) + formatted + committedText.substring(idx + rawText.length);
-    updateTranscript();
-  }
+  _formattedPrefix = formatted;
+  _formattedRawLength = rawLength;
+  committedText = _formattedPrefix + _rawCommitted.substring(_formattedRawLength);
+  updateTranscript();
 }
 
 /**
@@ -889,7 +891,9 @@ async function startRecording() {
     // Reset transcription and translation
     committedText = '';
     partialText = '';
-    lastCommittedRaw = '';
+    _rawCommitted = '';
+    _formattedPrefix = '';
+    _formattedRawLength = 0;
     translationCommitted = '';
     translationPartial = '';
     lastSummarizedWordCount = 0;
