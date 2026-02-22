@@ -36,6 +36,27 @@ let _rawCommitted = '';         // all raw committed chunks accumulated
 let _formattedPrefix = '';      // formatted version (may lag behind raw)
 let _formattedRawLength = 0;    // how many chars of _rawCommitted are covered by _formattedPrefix
 
+/**
+ * Compute committedText from formatted prefix + raw tail.
+ * Handles junction: strips premature sentence-end punctuation when raw tail follows,
+ * and ensures proper spacing.
+ */
+function _computeCommittedText() {
+  const rawTail = _rawCommitted.substring(_formattedRawLength);
+  if (!_formattedPrefix) return _rawCommitted;
+  if (!rawTail) return _formattedPrefix;
+
+  // Raw tail follows — strip trailing sentence-end punctuation from prefix
+  // (formatter adds period/etc. assuming sentence ended, but more text is coming)
+  let prefix = _formattedPrefix.replace(/[.!?]+\s*$/, '');
+
+  // Ensure exactly one space at the junction
+  if (!prefix.endsWith(' ') && !rawTail.startsWith(' ')) {
+    prefix += ' ';
+  }
+  return prefix + rawTail;
+}
+
 // Translation state
 let translationCommitted = '';
 let translationPartial = '';
@@ -663,7 +684,7 @@ function handleWebSocketMessage(event) {
 function handleCommittedText(data) {
   const newText = data.text || '';
   _rawCommitted += newText;
-  committedText = _formattedPrefix + _rawCommitted.substring(_formattedRawLength);
+  committedText = _computeCommittedText();
   partialText = '';  // Clear partial — committed text replaces it
   updateTranscript();
 
@@ -688,7 +709,7 @@ function handleCommittedFormatted(data) {
 
   _formattedPrefix = formatted;
   _formattedRawLength = rawLength;
-  committedText = _formattedPrefix + _rawCommitted.substring(_formattedRawLength);
+  committedText = _computeCommittedText();
   updateTranscript();
 }
 
