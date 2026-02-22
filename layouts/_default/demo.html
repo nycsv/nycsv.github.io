@@ -41,7 +41,7 @@
 <body class="bg-background-dark font-display text-slate-100 antialiased overflow-hidden"
   data-base="{{ .Site.BaseURL }}">
 
-  <div class="flex h-screen w-full overflow-hidden">
+  <div class="flex h-dvh w-full overflow-hidden">
 
     <!-- Main Content Area -->
     <main class="flex-1 flex flex-col overflow-hidden relative">
@@ -288,19 +288,19 @@
               </button>
             </div>
           </div>
-          <!-- Placeholder (positioned over entire panel) -->
-          <div id="translate-placeholder"
-            class="absolute inset-0 flex flex-col items-center justify-center text-center space-y-5 z-10">
-            <div
-              class="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shadow-xl shadow-primary/20 placeholder-ring">
-              <span class="material-symbols-outlined text-white text-3xl">hearing</span>
+          <div class="flex-1 flex overflow-hidden relative">
+            <!-- Placeholder -->
+            <div id="translate-placeholder"
+              class="absolute inset-0 flex flex-col items-center justify-center text-center space-y-5 z-10 bg-background-dark">
+              <div
+                class="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shadow-xl shadow-primary/20 placeholder-ring">
+                <span class="material-symbols-outlined text-white text-3xl">hearing</span>
+              </div>
+              <div>
+                <p class="text-slate-300 text-sm font-semibold">Interpreter Listening Mode</p>
+                <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Real-time continuous transcription and translation<br>ideal for lectures, meetings, and presentations</p>
+              </div>
             </div>
-            <div>
-              <p class="text-slate-300 text-sm font-semibold">Interpreter Listening Mode</p>
-              <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Real-time continuous transcription and translation<br>ideal for lectures, meetings, and presentations</p>
-            </div>
-          </div>
-          <div class="flex-1 flex overflow-hidden">
             <!-- English transcript -->
             <div id="translate-scroll-en"
               class="flex-1 overflow-y-auto px-4 py-5 md:px-8 md:py-6 custom-scrollbar border-r border-border-subtle/30">
