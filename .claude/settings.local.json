@@ -10,7 +10,8 @@
       "Bash(nvidia-smi:*)",
       "Bash(kill:*)",
       "WebSearch",
-      "WebFetch(domain:news.samsung.com)"
+      "WebFetch(domain:news.samsung.com)",
+      "Bash(timeout 10 /tmp/gpu-monitor.sh:*)"
     ]
   },
   "disabledMcpjsonServers": [

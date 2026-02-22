@@ -1095,7 +1095,7 @@ function updateUI() {
       break;
     case State.RECORDING:
       dom.statusDot.classList.add('connected');
-      dom.statusText.textContent = i18n.statusRecording || 'Recording';
+      dom.statusText.textContent = i18n.statusRecording || 'Listening';
       break;
     case State.STOPPING:
       dom.statusDot.classList.add('connecting');
@@ -1111,7 +1111,7 @@ function updateUI() {
     dom.micIcon.textContent = 'stop';
     dom.micLabel.textContent = i18n.micLabelStop || 'Stop';
     dom.micReadyDot.className = 'w-2 h-2 rounded-full bg-red-500 animate-pulse';
-    dom.micReadyText.textContent = 'Recording';
+    dom.micReadyText.textContent = 'Listening';
     dom.waveform.classList.add('waveform-active');
   } else if (currentState === State.CONNECTING) {
     // Keep showing Start while connecting — no visual change on the button
