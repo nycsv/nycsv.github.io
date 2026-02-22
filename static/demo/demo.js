@@ -203,14 +203,11 @@ function init() {
 function initAudioSourceToggle() {
   const btns = document.querySelectorAll('.audio-src-btn');
 
-  // Hide System/Both on devices that don't support getDisplayMedia
+  // Hide entire audio source selector on devices that don't support getDisplayMedia (mobile)
   const supportsDisplayMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
   if (!supportsDisplayMedia) {
-    btns.forEach(btn => {
-      if (btn.dataset.source === 'system' || btn.dataset.source === 'both') {
-        btn.style.display = 'none';
-      }
-    });
+    const selectorContainer = btns[0]?.closest('.flex.items-center.gap-1');
+    if (selectorContainer) selectorContainer.style.display = 'none';
   }
 
   btns.forEach(btn => {
