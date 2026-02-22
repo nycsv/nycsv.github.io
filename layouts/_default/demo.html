@@ -620,11 +620,11 @@
   </script>
 
   <!-- Main application script -->
-  <script src="{{ .Site.BaseURL }}/demo/demo.js"></script>
+  <script src="{{ .Site.BaseURL }}/demo/demo.js?v={{ now.Unix }}"></script>
   <!-- Interview assistant script -->
-  <script src="{{ .Site.BaseURL }}/interview/interview.js"></script>
+  <script src="{{ .Site.BaseURL }}/interview/interview.js?v={{ now.Unix }}"></script>
   <!-- Interview2 (local LLM) assistant script -->
-  <script src="{{ .Site.BaseURL }}/interview2/interview2.js"></script>
+  <script src="{{ .Site.BaseURL }}/interview2/interview2.js?v={{ now.Unix }}"></script>
 
 </body>
 
