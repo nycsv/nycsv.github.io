@@ -145,7 +145,6 @@ function init() {
     interpreterPlaceholder: document.getElementById('interpreter-placeholder'),
     interpreterPinBtn: document.getElementById('interpreter-pin-btn'),
     interpreterJumpBtn: document.getElementById('interpreter-jump-btn'),
-    interpreterCountBadge: document.getElementById('interpreter-count-badge'),
     interpreterCopyBtn: document.getElementById('interpreter-copy-btn'),
     transcriptPinBtn: document.getElementById('transcript-pin-btn'),
     transcriptJumpBtn: document.getElementById('transcript-jump-btn'),
@@ -472,19 +471,6 @@ function updateTrackIndicators() {
   }
 }
 
-/**
- * Update interpreter sentence count badge
- */
-function updateInterpreterCountBadge() {
-  if (dom.interpreterCountBadge) {
-    if (interpreterSentenceCount > 0) {
-      dom.interpreterCountBadge.textContent = interpreterSentenceCount;
-      dom.interpreterCountBadge.classList.remove('hidden');
-    } else {
-      dom.interpreterCountBadge.classList.add('hidden');
-    }
-  }
-}
 
 /**
  * Tab switching
@@ -595,6 +581,8 @@ function disconnectWebSocket() {
     ws = null;
   }
   setState(State.IDLE);
+  // Re-render transcript so full punctuation is restored after streaming ends
+  updateTranscript();
 }
 
 /**
@@ -942,8 +930,7 @@ async function startRecording() {
     interpreterBuffer = { source: '', text: '' };
     if (dom.interpreterRows) dom.interpreterRows.innerHTML = '';
     if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'flex';
-    updateInterpreterCountBadge();
-    updateInterpreterPinUI();
+      updateInterpreterPinUI();
 
     const audioSource = getAudioSource();
     const needMic = audioSource === 'mic' || audioSource === 'both';
@@ -1173,7 +1160,7 @@ function updateUI() {
   }
 
   // Mic button — single button (start / stop+disconnect)
-  dom.micBtn.disabled = currentState === State.CONNECTING || currentState === State.STOPPING;
+  dom.micBtn.disabled = currentState === State.STOPPING;
 
   if (currentState === State.RECORDING) {
     dom.micBtn.classList.add('recording');
@@ -1183,15 +1170,16 @@ function updateUI() {
     dom.micReadyText.textContent = 'Recording';
     dom.waveform.classList.add('waveform-active');
   } else if (currentState === State.CONNECTING) {
+    // Keep showing Start while connecting — no visual change on the button
     dom.micBtn.classList.remove('recording');
-    dom.micIcon.textContent = 'hourglass_empty';
-    dom.micLabel.textContent = i18n.micLabelConnecting || 'Connecting...';
+    dom.micIcon.textContent = 'power_settings_new';
+    dom.micLabel.textContent = i18n.micLabelStart || 'Start';
     dom.micReadyDot.className = 'w-2 h-2 rounded-full bg-yellow-500 animate-pulse';
     dom.micReadyText.textContent = 'Connecting...';
     dom.waveform.classList.remove('waveform-active');
   } else {
     dom.micBtn.classList.remove('recording');
-    dom.micIcon.textContent = 'mic';
+    dom.micIcon.textContent = 'power_settings_new';
     dom.micLabel.textContent = i18n.micLabelStart || 'Start';
     dom.waveform.classList.remove('waveform-active');
     if (currentState === State.CONNECTED) {
@@ -1235,7 +1223,11 @@ function updateUI() {
  * Update transcript display
  */
 function updateTranscript() {
-  dom.committedSpan.textContent = committedText;
+  // While streaming, hide trailing punctuation — it looks premature to the user
+  const isStreaming = currentState === State.RECORDING || currentState === State.CONNECTED;
+  const displayCommitted = isStreaming ? committedText.replace(/[.!?]+\s*$/, '') : committedText;
+
+  dom.committedSpan.textContent = displayCommitted;
   dom.partialSpan.textContent = partialText;
 
   // Toggle placeholder
@@ -1249,7 +1241,7 @@ function updateTranscript() {
   }
 
   // Update translate tab mirrors
-  dom.translateCommittedEn.textContent = committedText;
+  dom.translateCommittedEn.textContent = displayCommitted;
   dom.translatePartialEn.textContent = partialText;
   dom.translateCommittedKo.textContent = translationCommitted;
   dom.translatePartialKo.textContent = translationPartial;
@@ -1403,7 +1395,7 @@ function addInterpreterRow(source, translation) {
   row.className = 'interpreter-row';
   row.innerHTML = `
     <div class="interp-col-en">
-      <span class="interpreter-row-num">${interpreterSentenceCount}</span><span class="interpreter-src">${escapeHtml(source)}</span>
+      <span class="interpreter-src">${escapeHtml(source)}</span>
     </div>
     <div class="interp-col-ko">
       <span class="interpreter-tl">${escapeHtml(translation)}</span>
@@ -1413,7 +1405,6 @@ function addInterpreterRow(source, translation) {
 
   if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'none';
 
-  updateInterpreterCountBadge();
   interpreterScrollToBottom();
 }
 
@@ -1431,7 +1422,7 @@ function updateInterpreterBuffering(source, translation) {
 
   pending.innerHTML = `
     <div class="interp-col-en">
-      <span class="interpreter-row-num interpreter-row-num--pending">…</span><span class="interp-text-dim">${escapeHtml(source)}</span>
+      <span class="interp-text-dim">${escapeHtml(source)}</span>
     </div>
     <div class="interp-col-ko">
       <span class="interp-text-ko-dim">${escapeHtml(translation)}</span>
@@ -1461,7 +1452,7 @@ function updateInterpreterPending(source, translation) {
 
   pending.innerHTML = `
     <div class="interp-col-en">
-      <span class="interpreter-row-num interpreter-row-num--pending">~</span><span class="interp-text-partial">${escapeHtml(source)}</span>
+      <span class="interp-text-partial">${escapeHtml(source)}</span>
     </div>
     <div class="interp-col-ko">
       <span class="interp-text-ko-partial">${escapeHtml(translation)}</span>

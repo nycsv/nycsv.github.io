@@ -73,7 +73,7 @@
           <!-- Start/Stop button (connects + starts transcription in one click) -->
           <button id="mic-btn"
             class="asr-mic-button gradient-primary flex items-center justify-center gap-2 text-white p-2.5 sm:px-5 sm:py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none sm:w-[100px]">
-            <span class="material-symbols-outlined text-[22px]" id="mic-icon">mic</span>
+            <span class="material-symbols-outlined text-[22px]" id="mic-icon">power_settings_new</span>
             <span id="mic-label" class="hidden sm:inline">Start</span>
           </button>
 
@@ -142,11 +142,11 @@
               class="tab-btn tab-active px-4 py-3 text-xs font-bold text-primary transition-colors">Live
               Transcript</button>
             <button id="tab-translate"
-              class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors">Live
-              Translate</button>
+              class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors">Interpreter
+              Listening</button>
             <button id="tab-interpreter"
-              class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors">
-              Interpreter</button>
+              class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors">Interpreter
+              Conversation</button>
             <button id="tab-interview"
               class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors hidden">
               Interview</button>
@@ -185,9 +185,9 @@
           <div class="max-w-4xl mx-auto">
             <div id="transcript-content" class="space-y-2">
               <span id="transcript-committed"
-                class="text-slate-100 leading-[1.8] text-base md:text-lg font-medium"></span><span
+                class="text-slate-100 leading-[1.6] text-[0.9rem] font-medium"></span><span
                 id="transcript-partial"
-                class="text-slate-500 leading-[1.8] text-base md:text-lg font-medium italic"></span><span
+                class="text-slate-500 leading-[1.6] text-[0.9rem] font-medium italic"></span><span
                 id="transcript-cursor" class="asr-transcript-cursor"></span>
             </div>
 
@@ -238,7 +238,7 @@
                 <span class="material-symbols-outlined text-[14px]">summarize</span>
               </button>
             </div>
-            <div id="summary-content-transcript" class="text-slate-100 leading-[1.8] text-base md:text-lg font-medium"></div>
+            <div id="summary-content-transcript" class="text-slate-100 leading-[1.6] text-[0.9rem] font-medium"></div>
           </div>
           <!-- Jump to bottom FAB -->
           <button id="transcript-jump-btn"
@@ -254,7 +254,7 @@
               <div class="w-5 h-5 rounded bg-slate-800 flex items-center justify-center">
                 <span class="material-symbols-outlined text-slate-400 text-[13px]">translate</span>
               </div>
-              <span class="section-label text-slate-500">Live Translate</span>
+              <span class="section-label text-slate-500">Interpreter Listening</span>
             </div>
             <div class="flex items-center gap-1.5">
               <button id="translate-pin-btn" title="Auto-scroll to latest"
@@ -287,9 +287,9 @@
               </div>
               <div id="translate-content-en" class="space-y-2">
                 <span id="translate-committed-en"
-                  class="text-slate-100 leading-[1.8] text-base md:text-lg font-medium"></span><span
+                  class="text-slate-100 leading-[1.6] text-[0.9rem] font-medium"></span><span
                   id="translate-partial-en"
-                  class="text-slate-500 leading-[1.8] text-base md:text-lg font-medium italic"></span>
+                  class="text-slate-500 leading-[1.6] text-[0.9rem] font-medium italic"></span>
               </div>
             </div>
             <!-- Gradient divider -->
@@ -312,9 +312,9 @@
               </div>
               <div id="translate-content-ko" class="space-y-2">
                 <span id="translate-committed-ko"
-                  class="text-indigo-300 leading-[1.8] text-base md:text-lg font-medium"></span><span
+                  class="text-indigo-300 leading-[1.6] text-[0.9rem] font-medium"></span><span
                   id="translate-partial-ko"
-                  class="text-indigo-400/60 leading-[1.8] text-base md:text-lg font-medium italic"></span>
+                  class="text-indigo-400/60 leading-[1.6] text-[0.9rem] font-medium italic"></span>
               </div>
             </div>
           </div>
@@ -335,7 +335,7 @@
                 <span class="material-symbols-outlined text-[14px]">summarize</span>
               </button>
             </div>
-            <div id="summary-content-translate" class="text-slate-100 leading-[1.8] text-base md:text-lg font-medium"></div>
+            <div id="summary-content-translate" class="text-slate-100 leading-[1.6] text-[0.9rem] font-medium"></div>
           </div>
           <!-- Jump to bottom FAB -->
           <button id="translate-jump-btn"
@@ -524,8 +524,7 @@
               <div class="w-5 h-5 rounded bg-primary/10 flex items-center justify-center">
                 <span class="material-symbols-outlined text-primary-light text-[13px]">interpreter_mode</span>
               </div>
-              <span class="section-label text-slate-500">Interpreter</span>
-              <span id="interpreter-count-badge" class="hidden text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-primary/10 text-primary/70">0</span>
+              <span class="section-label text-slate-500">Interpreter Conversation</span>
             </div>
             <div class="flex items-center gap-2">
               <button id="interpreter-pin-btn" title="Auto-scroll to latest"
@@ -566,7 +565,7 @@
                 <span class="material-symbols-outlined text-white text-3xl">interpreter_mode</span>
               </div>
               <div>
-                <p class="text-slate-300 text-sm font-semibold">Sentence-by-sentence interpretation</p>
+                <p class="text-slate-300 text-sm font-semibold">Sentence-by-sentence conversation interpretation</p>
                 <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Source and translation appear side by
                   side<br>as each sentence is completed</p>
               </div>

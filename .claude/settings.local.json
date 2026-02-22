@@ -6,7 +6,11 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(xargs:*)",
-      "Bash(hugo:*)"
+      "Bash(hugo:*)",
+      "Bash(nvidia-smi:*)",
+      "Bash(kill:*)",
+      "WebSearch",
+      "WebFetch(domain:news.samsung.com)"
     ]
   },
   "disabledMcpjsonServers": [
