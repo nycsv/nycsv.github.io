@@ -59,7 +59,7 @@
         <div class="flex items-center gap-3 md:gap-4">
 
           <!-- Brand mark -->
-          <a href="{{ .Site.BaseURL }}" class="hidden md:flex items-center gap-2.5 pr-4 border-r border-border-subtle hover:opacity-80 transition-opacity">
+          <a href="{{ .Site.BaseURL }}/demo" class="hidden md:flex items-center gap-2.5 pr-4 border-r border-border-subtle hover:opacity-80 transition-opacity">
             <div
               class="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shadow-lg shadow-primary/20">
               <span class="text-white text-sm font-extrabold tracking-tight">BT</span>
@@ -143,10 +143,10 @@
               Transcript</button>
             <button id="tab-translate"
               class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors">Interpreter
-              Listening</button>
+              Listening Mode</button>
             <button id="tab-interpreter"
               class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors">Interpreter
-              Conversation</button>
+              Sentence Mode</button>
             <button id="tab-interview"
               class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors hidden">
               Interview</button>
@@ -195,8 +195,8 @@
             <div id="transcript-placeholder"
               class="flex flex-col items-center justify-center h-72 text-center space-y-5">
               <div
-                class="w-20 h-20 rounded-2xl gradient-primary flex items-center justify-center shadow-xl shadow-primary/20 placeholder-ring">
-                <span class="material-symbols-outlined text-white text-4xl">mic_none</span>
+                class="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shadow-xl shadow-primary/20 placeholder-ring">
+                <span class="material-symbols-outlined text-white text-3xl">mic_none</span>
               </div>
               <div>
                 <p class="text-slate-300 text-sm font-semibold">Ready to transcribe</p>
@@ -251,10 +251,10 @@
         <div id="translate-box" class="flex-1 flex flex-col overflow-hidden hidden relative">
           <div class="flex items-center justify-between px-4 md:px-8 py-2 border-b border-border-subtle/30 bg-surface/30 shrink-0">
             <div class="flex items-center gap-2">
-              <div class="w-5 h-5 rounded bg-slate-800 flex items-center justify-center">
-                <span class="material-symbols-outlined text-slate-400 text-[13px]">translate</span>
+              <div class="w-5 h-5 rounded bg-primary/10 flex items-center justify-center">
+                <span class="material-symbols-outlined text-primary-light text-[13px]">hearing</span>
               </div>
-              <span class="section-label text-slate-500">Interpreter Listening</span>
+              <span class="section-label text-slate-500">Interpreter Listening Mode</span>
             </div>
             <div class="flex items-center gap-1.5">
               <button id="translate-pin-btn" title="Auto-scroll to latest"
@@ -291,7 +291,19 @@
               </button>
             </div>
           </div>
-          <div class="flex-1 flex overflow-hidden">
+          <div class="flex-1 flex overflow-hidden relative">
+            <!-- Placeholder -->
+            <div id="translate-placeholder"
+              class="absolute inset-0 flex flex-col items-center justify-center text-center space-y-5 z-10">
+              <div
+                class="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shadow-xl shadow-primary/20 placeholder-ring">
+                <span class="material-symbols-outlined text-white text-3xl">hearing</span>
+              </div>
+              <div>
+                <p class="text-slate-300 text-sm font-semibold">Interpreter Listening Mode</p>
+                <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Real-time continuous transcription and translation<br>ideal for lectures, meetings, and presentations</p>
+              </div>
+            </div>
             <!-- English transcript -->
             <div id="translate-scroll-en"
               class="flex-1 overflow-y-auto px-4 py-5 md:px-8 md:py-6 custom-scrollbar border-r border-border-subtle/30">
@@ -517,9 +529,9 @@
           <div class="flex items-center justify-between px-4 md:px-8 py-2 border-b border-border-subtle/30 bg-surface/30 shrink-0">
             <div class="flex items-center gap-2">
               <div class="w-5 h-5 rounded bg-primary/10 flex items-center justify-center">
-                <span class="material-symbols-outlined text-primary-light text-[13px]">interpreter_mode</span>
+                <span class="material-symbols-outlined text-primary-light text-[13px]">forum</span>
               </div>
-              <span class="section-label text-slate-500">Interpreter Conversation</span>
+              <span class="section-label text-slate-500">Interpreter Sentence Mode</span>
             </div>
             <div class="flex items-center gap-2">
               <button id="interpreter-pin-btn" title="Auto-scroll to latest"
@@ -531,21 +543,29 @@
                 class="icon-btn flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:text-amber-400 hover:bg-amber-400/10 transition-all">
                 <span class="material-symbols-outlined text-[16px]">summarize</span>
               </button>
-              <button id="interpreter-copy-btn" title="Copy all sentences"
-                class="icon-btn flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:text-white hover:bg-white/10 transition-all">
-                <span class="material-symbols-outlined text-[15px]">content_copy</span>
-              </button>
             </div>
           </div>
           <!-- Column headers -->
           <div class="interp-col-headers border-b border-border-subtle/20 shrink-0">
-            <div class="interp-header flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-[13px]">translate</span>
-              <span>English</span>
+            <div class="interp-header flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[13px]">translate</span>
+                <span>English</span>
+              </div>
+              <button id="interpreter-copy-en" title="Copy English sentences"
+                class="icon-btn flex items-center justify-center w-6 h-6 rounded-lg text-slate-600 hover:text-white hover:bg-white/10 transition-all">
+                <span class="material-symbols-outlined text-[13px]">content_copy</span>
+              </button>
             </div>
-            <div class="interp-header flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-[13px]">g_translate</span>
-              <span>Korean Translation</span>
+            <div class="interp-header flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[13px]">g_translate</span>
+                <span>Korean Translation</span>
+              </div>
+              <button id="interpreter-copy-ko" title="Copy Korean sentences"
+                class="icon-btn flex items-center justify-center w-6 h-6 rounded-lg text-slate-600 hover:text-indigo-400/80 hover:bg-indigo-400/10 transition-all">
+                <span class="material-symbols-outlined text-[13px]">content_copy</span>
+              </button>
             </div>
           </div>
           <!-- Scroll area — two-column rows -->
@@ -557,12 +577,11 @@
               class="flex flex-col items-center justify-center h-72 text-center space-y-5">
               <div
                 class="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shadow-xl shadow-primary/20 placeholder-ring">
-                <span class="material-symbols-outlined text-white text-3xl">interpreter_mode</span>
+                <span class="material-symbols-outlined text-white text-3xl">forum</span>
               </div>
               <div>
-                <p class="text-slate-300 text-sm font-semibold">Sentence-by-sentence conversation interpretation</p>
-                <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Source and translation appear side by
-                  side<br>as each sentence is completed</p>
+                <p class="text-slate-300 text-sm font-semibold">Interpreter Sentence Mode</p>
+                <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Source and translation appear side by side<br>sentence by sentence as each sentence is completed</p>
               </div>
             </div>
           </div>

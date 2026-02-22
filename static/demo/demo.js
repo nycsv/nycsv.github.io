@@ -142,10 +142,12 @@ function init() {
     interpreterBox: document.getElementById('interpreter-box'),
     interpreterRows: document.getElementById('interpreter-rows'),
     interpreterScroll: document.getElementById('interpreter-scroll'),
+    translatePlaceholder: document.getElementById('translate-placeholder'),
     interpreterPlaceholder: document.getElementById('interpreter-placeholder'),
     interpreterPinBtn: document.getElementById('interpreter-pin-btn'),
     interpreterJumpBtn: document.getElementById('interpreter-jump-btn'),
-    interpreterCopyBtn: document.getElementById('interpreter-copy-btn'),
+    interpreterCopyEn: document.getElementById('interpreter-copy-en'),
+    interpreterCopyKo: document.getElementById('interpreter-copy-ko'),
     transcriptPinBtn: document.getElementById('transcript-pin-btn'),
     transcriptJumpBtn: document.getElementById('transcript-jump-btn'),
     translatePinBtn: document.getElementById('translate-pin-btn'),
@@ -255,9 +257,9 @@ function initInterpreterControls() {
     });
   }
 
-  // Copy all interpreter sentences
-  if (dom.interpreterCopyBtn) {
-    dom.interpreterCopyBtn.addEventListener('click', async () => {
+  // Copy interpreter English sentences
+  if (dom.interpreterCopyEn) {
+    dom.interpreterCopyEn.addEventListener('click', async () => {
       const rows = dom.interpreterRows.querySelectorAll('.interpreter-row:not(.interpreter-pending)');
       if (!rows.length) {
         showError('No sentences to copy');
@@ -265,14 +267,39 @@ function initInterpreterControls() {
         return;
       }
       const lines = [];
-      rows.forEach((row, i) => {
+      rows.forEach((row) => {
         const src = row.querySelector('.interpreter-src')?.textContent || '';
-        const tl = row.querySelector('.interpreter-tl')?.textContent || '';
-        lines.push(`${i + 1}. ${src}\n   ${tl}`);
+        if (src) lines.push(src);
       });
       try {
-        await navigator.clipboard.writeText(lines.join('\n\n'));
-        const icon = dom.interpreterCopyBtn.querySelector('.material-symbols-outlined');
+        await navigator.clipboard.writeText(lines.join('\n'));
+        const icon = dom.interpreterCopyEn.querySelector('.material-symbols-outlined');
+        icon.textContent = 'check';
+        setTimeout(() => { icon.textContent = 'content_copy'; }, 2000);
+      } catch (e) {
+        showError('Failed to copy');
+        setTimeout(clearError, 2000);
+      }
+    });
+  }
+
+  // Copy interpreter Korean sentences
+  if (dom.interpreterCopyKo) {
+    dom.interpreterCopyKo.addEventListener('click', async () => {
+      const rows = dom.interpreterRows.querySelectorAll('.interpreter-row:not(.interpreter-pending)');
+      if (!rows.length) {
+        showError('No sentences to copy');
+        setTimeout(clearError, 2000);
+        return;
+      }
+      const lines = [];
+      rows.forEach((row) => {
+        const tl = row.querySelector('.interpreter-tl')?.textContent || '';
+        if (tl) lines.push(tl);
+      });
+      try {
+        await navigator.clipboard.writeText(lines.join('\n'));
+        const icon = dom.interpreterCopyKo.querySelector('.material-symbols-outlined');
         icon.textContent = 'check';
         setTimeout(() => { icon.textContent = 'content_copy'; }, 2000);
       } catch (e) {
@@ -1245,6 +1272,11 @@ function updateTranscript() {
   dom.translatePartialEn.textContent = partialText;
   dom.translateCommittedKo.textContent = translationCommitted;
   dom.translatePartialKo.textContent = translationPartial;
+
+  // Toggle translate placeholder
+  if (dom.translatePlaceholder) {
+    dom.translatePlaceholder.style.display = (committedText || partialText) ? 'none' : 'flex';
+  }
 
   // Auto-scroll translate panels (paused when user has scrolled up)
   if (translateAutoScroll) {
