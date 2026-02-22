@@ -651,22 +651,21 @@ function handleCommittedFormatted(data) {
  */
 function handleCommittedTranslation(data) {
   const tl = data.text || '';
+  const source = data.source || '';
   translationCommitted += tl + ' ';
   translationPartial = '';
   updateTranscript();
 
-  // Interpreter+ tab: accumulate translation, use ASR committedText for English source
+  // Interpreter+ tab: use source from translation event (properly segmented sentences)
   interpreterBuffer.text += (interpreterBuffer.text ? ' ' : '') + tl;
+  interpreterBuffer.source += (interpreterBuffer.source ? ' ' : '') + source;
 
   if (data.sentence_end) {
-    // English source = ASR committed text since last flush
-    const currentSource = committedText.substring(interpreterLastFlushLen).trim();
-    addInterpreterRow(currentSource, interpreterBuffer.text);
+    addInterpreterRow(interpreterBuffer.source, interpreterBuffer.text);
     interpreterLastFlushLen = committedText.length;
     interpreterBuffer = { source: '', text: '' };
   } else {
-    const currentSource = committedText.substring(interpreterLastFlushLen).trim();
-    updateInterpreterBuffering(currentSource, interpreterBuffer.text);
+    updateInterpreterBuffering(interpreterBuffer.source, interpreterBuffer.text);
   }
 }
 
@@ -677,9 +676,9 @@ function handlePartialTranslation(data) {
   translationPartial = data.translation || '';
   updateTranscript();
 
-  // Interpreter+ tab: pending row uses ASR committed+partial directly for English
-  const currentSource = committedText.substring(interpreterLastFlushLen).trim();
-  const combinedSrc = [currentSource, partialText].filter(Boolean).join(' ');
+  // Interpreter+ tab: pending row uses translation source for English
+  const partialSource = data.source || '';
+  const combinedSrc = [interpreterBuffer.source, partialSource].filter(Boolean).join(' ');
   const combinedTl = [interpreterBuffer.text, translationPartial].filter(Boolean).join(' ');
   updateInterpreterPending(combinedSrc, combinedTl);
 }
