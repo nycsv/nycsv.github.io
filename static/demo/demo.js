@@ -124,7 +124,6 @@ function init() {
     copyBtn: document.getElementById('copy-btn'),
     summarizeBtn: document.getElementById('summarize-btn'),
     summarizeBtnTranslate: document.getElementById('summarize-btn-translate'),
-    summarizeBtnInterpreter: document.getElementById('summarize-btn-interpreter'),
     transcriptContent: document.getElementById('transcript-content'),
     copyBtnEn: document.getElementById('copy-btn-en'),
     copyBtnKo: document.getElementById('copy-btn-ko'),
@@ -173,7 +172,6 @@ function init() {
   dom.copyBtn.addEventListener('click', handleCopyClick);
   dom.summarizeBtn.addEventListener('click', handleSummarizeClick);
   dom.summarizeBtnTranslate.addEventListener('click', handleSummarizeClick);
-  dom.summarizeBtnInterpreter.addEventListener('click', handleSummarizeClick);
   document.getElementById('summary-btn-transcript-footer')?.addEventListener('click', handleSummarizeClick);
   document.getElementById('summary-btn-translate-footer')?.addEventListener('click', handleSummarizeClick);
   dom.copyBtnEn.addEventListener('click', () => handleTranslateCopy(dom.copyBtnEn, () => committedText + partialText));
@@ -1391,11 +1389,12 @@ function requestSummarization(text) {
 function handleSummaryResult(data) {
   summarizationInFlight = false;
   const summary = data.summary || '';
+  const koreanSummary = data.korean_summary || '';
   const wordCount = data.word_count || 0;
   console.log('[summarize] received summary, length:', summary.length, 'wordCount:', wordCount);
 
   if (summary) {
-    insertSummaryBlock(summary, wordCount);
+    insertSummaryBlock(summary, koreanSummary, wordCount);
     lastSummarizedWordCount = wordCount;
   } else {
     console.warn('[summarize] empty summary received');
@@ -1405,13 +1404,14 @@ function handleSummaryResult(data) {
 /**
  * Display summary in the footer of transcript and translate panels
  */
-function insertSummaryBlock(summary, wordCount) {
-  // Display summary in both footers
+function insertSummaryBlock(summary, koreanSummary, wordCount) {
+  // Transcript tab: English summary
   dom.summaryContentTranscript.textContent = summary;
   dom.summaryContentTranscript.classList.remove('hidden');
   dom.summaryFooterTranscript.classList.remove('hidden');
 
-  dom.summaryContentTranslate.textContent = summary;
+  // Interpreter tab: Korean summary (fallback to English if translation failed)
+  dom.summaryContentTranslate.textContent = koreanSummary || summary;
   dom.summaryContentTranslate.classList.remove('hidden');
   dom.summaryFooterTranslate.classList.remove('hidden');
 }
