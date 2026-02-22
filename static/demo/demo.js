@@ -144,13 +144,10 @@ function init() {
     interpreterScroll: document.getElementById('interpreter-scroll'),
     translatePlaceholder: document.getElementById('translate-placeholder'),
     interpreterPlaceholder: document.getElementById('interpreter-placeholder'),
-    interpreterPinBtn: document.getElementById('interpreter-pin-btn'),
     interpreterJumpBtn: document.getElementById('interpreter-jump-btn'),
     interpreterCopyEn: document.getElementById('interpreter-copy-en'),
     interpreterCopyKo: document.getElementById('interpreter-copy-ko'),
-    transcriptPinBtn: document.getElementById('transcript-pin-btn'),
     transcriptJumpBtn: document.getElementById('transcript-jump-btn'),
-    translatePinBtn: document.getElementById('translate-pin-btn'),
     translateJumpBtn: document.getElementById('translate-jump-btn'),
     summaryFooterTranscript: document.getElementById('summary-footer-transcript'),
     summaryContentTranscript: document.getElementById('summary-content-transcript'),
@@ -223,23 +220,11 @@ function initAudioSourceToggle() {
  * Initialize interpreter scroll behavior and controls
  */
 function initInterpreterControls() {
-  // Pin/unpin auto-scroll
-  if (dom.interpreterPinBtn) {
-    dom.interpreterPinBtn.addEventListener('click', () => {
-      interpreterAutoScroll = !interpreterAutoScroll;
-      updateInterpreterPinUI();
-      if (interpreterAutoScroll) {
-        dom.interpreterScroll.scrollTop = dom.interpreterScroll.scrollHeight;
-      }
-    });
-  }
-
   // Jump to bottom button
   if (dom.interpreterJumpBtn) {
     dom.interpreterJumpBtn.addEventListener('click', () => {
       dom.interpreterScroll.scrollTop = dom.interpreterScroll.scrollHeight;
       interpreterAutoScroll = true;
-      updateInterpreterPinUI();
     });
   }
 
@@ -250,12 +235,10 @@ function initInterpreterControls() {
       const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
       if (!atBottom && interpreterAutoScroll) {
         interpreterAutoScroll = false;
-        updateInterpreterPinUI();
-      }
+        }
       if (atBottom && !interpreterAutoScroll) {
         interpreterAutoScroll = true;
-        updateInterpreterPinUI();
-      }
+        }
       // Show/hide jump button
       if (dom.interpreterJumpBtn) {
         dom.interpreterJumpBtn.classList.toggle('hidden', atBottom);
@@ -328,11 +311,9 @@ function initTranscriptScrollBehavior() {
       const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
       if (!atBottom && transcriptAutoScroll) {
         transcriptAutoScroll = false;
-        updateTranscriptPinUI();
       }
       if (atBottom && !transcriptAutoScroll) {
         transcriptAutoScroll = true;
-        updateTranscriptPinUI();
       }
       if (dom.transcriptJumpBtn) {
         dom.transcriptJumpBtn.classList.toggle('hidden', atBottom);
@@ -340,21 +321,10 @@ function initTranscriptScrollBehavior() {
       }
     });
   }
-  if (dom.transcriptPinBtn) {
-    dom.transcriptPinBtn.addEventListener('click', () => {
-      transcriptAutoScroll = !transcriptAutoScroll;
-      updateTranscriptPinUI();
-      if (transcriptAutoScroll) {
-        dom.transcriptBox.scrollTop = dom.transcriptBox.scrollHeight;
-        if (dom.transcriptJumpBtn) dom.transcriptJumpBtn.classList.add('hidden');
-      }
-    });
-  }
   if (dom.transcriptJumpBtn) {
     dom.transcriptJumpBtn.addEventListener('click', () => {
       dom.transcriptBox.scrollTop = dom.transcriptBox.scrollHeight;
       transcriptAutoScroll = true;
-      updateTranscriptPinUI();
       dom.transcriptJumpBtn.classList.add('hidden');
     });
   }
@@ -370,11 +340,9 @@ function initTranscriptScrollBehavior() {
     const atBottom = atBottomEn && atBottomKo;
     if (!atBottom && translateAutoScroll) {
       translateAutoScroll = false;
-      updateTranslatePinUI();
     }
     if (atBottom && !translateAutoScroll) {
       translateAutoScroll = true;
-      updateTranslatePinUI();
     }
     if (dom.translateJumpBtn) {
       dom.translateJumpBtn.classList.toggle('hidden', atBottom);
@@ -383,70 +351,13 @@ function initTranscriptScrollBehavior() {
   };
   if (dom.translateScrollEn) dom.translateScrollEn.addEventListener('scroll', onTranslateScroll);
   if (dom.translateScrollKo) dom.translateScrollKo.addEventListener('scroll', onTranslateScroll);
-  if (dom.translatePinBtn) {
-    dom.translatePinBtn.addEventListener('click', () => {
-      translateAutoScroll = !translateAutoScroll;
-      updateTranslatePinUI();
-      if (translateAutoScroll) {
-        if (dom.translateScrollEn) dom.translateScrollEn.scrollTop = dom.translateScrollEn.scrollHeight;
-        if (dom.translateScrollKo) dom.translateScrollKo.scrollTop = dom.translateScrollKo.scrollHeight;
-        if (dom.translateJumpBtn) dom.translateJumpBtn.classList.add('hidden');
-      }
-    });
-  }
   if (dom.translateJumpBtn) {
     dom.translateJumpBtn.addEventListener('click', () => {
       if (dom.translateScrollEn) dom.translateScrollEn.scrollTop = dom.translateScrollEn.scrollHeight;
       if (dom.translateScrollKo) dom.translateScrollKo.scrollTop = dom.translateScrollKo.scrollHeight;
       translateAutoScroll = true;
-      updateTranslatePinUI();
       dom.translateJumpBtn.classList.add('hidden');
     });
-  }
-}
-
-/**
- * Update interpreter pin button UI
- */
-function updateInterpreterPinUI() {
-  if (!dom.interpreterPinBtn) return;
-  if (interpreterAutoScroll) {
-    dom.interpreterPinBtn.classList.remove('interpreter-pin-inactive');
-    dom.interpreterPinBtn.classList.add('interpreter-pin-active', 'bg-primary/10', 'text-primary', 'border-primary/20');
-    dom.interpreterPinBtn.classList.remove('bg-transparent', 'text-slate-500', 'border-transparent');
-  } else {
-    dom.interpreterPinBtn.classList.add('interpreter-pin-inactive');
-    dom.interpreterPinBtn.classList.remove('interpreter-pin-active', 'bg-primary/10', 'text-primary', 'border-primary/20');
-  }
-}
-
-/**
- * Update transcript pin button UI
- */
-function updateTranscriptPinUI() {
-  if (!dom.transcriptPinBtn) return;
-  if (transcriptAutoScroll) {
-    dom.transcriptPinBtn.classList.remove('interpreter-pin-inactive');
-    dom.transcriptPinBtn.classList.add('interpreter-pin-active', 'bg-primary/10', 'text-primary', 'border-primary/20');
-    dom.transcriptPinBtn.classList.remove('bg-transparent', 'text-slate-500', 'border-transparent');
-  } else {
-    dom.transcriptPinBtn.classList.add('interpreter-pin-inactive');
-    dom.transcriptPinBtn.classList.remove('interpreter-pin-active', 'bg-primary/10', 'text-primary', 'border-primary/20');
-  }
-}
-
-/**
- * Update translate pin button UI
- */
-function updateTranslatePinUI() {
-  if (!dom.translatePinBtn) return;
-  if (translateAutoScroll) {
-    dom.translatePinBtn.classList.remove('interpreter-pin-inactive');
-    dom.translatePinBtn.classList.add('interpreter-pin-active', 'bg-primary/10', 'text-primary', 'border-primary/20');
-    dom.translatePinBtn.classList.remove('bg-transparent', 'text-slate-500', 'border-transparent');
-  } else {
-    dom.translatePinBtn.classList.add('interpreter-pin-inactive');
-    dom.translatePinBtn.classList.remove('interpreter-pin-active', 'bg-primary/10', 'text-primary', 'border-primary/20');
   }
 }
 
@@ -955,8 +866,6 @@ async function startRecording() {
     // Reset scroll state
     transcriptAutoScroll = true;
     translateAutoScroll = true;
-    updateTranscriptPinUI();
-    updateTranslatePinUI();
     if (dom.transcriptJumpBtn) dom.transcriptJumpBtn.classList.add('hidden');
     if (dom.translateJumpBtn) dom.translateJumpBtn.classList.add('hidden');
 
@@ -967,7 +876,6 @@ async function startRecording() {
     interpreterLastFlushLen = 0;
     if (dom.interpreterRows) dom.interpreterRows.innerHTML = '';
     if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'flex';
-      updateInterpreterPinUI();
 
     const audioSource = getAudioSource();
     const needMic = audioSource === 'mic' || audioSource === 'both';
