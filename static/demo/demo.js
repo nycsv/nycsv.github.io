@@ -202,6 +202,17 @@ function init() {
  */
 function initAudioSourceToggle() {
   const btns = document.querySelectorAll('.audio-src-btn');
+
+  // Hide System/Both on devices that don't support getDisplayMedia
+  const supportsDisplayMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
+  if (!supportsDisplayMedia) {
+    btns.forEach(btn => {
+      if (btn.dataset.source === 'system' || btn.dataset.source === 'both') {
+        btn.style.display = 'none';
+      }
+    });
+  }
+
   btns.forEach(btn => {
     btn.addEventListener('click', () => {
       if (btn.disabled) return;
