@@ -291,19 +291,19 @@
               </button>
             </div>
           </div>
-          <div class="flex-1 flex overflow-hidden relative">
-            <!-- Placeholder -->
-            <div id="translate-placeholder"
-              class="absolute inset-0 flex flex-col items-center justify-center text-center space-y-5 z-10">
-              <div
-                class="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shadow-xl shadow-primary/20 placeholder-ring">
-                <span class="material-symbols-outlined text-white text-3xl">hearing</span>
-              </div>
-              <div>
-                <p class="text-slate-300 text-sm font-semibold">Interpreter Listening Mode</p>
-                <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Real-time continuous transcription and translation<br>ideal for lectures, meetings, and presentations</p>
-              </div>
+          <!-- Placeholder (positioned over entire panel) -->
+          <div id="translate-placeholder"
+            class="absolute inset-0 flex flex-col items-center justify-center text-center space-y-5 z-10">
+            <div
+              class="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shadow-xl shadow-primary/20 placeholder-ring">
+              <span class="material-symbols-outlined text-white text-3xl">hearing</span>
             </div>
+            <div>
+              <p class="text-slate-300 text-sm font-semibold">Interpreter Listening Mode</p>
+              <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Real-time continuous transcription and translation<br>ideal for lectures, meetings, and presentations</p>
+            </div>
+          </div>
+          <div class="flex-1 flex overflow-hidden">
             <!-- English transcript -->
             <div id="translate-scroll-en"
               class="flex-1 overflow-y-auto px-4 py-5 md:px-8 md:py-6 custom-scrollbar border-r border-border-subtle/30">
@@ -596,17 +596,22 @@
       <!-- ═══════════════════ Status Bar Footer ═══════════════════ -->
       <footer
         class="glass-strong border-t border-border-subtle px-3 md:px-6 py-2 flex items-center justify-between text-slate-500 shrink-0">
-        <div class="hidden md:flex items-center gap-3">
-          <div class="stat-badge flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-[14px] text-slate-500">schedule</span>
+        <div class="flex items-center gap-2 md:gap-3">
+          <div class="flex items-center gap-1.5">
+            <span class="asr-status-dot idle" id="status-dot"></span>
+            <span id="status-text" class="text-[10px] text-slate-500 font-semibold">Disconnected</span>
+          </div>
+          <div class="w-px h-3 bg-border-subtle/40"></div>
+          <div class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-[13px] text-slate-600">schedule</span>
             <span class="text-[10px] font-semibold"><span id="stat-duration">-</span></span>
           </div>
-          <div class="stat-badge flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-[14px] text-slate-500">stacked_bar_chart</span>
+          <div class="hidden md:flex items-center gap-1">
+            <span class="material-symbols-outlined text-[13px] text-slate-600">stacked_bar_chart</span>
             <span class="text-[10px] font-semibold">Buffer: <span id="stat-buffer">-</span></span>
           </div>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 md:gap-3">
           <!-- Audio track indicators -->
           <div id="audio-track-indicators" class="hidden items-center gap-2">
             <div class="flex items-center gap-1" id="indicator-mic" title="Microphone track">
@@ -617,11 +622,6 @@
               <span class="material-symbols-outlined text-[13px] text-slate-600">desktop_windows</span>
               <span id="indicator-sys-label" class="text-[10px] font-semibold text-slate-600">--</span>
             </div>
-          </div>
-          <!-- Status indicator (moved from header) -->
-          <div class="flex items-center gap-1.5">
-            <span class="asr-status-dot idle" id="status-dot"></span>
-            <span id="status-text" class="text-[10px] text-slate-500 font-semibold">Disconnected</span>
           </div>
           <div class="flex gap-[3px]" id="status-footer-dot">
             <div class="w-1 h-2 bg-slate-700 rounded-full transition-all duration-300"></div>
