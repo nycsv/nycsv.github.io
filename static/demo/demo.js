@@ -64,6 +64,7 @@ let translationPartial = '';
 // Interpreter state
 let interpreterSentenceCount = 0;
 let interpreterBuffer = { source: '', text: '' };
+let interpreterLastFlushLen = 0;  // committedText length at last sentence flush
 
 // Summarization state
 let lastSummarizedWordCount = 0;
@@ -741,20 +742,22 @@ function handleCommittedFormatted(data) {
  */
 function handleCommittedTranslation(data) {
   const tl = data.text || '';
-  const src = data.source || '';
   translationCommitted += tl + ' ';
   translationPartial = '';
   updateTranscript();
 
-  // Interpreter tab: accumulate into buffer, flush to card only on sentence_end
-  interpreterBuffer.source += (interpreterBuffer.source ? ' ' : '') + src;
+  // Interpreter+ tab: accumulate translation, use ASR committedText for English source
   interpreterBuffer.text += (interpreterBuffer.text ? ' ' : '') + tl;
 
   if (data.sentence_end) {
-    addInterpreterRow(interpreterBuffer.source, interpreterBuffer.text);
+    // English source = ASR committed text since last flush
+    const currentSource = committedText.substring(interpreterLastFlushLen).trim();
+    addInterpreterRow(currentSource, interpreterBuffer.text);
+    interpreterLastFlushLen = committedText.length;
     interpreterBuffer = { source: '', text: '' };
   } else {
-    updateInterpreterBuffering(interpreterBuffer.source, interpreterBuffer.text);
+    const currentSource = committedText.substring(interpreterLastFlushLen).trim();
+    updateInterpreterBuffering(currentSource, interpreterBuffer.text);
   }
 }
 
@@ -763,11 +766,11 @@ function handleCommittedTranslation(data) {
  */
 function handlePartialTranslation(data) {
   translationPartial = data.translation || '';
-  const partialSrc = data.source || '';
   updateTranscript();
 
-  // Interpreter tab: pending row shows buffer + current partial
-  const combinedSrc = [interpreterBuffer.source, partialSrc].filter(Boolean).join(' ');
+  // Interpreter+ tab: pending row uses ASR committed+partial directly for English
+  const currentSource = committedText.substring(interpreterLastFlushLen).trim();
+  const combinedSrc = [currentSource, partialText].filter(Boolean).join(' ');
   const combinedTl = [interpreterBuffer.text, translationPartial].filter(Boolean).join(' ');
   updateInterpreterPending(combinedSrc, combinedTl);
 }
@@ -963,6 +966,7 @@ async function startRecording() {
     interpreterSentenceCount = 0;
     interpreterAutoScroll = true;
     interpreterBuffer = { source: '', text: '' };
+    interpreterLastFlushLen = 0;
     if (dom.interpreterRows) dom.interpreterRows.innerHTML = '';
     if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'flex';
       updateInterpreterPinUI();
