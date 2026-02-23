@@ -83,10 +83,6 @@
               <span id="mic-ready-dot" class="w-2 h-2 rounded-full bg-slate-600"></span>
               <span id="mic-ready-text" class="text-[10px] font-semibold text-slate-400">Mic: Standby</span>
             </div>
-            <div class="stat-badge flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-[14px] text-primary-light/60">speed</span>
-              <span class="text-[10px] font-semibold text-slate-400"><span id="stat-latency">-</span></span>
-            </div>
           </div>
         </div>
 
@@ -621,7 +617,7 @@
               </div>
               <div>
                 <p class="text-slate-300 text-sm font-semibold">Multilingual ASR</p>
-                <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Real-time speech recognition in 52 languages<br>with automatic language detection</p>
+                <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Real-time speech-to-text transcription in 29 languages<br>with automatic language detection</p>
               </div>
             </div>
             <!-- Transcript content -->
@@ -660,6 +656,10 @@
           <div class="hidden md:flex items-center gap-1">
             <span class="material-symbols-outlined text-[13px] text-slate-600">stacked_bar_chart</span>
             <span class="text-[10px] font-semibold">Buffer: <span id="stat-buffer">-</span></span>
+          </div>
+          <div class="hidden md:flex items-center gap-1">
+            <span class="material-symbols-outlined text-[13px] text-slate-600">speed</span>
+            <span class="text-[10px] font-semibold"><span id="stat-latency">-</span></span>
           </div>
         </div>
         <div class="flex items-center gap-2 md:gap-3">

@@ -827,6 +827,9 @@ function handlePartialText(data) {
   if (data.triton_call_ms !== undefined) {
     latestLatency = data.triton_call_ms;
   }
+  if (data.inference_ms !== undefined) {
+    latestLatency = data.inference_ms;
+  }
   if (data.buffer_fill_pct !== undefined) {
     bufferFillPct = data.buffer_fill_pct;
   }
