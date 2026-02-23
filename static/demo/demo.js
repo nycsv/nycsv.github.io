@@ -816,6 +816,10 @@ function handlePartialText(data) {
     updateTranscript();
   } else if (currentTabGroup === 'groupB') {
     groupB.partialText = data.text || '';
+    if (data.language && dom.multilingualLangBadge) {
+      dom.multilingualLangBadge.textContent = data.language;
+      dom.multilingualLangBadge.classList.remove('hidden');
+    }
     updateMultilingualTranscript();
   }
 
