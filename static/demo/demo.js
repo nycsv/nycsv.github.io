@@ -97,9 +97,6 @@ function groupB_computeCommittedText() {
   return prefix + rawTail;
 }
 
-// Summarization state (shared)
-let summarizeCallback = null;
-
 // Audio gating: only send audio after server ack
 let readyToSendAudio = false;
 let ackResolver = null;
@@ -206,8 +203,8 @@ function init() {
   dom.summarizeBtnTranslate.addEventListener('click', handleSummarizeClick);
   document.getElementById('summary-btn-transcript-footer')?.addEventListener('click', handleSummarizeClick);
   document.getElementById('summary-btn-translate-footer')?.addEventListener('click', handleSummarizeClick);
-  dom.copyBtnEn.addEventListener('click', () => handleTranslateCopy(dom.copyBtnEn, () => committedText + partialText));
-  dom.copyBtnKo.addEventListener('click', () => handleTranslateCopy(dom.copyBtnKo, () => translationCommitted + translationPartial));
+  dom.copyBtnEn.addEventListener('click', () => handleTranslateCopy(dom.copyBtnEn, () => groupA.committedText + groupA.partialText));
+  dom.copyBtnKo.addEventListener('click', () => handleTranslateCopy(dom.copyBtnKo, () => groupA.translationCommitted + groupA.translationPartial));
   dom.tabLive.addEventListener('click', () => setActiveTab('live'));
   dom.tabTranslate.addEventListener('click', () => setActiveTab('translate'));
   dom.tabInterpreter.addEventListener('click', () => setActiveTab('interpreter'));
@@ -217,7 +214,7 @@ function init() {
 
   // Multilingual copy button
   dom.multilingualCopyBtn.addEventListener('click', () => {
-    handleTranslateCopy(dom.multilingualCopyBtn, () => committedText + partialText);
+    handleTranslateCopy(dom.multilingualCopyBtn, () => groupB.committedText + groupB.partialText);
   });
 
   // Audio source toggle buttons
@@ -265,7 +262,7 @@ function initInterpreterControls() {
   if (dom.interpreterJumpBtn) {
     dom.interpreterJumpBtn.addEventListener('click', () => {
       dom.interpreterScroll.scrollTop = dom.interpreterScroll.scrollHeight;
-      interpreterAutoScroll = true;
+      groupA.interpreterAutoScroll = true;
     });
   }
 
@@ -274,12 +271,12 @@ function initInterpreterControls() {
     dom.interpreterScroll.addEventListener('scroll', () => {
       const el = dom.interpreterScroll;
       const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
-      if (!atBottom && interpreterAutoScroll) {
-        interpreterAutoScroll = false;
-        }
-      if (atBottom && !interpreterAutoScroll) {
-        interpreterAutoScroll = true;
-        }
+      if (!atBottom && groupA.interpreterAutoScroll) {
+        groupA.interpreterAutoScroll = false;
+      }
+      if (atBottom && !groupA.interpreterAutoScroll) {
+        groupA.interpreterAutoScroll = true;
+      }
       // Show/hide jump button
       if (dom.interpreterJumpBtn) {
         dom.interpreterJumpBtn.classList.toggle('hidden', atBottom);
@@ -350,11 +347,11 @@ function initTranscriptScrollBehavior() {
     dom.transcriptBox.addEventListener('scroll', () => {
       const el = dom.transcriptBox;
       const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
-      if (!atBottom && transcriptAutoScroll) {
-        transcriptAutoScroll = false;
+      if (!atBottom && groupA.transcriptAutoScroll) {
+        groupA.transcriptAutoScroll = false;
       }
-      if (atBottom && !transcriptAutoScroll) {
-        transcriptAutoScroll = true;
+      if (atBottom && !groupA.transcriptAutoScroll) {
+        groupA.transcriptAutoScroll = true;
       }
       if (dom.transcriptJumpBtn) {
         dom.transcriptJumpBtn.classList.toggle('hidden', atBottom);
@@ -365,7 +362,7 @@ function initTranscriptScrollBehavior() {
   if (dom.transcriptJumpBtn) {
     dom.transcriptJumpBtn.addEventListener('click', () => {
       dom.transcriptBox.scrollTop = dom.transcriptBox.scrollHeight;
-      transcriptAutoScroll = true;
+      groupA.transcriptAutoScroll = true;
       dom.transcriptJumpBtn.classList.add('hidden');
     });
   }
@@ -379,11 +376,11 @@ function initTranscriptScrollBehavior() {
       ? dom.translateScrollKo.scrollHeight - dom.translateScrollKo.scrollTop - dom.translateScrollKo.clientHeight < 60
       : true;
     const atBottom = atBottomEn && atBottomKo;
-    if (!atBottom && translateAutoScroll) {
-      translateAutoScroll = false;
+    if (!atBottom && groupA.translateAutoScroll) {
+      groupA.translateAutoScroll = false;
     }
-    if (atBottom && !translateAutoScroll) {
-      translateAutoScroll = true;
+    if (atBottom && !groupA.translateAutoScroll) {
+      groupA.translateAutoScroll = true;
     }
     if (dom.translateJumpBtn) {
       dom.translateJumpBtn.classList.toggle('hidden', atBottom);
@@ -396,7 +393,7 @@ function initTranscriptScrollBehavior() {
     dom.translateJumpBtn.addEventListener('click', () => {
       if (dom.translateScrollEn) dom.translateScrollEn.scrollTop = dom.translateScrollEn.scrollHeight;
       if (dom.translateScrollKo) dom.translateScrollKo.scrollTop = dom.translateScrollKo.scrollHeight;
-      translateAutoScroll = true;
+      groupA.translateAutoScroll = true;
       dom.translateJumpBtn.classList.add('hidden');
     });
   }
@@ -406,8 +403,8 @@ function initTranscriptScrollBehavior() {
     dom.multilingualScroll.addEventListener('scroll', () => {
       const el = dom.multilingualScroll;
       const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
-      if (!atBottom && multilingualAutoScroll) multilingualAutoScroll = false;
-      if (atBottom && !multilingualAutoScroll) multilingualAutoScroll = true;
+      if (!atBottom && groupB.multilingualAutoScroll) groupB.multilingualAutoScroll = false;
+      if (atBottom && !groupB.multilingualAutoScroll) groupB.multilingualAutoScroll = true;
       if (dom.multilingualJumpBtn) {
         dom.multilingualJumpBtn.classList.toggle('hidden', atBottom);
         if (!atBottom) dom.multilingualJumpBtn.style.display = 'flex';
@@ -417,7 +414,7 @@ function initTranscriptScrollBehavior() {
   if (dom.multilingualJumpBtn) {
     dom.multilingualJumpBtn.addEventListener('click', () => {
       dom.multilingualScroll.scrollTop = dom.multilingualScroll.scrollHeight;
-      multilingualAutoScroll = true;
+      groupB.multilingualAutoScroll = true;
       dom.multilingualJumpBtn.classList.add('hidden');
     });
   }
@@ -606,7 +603,11 @@ function disconnectWebSocket() {
   }
   setState(State.IDLE);
   // Re-render transcript so full punctuation is restored after streaming ends
-  updateTranscript();
+  if (currentTabGroup === 'groupB') {
+    updateMultilingualTranscript();
+  } else {
+    updateTranscript();
+  }
 }
 
 /**
@@ -1449,7 +1450,8 @@ function clearError() {
  * Handle manual summarize button click
  */
 async function handleSummarizeClick() {
-  const text = committedText + partialText;
+  const activeGroup = currentTabGroup === 'groupB' ? groupB : groupA;
+  const text = activeGroup.committedText + activeGroup.partialText;
   console.log('[summarize] button clicked, text length:', text.length, 'ws state:', ws?.readyState);
   if (!text.trim()) {
     showError('No transcript to summarize');
@@ -1555,7 +1557,7 @@ function addInterpreterRow(source, translation) {
   const pending = dom.interpreterRows.querySelector('.interpreter-pending');
   if (pending) pending.remove();
 
-  interpreterSentenceCount++;
+  groupA.interpreterSentenceCount++;
 
   const row = document.createElement('div');
   row.className = 'interpreter-row';
