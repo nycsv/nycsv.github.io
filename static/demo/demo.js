@@ -128,8 +128,6 @@ function init() {
     micBtn: document.getElementById('mic-btn'),
     micIcon: document.getElementById('mic-icon'),
     micLabel: document.getElementById('mic-label'),
-    micReadyDot: document.getElementById('mic-ready-dot'),
-    micReadyText: document.getElementById('mic-ready-text'),
     waveform: document.getElementById('waveform'),
     transcriptPanel: document.getElementById('transcript-panel'),
     transcriptBox: document.getElementById('transcript-box'),
@@ -1287,29 +1285,17 @@ function updateUI() {
     dom.micBtn.classList.add('recording');
     dom.micIcon.textContent = 'stop';
     dom.micLabel.textContent = i18n.micLabelStop || 'Stop';
-    dom.micReadyDot.className = 'w-2 h-2 rounded-full bg-red-500 animate-pulse';
-    dom.micReadyText.textContent = 'Listening';
     dom.waveform.classList.add('waveform-active');
   } else if (currentState === State.CONNECTING) {
-    // Keep showing Start while connecting — no visual change on the button
     dom.micBtn.classList.remove('recording');
     dom.micIcon.textContent = 'power_settings_new';
     dom.micLabel.textContent = i18n.micLabelStart || 'Start';
-    dom.micReadyDot.className = 'w-2 h-2 rounded-full bg-yellow-500 animate-pulse';
-    dom.micReadyText.textContent = 'Connecting...';
     dom.waveform.classList.remove('waveform-active');
   } else {
     dom.micBtn.classList.remove('recording');
     dom.micIcon.textContent = 'power_settings_new';
     dom.micLabel.textContent = i18n.micLabelStart || 'Start';
     dom.waveform.classList.remove('waveform-active');
-    if (currentState === State.CONNECTED) {
-      dom.micReadyDot.className = 'w-2 h-2 rounded-full bg-green-500 animate-pulse';
-      dom.micReadyText.textContent = 'Ready';
-    } else {
-      dom.micReadyDot.className = 'w-2 h-2 rounded-full bg-slate-600';
-      dom.micReadyText.textContent = 'Mic: Standby';
-    }
   }
 
   // Cursor visibility
