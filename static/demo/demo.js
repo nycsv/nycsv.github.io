@@ -92,9 +92,8 @@ let interpreterAutoScroll = true;
 let transcriptAutoScroll = true;
 let translateAutoScroll = true;
 
-// Multilingual / ASR+Translate state
+// Multilingual state
 let multilingualAutoScroll = true;
-let asrTranslateAutoScroll = true;
 let detectedLanguage = '';
 let activeTab = 'live';
 
@@ -180,22 +179,6 @@ function init() {
     multilingualSourceLang: document.getElementById('multilingual-source-lang'),
     multilingualCopyBtn: document.getElementById('multilingual-copy-btn'),
     multilingualJumpBtn: document.getElementById('multilingual-jump-btn'),
-    // ASR+Translation tab
-    tabAsrTranslate: document.getElementById('tab-asr-translate'),
-    asrTranslateBox: document.getElementById('asr-translate-box'),
-    asrTranslateLangBadge: document.getElementById('asr-translate-lang-badge'),
-    asrTranslateTargetLang: document.getElementById('asr-translate-target-lang'),
-    asrTranslateTargetLabel: document.getElementById('asr-translate-target-label'),
-    asrTranslateCommittedSrc: document.getElementById('asr-translate-committed-src'),
-    asrTranslatePartialSrc: document.getElementById('asr-translate-partial-src'),
-    asrTranslateCommittedTl: document.getElementById('asr-translate-committed-tl'),
-    asrTranslatePartialTl: document.getElementById('asr-translate-partial-tl'),
-    asrTranslateScrollSrc: document.getElementById('asr-translate-scroll-src'),
-    asrTranslateScrollTl: document.getElementById('asr-translate-scroll-tl'),
-    asrTranslatePlaceholder: document.getElementById('asr-translate-placeholder'),
-    asrTranslateCopySrc: document.getElementById('asr-translate-copy-src'),
-    asrTranslateCopyTl: document.getElementById('asr-translate-copy-tl'),
-    asrTranslateJumpBtn: document.getElementById('asr-translate-jump-btn'),
   };
 
   // Attach event listeners
@@ -213,25 +196,10 @@ function init() {
   dom.tabInterview.addEventListener('click', () => setActiveTab('interview'));
   dom.tabInterview2.addEventListener('click', () => setActiveTab('interview2'));
   dom.tabMultilingual.addEventListener('click', () => setActiveTab('multilingual'));
-  dom.tabAsrTranslate.addEventListener('click', () => setActiveTab('asr-translate'));
 
   // Multilingual copy button
   dom.multilingualCopyBtn.addEventListener('click', () => {
     handleTranslateCopy(dom.multilingualCopyBtn, () => committedText + partialText);
-  });
-
-  // ASR+Translate copy buttons
-  dom.asrTranslateCopySrc.addEventListener('click', () => {
-    handleTranslateCopy(dom.asrTranslateCopySrc, () => committedText + partialText);
-  });
-  dom.asrTranslateCopyTl.addEventListener('click', () => {
-    handleTranslateCopy(dom.asrTranslateCopyTl, () => translationCommitted + translationPartial);
-  });
-
-  // ASR+Translate target language label update
-  dom.asrTranslateTargetLang.addEventListener('change', () => {
-    const labels = { ko: 'Korean', en: 'English', ja: 'Japanese', zh: 'Chinese', es: 'Spanish', fr: 'French', de: 'German' };
-    dom.asrTranslateTargetLabel.textContent = (labels[dom.asrTranslateTargetLang.value] || 'Target') + ' Translation';
   });
 
   // Audio source toggle buttons
@@ -435,33 +403,6 @@ function initTranscriptScrollBehavior() {
       dom.multilingualJumpBtn.classList.add('hidden');
     });
   }
-
-  // ── ASR+Translate ──
-  const onAsrTranslateScroll = () => {
-    const atBottomSrc = dom.asrTranslateScrollSrc
-      ? dom.asrTranslateScrollSrc.scrollHeight - dom.asrTranslateScrollSrc.scrollTop - dom.asrTranslateScrollSrc.clientHeight < 60
-      : true;
-    const atBottomTl = dom.asrTranslateScrollTl
-      ? dom.asrTranslateScrollTl.scrollHeight - dom.asrTranslateScrollTl.scrollTop - dom.asrTranslateScrollTl.clientHeight < 60
-      : true;
-    const atBottom = atBottomSrc && atBottomTl;
-    if (!atBottom && asrTranslateAutoScroll) asrTranslateAutoScroll = false;
-    if (atBottom && !asrTranslateAutoScroll) asrTranslateAutoScroll = true;
-    if (dom.asrTranslateJumpBtn) {
-      dom.asrTranslateJumpBtn.classList.toggle('hidden', atBottom);
-      if (!atBottom) dom.asrTranslateJumpBtn.style.display = 'flex';
-    }
-  };
-  if (dom.asrTranslateScrollSrc) dom.asrTranslateScrollSrc.addEventListener('scroll', onAsrTranslateScroll);
-  if (dom.asrTranslateScrollTl) dom.asrTranslateScrollTl.addEventListener('scroll', onAsrTranslateScroll);
-  if (dom.asrTranslateJumpBtn) {
-    dom.asrTranslateJumpBtn.addEventListener('click', () => {
-      if (dom.asrTranslateScrollSrc) dom.asrTranslateScrollSrc.scrollTop = dom.asrTranslateScrollSrc.scrollHeight;
-      if (dom.asrTranslateScrollTl) dom.asrTranslateScrollTl.scrollTop = dom.asrTranslateScrollTl.scrollHeight;
-      asrTranslateAutoScroll = true;
-      dom.asrTranslateJumpBtn.classList.add('hidden');
-    });
-  }
 }
 
 /**
@@ -531,7 +472,6 @@ function setActiveTab(tab) {
   dom.interviewBox.classList.toggle('hidden', tab !== 'interview');
   dom.interview2Box.classList.toggle('hidden', tab !== 'interview2');
   dom.multilingualBox.classList.toggle('hidden', tab !== 'multilingual');
-  dom.asrTranslateBox.classList.toggle('hidden', tab !== 'asr-translate');
 
   updateTabButton(dom.tabLive, tab === 'live');
   updateTabButton(dom.tabTranslate, tab === 'translate');
@@ -539,7 +479,6 @@ function setActiveTab(tab) {
   updateTabButton(dom.tabInterview, tab === 'interview');
   updateTabButton(dom.tabInterview2, tab === 'interview2');
   updateTabButton(dom.tabMultilingual, tab === 'multilingual');
-  updateTabButton(dom.tabAsrTranslate, tab === 'asr-translate');
 }
 
 function updateTabButton(button, isActive) {
@@ -859,12 +798,6 @@ function handleLanguageDetected(data) {
     dom.multilingualLangBadge.textContent = detectedLanguage;
     dom.multilingualLangBadge.classList.remove('hidden');
   }
-
-  // Update ASR+Translate tab badge
-  if (dom.asrTranslateLangBadge) {
-    dom.asrTranslateLangBadge.textContent = detectedLanguage;
-    dom.asrTranslateLangBadge.classList.remove('hidden');
-  }
 }
 
 /**
@@ -963,7 +896,7 @@ function waitForAck(timeoutMs) {
  * @returns {'fastconformer'|'qwen3'}
  */
 function getAsrBackend() {
-  if (activeTab === 'multilingual' || activeTab === 'asr-translate') {
+  if (activeTab === 'multilingual') {
     return 'qwen3';
   }
   return 'fastconformer';
@@ -1019,14 +952,11 @@ async function startRecording() {
     if (dom.interpreterRows) dom.interpreterRows.innerHTML = '';
     if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'flex';
 
-    // Reset multilingual / ASR+Translate state
+    // Reset multilingual state
     detectedLanguage = '';
     multilingualAutoScroll = true;
-    asrTranslateAutoScroll = true;
     if (dom.multilingualLangBadge) dom.multilingualLangBadge.classList.add('hidden');
-    if (dom.asrTranslateLangBadge) dom.asrTranslateLangBadge.classList.add('hidden');
     if (dom.multilingualJumpBtn) dom.multilingualJumpBtn.classList.add('hidden');
-    if (dom.asrTranslateJumpBtn) dom.asrTranslateJumpBtn.classList.add('hidden');
 
     const audioSource = getAudioSource();
     const needMic = audioSource === 'mic' || audioSource === 'both';
@@ -1099,7 +1029,6 @@ async function startRecording() {
       client_t0_ns: Math.round(performance.now() * 1e6),
       asr_backend: getAsrBackend(),
       source_language: dom.multilingualSourceLang ? dom.multilingualSourceLang.value : 'auto',
-      target_language: dom.asrTranslateTargetLang ? dom.asrTranslateTargetLang.value : null,
     };
     ws.send(JSON.stringify(startMsg));
 
@@ -1368,21 +1297,6 @@ function updateTranscript() {
     }
     if (multilingualAutoScroll && dom.multilingualScroll) {
       dom.multilingualScroll.scrollTop = dom.multilingualScroll.scrollHeight;
-    }
-  }
-
-  // Update ASR+Translate panel
-  if (dom.asrTranslateCommittedSrc) {
-    dom.asrTranslateCommittedSrc.textContent = displayCommitted;
-    dom.asrTranslatePartialSrc.textContent = partialText;
-    dom.asrTranslateCommittedTl.textContent = translationCommitted;
-    dom.asrTranslatePartialTl.textContent = translationPartial;
-    if (dom.asrTranslatePlaceholder) {
-      dom.asrTranslatePlaceholder.style.display = (committedText || partialText) ? 'none' : 'flex';
-    }
-    if (asrTranslateAutoScroll) {
-      if (dom.asrTranslateScrollSrc) dom.asrTranslateScrollSrc.scrollTop = dom.asrTranslateScrollSrc.scrollHeight;
-      if (dom.asrTranslateScrollTl) dom.asrTranslateScrollTl.scrollTop = dom.asrTranslateScrollTl.scrollHeight;
     }
   }
 }
