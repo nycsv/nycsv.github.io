@@ -29,52 +29,82 @@ let mediaStream = null;
 let displayStream = null;
 let workletNode = null;
 
-// Transcription state
-let committedText = '';     // computed display string: formattedPrefix + raw tail
-let partialText = '';
-let _rawCommitted = '';         // all raw committed chunks accumulated
-let _formattedPrefix = '';      // formatted version (may lag behind raw)
-let _formattedRawLength = 0;    // how many chars of _rawCommitted are covered by _formattedPrefix
+// Tab groups: 'groupA' (Transcript/Interpreter/Interpreter+) or 'groupB' (Multilingual)
+let currentTabGroup = 'groupA';
+let activeTab = 'live';
+
+// ════════════════════════════════════════════════════════════════════════════════
+// GROUP A STATE (Transcript, Interpreter, Interpreter+) - fastconformer backend
+// ════════════════════════════════════════════════════════════════════════════════
+const groupA = {
+  committedText: '',
+  partialText: '',
+  _rawCommitted: '',
+  _formattedPrefix: '',
+  _formattedRawLength: 0,
+  translationCommitted: '',
+  translationPartial: '',
+  interpreterSentenceCount: 0,
+  interpreterBuffer: { source: '', text: '' },
+  interpreterLastFlushLen: 0,
+  lastSummarizedWordCount: 0,
+  summarizationInFlight: false,
+  interpreterAutoScroll: true,
+  transcriptAutoScroll: true,
+  translateAutoScroll: true,
+};
 
 /**
- * Compute committedText from formatted prefix + raw tail.
- * Handles junction: strips premature sentence-end punctuation when raw tail follows,
- * and ensures proper spacing.
+ * Compute committedText from formatted prefix + raw tail for Group A.
  */
-function _computeCommittedText() {
-  const rawTail = _rawCommitted.substring(_formattedRawLength);
-  if (!_formattedPrefix) return _rawCommitted;
-  if (!rawTail) return _formattedPrefix;
-
-  // Raw tail follows — strip trailing sentence-end punctuation from prefix
-  // (formatter adds period/etc. assuming sentence ended, but more text is coming)
-  let prefix = _formattedPrefix.replace(/[.!?]+\s*$/, '');
-
-  // Ensure exactly one space at the junction
+function groupA_computeCommittedText() {
+  const rawTail = groupA._rawCommitted.substring(groupA._formattedRawLength);
+  if (!groupA._formattedPrefix) return groupA._rawCommitted;
+  if (!rawTail) return groupA._formattedPrefix;
+  let prefix = groupA._formattedPrefix.replace(/[.!?]+\s*$/, '');
   if (!prefix.endsWith(' ') && !rawTail.startsWith(' ')) {
     prefix += ' ';
   }
   return prefix + rawTail;
 }
 
-// Translation state
-let translationCommitted = '';
-let translationPartial = '';
+// ════════════════════════════════════════════════════════════════════════════════
+// GROUP B STATE (Multilingual) - qwen3 backend
+// ════════════════════════════════════════════════════════════════════════════════
+const groupB = {
+  committedText: '',
+  partialText: '',
+  _rawCommitted: '',
+  _formattedPrefix: '',
+  _formattedRawLength: 0,
+  detectedLanguage: '',
+  multilingualAutoScroll: true,
+  lastSummarizedWordCount: 0,
+  summarizationInFlight: false,
+};
 
-// Interpreter state
-let interpreterSentenceCount = 0;
-let interpreterBuffer = { source: '', text: '' };
-let interpreterLastFlushLen = 0;  // committedText length at last sentence flush
+/**
+ * Compute committedText from formatted prefix + raw tail for Group B.
+ */
+function groupB_computeCommittedText() {
+  const rawTail = groupB._rawCommitted.substring(groupB._formattedRawLength);
+  if (!groupB._formattedPrefix) return groupB._rawCommitted;
+  if (!rawTail) return groupB._formattedPrefix;
+  let prefix = groupB._formattedPrefix.replace(/[.!?]+\s*$/, '');
+  if (!prefix.endsWith(' ') && !rawTail.startsWith(' ')) {
+    prefix += ' ';
+  }
+  return prefix + rawTail;
+}
 
-// Summarization state
-let lastSummarizedWordCount = 0;
-let summarizationInFlight = false;
+// Summarization state (shared)
+let summarizeCallback = null;
 
 // Audio gating: only send audio after server ack
 let readyToSendAudio = false;
 let ackResolver = null;
 
-// Stats
+// Stats (shared)
 let recordingStartTime = null;
 let latestLatency = null;
 let bufferFillPct = null;
@@ -84,18 +114,6 @@ let dom = {};
 
 // i18n strings (injected by template)
 let i18n = {};
-
-// Interpreter auto-scroll state
-let interpreterAutoScroll = true;
-
-// Transcript / translate auto-scroll state
-let transcriptAutoScroll = true;
-let translateAutoScroll = true;
-
-// Multilingual state
-let multilingualAutoScroll = true;
-let detectedLanguage = '';
-let activeTab = 'live';
 
 /**
  * Initialize application
@@ -406,10 +424,10 @@ function initTranscriptScrollBehavior() {
 }
 
 /**
- * Scroll interpreter to bottom if auto-scroll is on
+ * Scroll interpreter to bottom if auto-scroll is on (Group A only)
  */
 function interpreterScrollToBottom() {
-  if (interpreterAutoScroll && dom.interpreterScroll) {
+  if (groupA.interpreterAutoScroll && dom.interpreterScroll) {
     dom.interpreterScroll.scrollTop = dom.interpreterScroll.scrollHeight;
   }
 }
@@ -462,9 +480,23 @@ function updateTrackIndicators() {
 
 
 /**
- * Tab switching
+ * Tab switching - with tab group management
  */
 function setActiveTab(tab) {
+  const previousTabGroup = currentTabGroup;
+
+  // Determine new tab group
+  if (tab === 'multilingual') {
+    currentTabGroup = 'groupB';
+  } else {
+    currentTabGroup = 'groupA';
+  }
+
+  // If switching between groups, stop current recording
+  if (previousTabGroup !== currentTabGroup && currentState !== State.IDLE) {
+    handleMicClick();
+  }
+
   activeTab = tab;
   dom.transcriptPanel.classList.toggle('hidden', tab !== 'live');
   dom.translateBox.classList.toggle('hidden', tab !== 'translate');
@@ -667,15 +699,27 @@ function handleWebSocketMessage(event) {
  */
 function handleCommittedText(data) {
   const newText = data.text || '';
-  _rawCommitted += newText;
-  committedText = _computeCommittedText();
-  partialText = '';  // Clear partial — committed text replaces it
-  updateTranscript();
 
-  // Auto-summarize every ~200 words
-  const wordCount = committedText.split(/\s+/).filter(Boolean).length;
-  if (!summarizationInFlight && wordCount - lastSummarizedWordCount >= 200) {
-    requestSummarization(committedText);
+  if (currentTabGroup === 'groupA') {
+    groupA._rawCommitted += newText;
+    groupA.committedText = groupA_computeCommittedText();
+    groupA.partialText = '';
+    updateTranscript();
+
+    const wordCount = groupA.committedText.split(/\s+/).filter(Boolean).length;
+    if (!groupA.summarizationInFlight && wordCount - groupA.lastSummarizedWordCount >= 200) {
+      requestSummarization(groupA.committedText);
+    }
+  } else if (currentTabGroup === 'groupB') {
+    groupB._rawCommitted += newText;
+    groupB.committedText = groupB_computeCommittedText();
+    groupB.partialText = '';
+    updateMultilingualTranscript();
+
+    const wordCount = groupB.committedText.split(/\s+/).filter(Boolean).length;
+    if (!groupB.summarizationInFlight && wordCount - groupB.lastSummarizedWordCount >= 200) {
+      requestSummarization(groupB.committedText);
+    }
   }
 }
 
@@ -689,57 +733,73 @@ function handleCommittedFormatted(data) {
   const formatted = data.text || '';
   const rawLength = data.raw_length || 0;
 
-  if (!formatted || rawLength <= _formattedRawLength) return;
-
-  _formattedPrefix = formatted;
-  _formattedRawLength = rawLength;
-  committedText = _computeCommittedText();
-  updateTranscript();
-}
-
-/**
- * Handle committed translation (finalized sentence translation)
- */
-function handleCommittedTranslation(data) {
-  const tl = data.text || '';
-  const source = data.source || '';
-  translationCommitted += tl + ' ';
-  translationPartial = '';
-  updateTranscript();
-
-  // Interpreter+ tab: use source from translation event (properly segmented sentences)
-  interpreterBuffer.text += (interpreterBuffer.text ? ' ' : '') + tl;
-  interpreterBuffer.source += (interpreterBuffer.source ? ' ' : '') + source;
-
-  if (data.sentence_end) {
-    addInterpreterRow(interpreterBuffer.source, interpreterBuffer.text);
-    interpreterLastFlushLen = committedText.length;
-    interpreterBuffer = { source: '', text: '' };
-  } else {
-    updateInterpreterBuffering(interpreterBuffer.source, interpreterBuffer.text);
+  if (currentTabGroup === 'groupA') {
+    if (!formatted || rawLength <= groupA._formattedRawLength) return;
+    groupA._formattedPrefix = formatted;
+    groupA._formattedRawLength = rawLength;
+    groupA.committedText = groupA_computeCommittedText();
+    updateTranscript();
+  } else if (currentTabGroup === 'groupB') {
+    if (!formatted || rawLength <= groupB._formattedRawLength) return;
+    groupB._formattedPrefix = formatted;
+    groupB._formattedRawLength = rawLength;
+    groupB.committedText = groupB_computeCommittedText();
+    updateMultilingualTranscript();
   }
 }
 
 /**
- * Handle partial translation (in-progress preview)
+ * Handle committed translation (finalized sentence translation) - Group A only
+ */
+function handleCommittedTranslation(data) {
+  // Only Group A (fastconformer backend) uses translation
+  if (currentTabGroup !== 'groupA') return;
+
+  const tl = data.text || '';
+  const source = data.source || '';
+  groupA.translationCommitted += tl + ' ';
+  groupA.translationPartial = '';
+  updateTranscript();
+
+  // Interpreter+ tab: use source from translation event (properly segmented sentences)
+  groupA.interpreterBuffer.text += (groupA.interpreterBuffer.text ? ' ' : '') + tl;
+  groupA.interpreterBuffer.source += (groupA.interpreterBuffer.source ? ' ' : '') + source;
+
+  if (data.sentence_end) {
+    addInterpreterRow(groupA.interpreterBuffer.source, groupA.interpreterBuffer.text);
+    groupA.interpreterLastFlushLen = groupA.committedText.length;
+    groupA.interpreterBuffer = { source: '', text: '' };
+  } else {
+    updateInterpreterBuffering(groupA.interpreterBuffer.source, groupA.interpreterBuffer.text);
+  }
+}
+
+/**
+ * Handle partial translation (in-progress preview) - Group A only
  */
 function handlePartialTranslation(data) {
-  translationPartial = data.translation || '';
+  // Only Group A (fastconformer backend) uses translation
+  if (currentTabGroup !== 'groupA') return;
+
+  groupA.translationPartial = data.translation || '';
   updateTranscript();
 
   // Interpreter+ tab: pending row uses translation source for English
   const partialSource = data.source || '';
-  const combinedSrc = [interpreterBuffer.source, partialSource].filter(Boolean).join(' ');
-  const combinedTl = [interpreterBuffer.text, translationPartial].filter(Boolean).join(' ');
+  const combinedSrc = [groupA.interpreterBuffer.source, partialSource].filter(Boolean).join(' ');
+  const combinedTl = [groupA.interpreterBuffer.text, groupA.translationPartial].filter(Boolean).join(' ');
   updateInterpreterPending(combinedSrc, combinedTl);
 }
 
 /**
- * Handle final_translation (full accumulated translation at end of session)
+ * Handle final_translation (full accumulated translation at end of session) - Group A only
  */
 function handleFinalTranslation(data) {
-  translationCommitted = data.translation || '';
-  translationPartial = '';
+  // Only Group A (fastconformer backend) uses translation
+  if (currentTabGroup !== 'groupA') return;
+
+  groupA.translationCommitted = data.translation || '';
+  groupA.translationPartial = '';
   updateTranscript();
 }
 
@@ -747,13 +807,18 @@ function handleFinalTranslation(data) {
  * Handle partial text from server
  */
 function handlePartialText(data) {
-  partialText = data.text || '';
-
-  if (data.translation !== undefined) {
-    translationPartial = data.translation;
+  if (currentTabGroup === 'groupA') {
+    groupA.partialText = data.text || '';
+    if (data.translation !== undefined) {
+      groupA.translationPartial = data.translation;
+    }
+    updateTranscript();
+  } else if (currentTabGroup === 'groupB') {
+    groupB.partialText = data.text || '';
+    updateMultilingualTranscript();
   }
 
-  // Update stats
+  // Update stats (shared)
   if (data.triton_call_ms !== undefined) {
     latestLatency = data.triton_call_ms;
   }
@@ -761,7 +826,6 @@ function handlePartialText(data) {
     bufferFillPct = data.buffer_fill_pct;
   }
 
-  updateTranscript();
   updateStats();
 }
 
@@ -787,15 +851,17 @@ function handleBackpressure(data) {
 }
 
 /**
- * Handle language_detected message from Qwen3-ASR
+ * Handle language_detected message from Qwen3-ASR (Group B only)
  */
 function handleLanguageDetected(data) {
-  detectedLanguage = data.language || '';
-  console.log('Language detected:', detectedLanguage);
+  if (currentTabGroup !== 'groupB') return;
+
+  groupB.detectedLanguage = data.language || '';
+  console.log('Language detected:', groupB.detectedLanguage);
 
   // Update Multilingual tab badge
   if (dom.multilingualLangBadge) {
-    dom.multilingualLangBadge.textContent = detectedLanguage;
+    dom.multilingualLangBadge.textContent = groupB.detectedLanguage;
     dom.multilingualLangBadge.classList.remove('hidden');
   }
 }
@@ -805,10 +871,18 @@ function handleLanguageDetected(data) {
  */
 function handleFinalResult(data) {
   const finalText = data.transcription || '';
-  committedText = finalText;
-  partialText = '';
-  translationPartial = '';
-  updateTranscript();
+
+  if (currentTabGroup === 'groupA') {
+    groupA.committedText = finalText;
+    groupA.partialText = '';
+    groupA.translationPartial = '';
+    updateTranscript();
+  } else if (currentTabGroup === 'groupB') {
+    groupB.committedText = finalText;
+    groupB.partialText = '';
+    updateMultilingualTranscript();
+  }
+
   setState(State.CONNECTED);
   cleanup();
 }
@@ -826,10 +900,10 @@ async function handleMicClick() {
 }
 
 /**
- * Handle copy button click
+ * Handle copy button click (Group A only)
  */
 async function handleCopyClick() {
-  const fullText = committedText + partialText;
+  const fullText = groupA.committedText + groupA.partialText;
 
   if (!fullText) {
     showError(i18n.errorNoText || 'No transcription to copy');
@@ -919,44 +993,56 @@ async function startRecording() {
     clearError();
     readyToSendAudio = false;
 
-    // Reset transcription and translation
-    committedText = '';
-    partialText = '';
-    _rawCommitted = '';
-    _formattedPrefix = '';
-    _formattedRawLength = 0;
-    translationCommitted = '';
-    translationPartial = '';
-    lastSummarizedWordCount = 0;
-    summarizationInFlight = false;
+    // Reset state based on current tab group
+    if (currentTabGroup === 'groupA') {
+      groupA.committedText = '';
+      groupA.partialText = '';
+      groupA._rawCommitted = '';
+      groupA._formattedPrefix = '';
+      groupA._formattedRawLength = 0;
+      groupA.translationCommitted = '';
+      groupA.translationPartial = '';
+      groupA.lastSummarizedWordCount = 0;
+      groupA.summarizationInFlight = false;
 
-    // Hide summary footers
-    dom.summaryContentTranscript.classList.add('hidden');
-    dom.summaryFooterTranscript.classList.add('hidden');
-    dom.summaryContentTranslate.classList.add('hidden');
-    dom.summaryFooterTranslate.classList.add('hidden');
+      // Hide summary footers for Group A
+      dom.summaryContentTranscript.classList.add('hidden');
+      dom.summaryFooterTranscript.classList.add('hidden');
+      dom.summaryContentTranslate.classList.add('hidden');
+      dom.summaryFooterTranslate.classList.add('hidden');
 
-    updateTranscript();
+      updateTranscript();
 
-    // Reset scroll state
-    transcriptAutoScroll = true;
-    translateAutoScroll = true;
-    if (dom.transcriptJumpBtn) dom.transcriptJumpBtn.classList.add('hidden');
-    if (dom.translateJumpBtn) dom.translateJumpBtn.classList.add('hidden');
+      // Reset scroll state for Group A
+      groupA.transcriptAutoScroll = true;
+      groupA.translateAutoScroll = true;
+      if (dom.transcriptJumpBtn) dom.transcriptJumpBtn.classList.add('hidden');
+      if (dom.translateJumpBtn) dom.translateJumpBtn.classList.add('hidden');
 
-    // Reset interpreter
-    interpreterSentenceCount = 0;
-    interpreterAutoScroll = true;
-    interpreterBuffer = { source: '', text: '' };
-    interpreterLastFlushLen = 0;
-    if (dom.interpreterRows) dom.interpreterRows.innerHTML = '';
-    if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'flex';
+      // Reset interpreter
+      groupA.interpreterSentenceCount = 0;
+      groupA.interpreterAutoScroll = true;
+      groupA.interpreterBuffer = { source: '', text: '' };
+      groupA.interpreterLastFlushLen = 0;
+      if (dom.interpreterRows) dom.interpreterRows.innerHTML = '';
+      if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'flex';
+    } else if (currentTabGroup === 'groupB') {
+      groupB.committedText = '';
+      groupB.partialText = '';
+      groupB._rawCommitted = '';
+      groupB._formattedPrefix = '';
+      groupB._formattedRawLength = 0;
+      groupB.detectedLanguage = '';
+      groupB.lastSummarizedWordCount = 0;
+      groupB.summarizationInFlight = false;
 
-    // Reset multilingual state
-    detectedLanguage = '';
-    multilingualAutoScroll = true;
-    if (dom.multilingualLangBadge) dom.multilingualLangBadge.classList.add('hidden');
-    if (dom.multilingualJumpBtn) dom.multilingualJumpBtn.classList.add('hidden');
+      updateMultilingualTranscript();
+
+      // Reset scroll state for Group B
+      groupB.multilingualAutoScroll = true;
+      if (dom.multilingualLangBadge) dom.multilingualLangBadge.classList.add('hidden');
+      if (dom.multilingualJumpBtn) dom.multilingualJumpBtn.classList.add('hidden');
+    }
 
     const audioSource = getAudioSource();
     const needMic = audioSource === 'mic' || audioSource === 'both';
@@ -1248,54 +1334,67 @@ function updateUI() {
 }
 
 /**
- * Update transcript display
+ * Update transcript display (GROUP A only: Transcript, Interpreter, Interpreter+)
  */
 function updateTranscript() {
+  // Only update if we're in Group A
+  if (currentTabGroup !== 'groupA') return;
+
   // While streaming, hide trailing punctuation — it looks premature to the user
   const isStreaming = currentState === State.RECORDING || currentState === State.CONNECTED;
-  const displayCommitted = isStreaming ? committedText.replace(/[.!?]+\s*$/, '') : committedText;
+  const displayCommitted = isStreaming ? groupA.committedText.replace(/[.!?]+\s*$/, '') : groupA.committedText;
 
   dom.committedSpan.textContent = displayCommitted;
-  dom.partialSpan.textContent = partialText;
+  dom.partialSpan.textContent = groupA.partialText;
 
   // Toggle placeholder
   if (dom.placeholder) {
-    dom.placeholder.style.display = (committedText || partialText) ? 'none' : 'flex';
+    dom.placeholder.style.display = (groupA.committedText || groupA.partialText) ? 'none' : 'flex';
   }
 
   // Auto-scroll to bottom (paused when user has scrolled up)
-  if (transcriptAutoScroll) {
+  if (groupA.transcriptAutoScroll) {
     dom.transcriptBox.scrollTop = dom.transcriptBox.scrollHeight;
   }
 
   // Update translate tab mirrors
   dom.translateCommittedEn.textContent = displayCommitted;
-  dom.translatePartialEn.textContent = partialText;
-  dom.translateCommittedKo.textContent = translationCommitted;
-  dom.translatePartialKo.textContent = translationPartial;
+  dom.translatePartialEn.textContent = groupA.partialText;
+  dom.translateCommittedKo.textContent = groupA.translationCommitted;
+  dom.translatePartialKo.textContent = groupA.translationPartial;
 
   // Toggle translate placeholder
   if (dom.translatePlaceholder) {
-    dom.translatePlaceholder.style.display = (committedText || partialText) ? 'none' : 'flex';
+    dom.translatePlaceholder.style.display = (groupA.committedText || groupA.partialText) ? 'none' : 'flex';
   }
 
   // Auto-scroll translate panels (paused when user has scrolled up)
-  if (translateAutoScroll) {
+  if (groupA.translateAutoScroll) {
     dom.translateScrollEn.scrollTop = dom.translateScrollEn.scrollHeight;
     dom.translateScrollKo.scrollTop = dom.translateScrollKo.scrollHeight;
   }
+}
 
-  // Update Multilingual panel
+/**
+ * Update transcript display (GROUP B only: Multilingual)
+ */
+function updateMultilingualTranscript() {
+  // Only update if we're in Group B
+  if (currentTabGroup !== 'groupB') return;
+
+  const isStreaming = currentState === State.RECORDING || currentState === State.CONNECTED;
+  const displayCommitted = isStreaming ? groupB.committedText.replace(/[.!?]+\s*$/, '') : groupB.committedText;
+
   if (dom.multilingualCommitted) {
     dom.multilingualCommitted.textContent = displayCommitted;
-    dom.multilingualPartial.textContent = partialText;
+    dom.multilingualPartial.textContent = groupB.partialText;
     if (dom.multilingualCursor) {
       dom.multilingualCursor.style.display = currentState === State.RECORDING ? 'inline-block' : 'none';
     }
     if (dom.multilingualPlaceholder) {
-      dom.multilingualPlaceholder.style.display = (committedText || partialText) ? 'none' : 'flex';
+      dom.multilingualPlaceholder.style.display = (groupB.committedText || groupB.partialText) ? 'none' : 'flex';
     }
-    if (multilingualAutoScroll && dom.multilingualScroll) {
+    if (groupB.multilingualAutoScroll && dom.multilingualScroll) {
       dom.multilingualScroll.scrollTop = dom.multilingualScroll.scrollHeight;
     }
   }
@@ -1369,7 +1468,13 @@ async function handleSummarizeClick() {
  * Request summarization via WebSocket
  */
 function requestSummarization(text) {
-  if (summarizationInFlight) {
+  const currentGroup = currentTabGroup === 'groupA' ? groupA : groupB;
+  if (!currentGroup) {
+    console.log('[summarize] skipped — invalid group');
+    return;
+  }
+
+  if (currentGroup.summarizationInFlight) {
     console.log('[summarize] skipped — already in flight');
     return;
   }
@@ -1378,7 +1483,7 @@ function requestSummarization(text) {
     return;
   }
 
-  summarizationInFlight = true;
+  currentGroup.summarizationInFlight = true;
   const wordCount = text.split(/\s+/).filter(Boolean).length;
   console.log('[summarize] sending request, wordCount:', wordCount);
 
@@ -1393,7 +1498,14 @@ function requestSummarization(text) {
  * Handle summary response from server
  */
 function handleSummaryResult(data) {
-  summarizationInFlight = false;
+  if (currentTabGroup === 'groupA') {
+    groupA.summarizationInFlight = false;
+  } else if (currentTabGroup === 'groupB') {
+    groupB.summarizationInFlight = false;
+  } else {
+    return;
+  }
+
   const summary = data.summary || '';
   const koreanSummary = data.korean_summary || '';
   const wordCount = data.word_count || 0;
@@ -1401,7 +1513,11 @@ function handleSummaryResult(data) {
 
   if (summary) {
     insertSummaryBlock(summary, koreanSummary, wordCount);
-    lastSummarizedWordCount = wordCount;
+    if (currentTabGroup === 'groupA') {
+      groupA.lastSummarizedWordCount = wordCount;
+    } else if (currentTabGroup === 'groupB') {
+      groupB.lastSummarizedWordCount = wordCount;
+    }
   } else {
     console.warn('[summarize] empty summary received');
   }
