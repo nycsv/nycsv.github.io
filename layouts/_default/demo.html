@@ -649,21 +649,21 @@
             <span id="status-text" class="text-[10px] text-slate-500 font-semibold">Disconnected</span>
           </div>
           <div class="w-px h-3 bg-border-subtle/40"></div>
-          <div class="flex items-center gap-1">
+          <div class="flex items-center gap-1" title="Elapsed time">
             <span class="material-symbols-outlined text-[13px] text-slate-600">schedule</span>
-            <span class="text-[10px] font-semibold"><span id="stat-duration">-</span></span>
+            <span class="text-[10px] font-semibold text-slate-400"><span id="stat-duration">-</span></span>
           </div>
-          <div class="hidden md:flex items-center gap-1">
-            <span class="material-symbols-outlined text-[13px] text-slate-600">keyboard</span>
-            <span class="text-[10px] font-semibold">WPM: <span id="stat-wpm">-</span></span>
+          <div class="hidden md:flex items-center gap-1" title="Words per minute">
+            <span class="material-symbols-outlined text-[13px] text-slate-600">abc</span>
+            <span class="text-[10px] font-semibold text-slate-400"><span id="stat-wpm">-</span></span>
           </div>
-          <div class="hidden md:flex items-center gap-1">
-            <span class="material-symbols-outlined text-[13px] text-slate-600">speed</span>
-            <span class="text-[10px] font-semibold"><span id="stat-latency">-</span></span>
+          <div class="hidden md:flex items-center gap-1" title="Inference latency">
+            <span class="material-symbols-outlined text-[13px] text-slate-600">bolt</span>
+            <span class="text-[10px] font-semibold text-slate-400"><span id="stat-latency">-</span></span>
           </div>
-          <div class="hidden md:flex items-center gap-1">
-            <span class="material-symbols-outlined text-[13px] text-slate-600">timer</span>
-            <span class="text-[10px] font-semibold">RTF: <span id="stat-rtf">-</span></span>
+          <div class="hidden md:flex items-center gap-1" title="Real-Time Factor (< 1.0 = faster than real-time)">
+            <span class="material-symbols-outlined text-[13px] text-slate-600">compress</span>
+            <span class="text-[10px] font-semibold text-slate-400"><span id="stat-rtf">-</span></span>
           </div>
         </div>
         <div class="flex items-center gap-2 md:gap-3">

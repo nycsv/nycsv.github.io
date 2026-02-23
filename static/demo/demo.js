@@ -1418,11 +1418,13 @@ function updateStats() {
     dom.statLatency.textContent = '-';
   }
 
-  // Duration
+  // Duration (mm:ss)
   let elapsedMin = 0;
   if (recordingStartTime) {
     const elapsed = (Date.now() - recordingStartTime) / 1000;
-    dom.statDuration.textContent = `${elapsed.toFixed(1)}s`;
+    const m = Math.floor(elapsed / 60);
+    const s = Math.floor(elapsed % 60);
+    dom.statDuration.textContent = `${m}:${String(s).padStart(2, '0')}`;
     elapsedMin = elapsed / 60;
   } else {
     dom.statDuration.textContent = '-';
@@ -1434,7 +1436,7 @@ function updateStats() {
       ? (groupB.committedText + ' ' + groupB.partialText)
       : (groupA.committedText + ' ' + groupA.partialText);
     const words = text.trim().split(/\s+/).filter(Boolean).length;
-    dom.statWpm.textContent = Math.round(words / elapsedMin);
+    dom.statWpm.textContent = `${Math.round(words / elapsedMin)}wpm`;
   } else {
     dom.statWpm.textContent = '-';
   }
@@ -1442,7 +1444,7 @@ function updateStats() {
   // RTF
   if (latestLatency !== null) {
     const chunkMs = RTF_CHUNK_MS[currentTabGroup] || 160;
-    dom.statRtf.textContent = (latestLatency / chunkMs).toFixed(2);
+    dom.statRtf.textContent = `${(latestLatency / chunkMs).toFixed(2)}×`;
   } else {
     dom.statRtf.textContent = '-';
   }
