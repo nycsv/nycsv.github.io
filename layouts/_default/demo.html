@@ -144,6 +144,10 @@
               class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors">Interpreter</button>
             <button id="tab-interpreter"
               class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors">Interpreter+</button>
+            <button id="tab-multilingual"
+              class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors">Multilingual</button>
+            <button id="tab-asr-translate"
+              class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors">ASR+Translate</button>
             <button id="tab-interview"
               class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors hidden">
               Interview</button>
@@ -554,6 +558,176 @@
           <!-- Jump to bottom FAB -->
           <button id="interpreter-jump-btn"
             class="hidden absolute bottom-3 right-3 md:right-6 w-7 h-7 rounded-full bg-primary/80 text-white shadow-md shadow-primary/20 items-center justify-center hover:bg-primary transition-all z-20 opacity-70 hover:opacity-100">
+            <span class="material-symbols-outlined text-[14px]">keyboard_double_arrow_down</span>
+          </button>
+        </div>
+
+        <!-- ─── Multilingual ASR Panel ─── -->
+        <div id="multilingual-box" class="flex-1 flex flex-col overflow-hidden hidden relative">
+          <div class="flex items-center justify-between px-4 md:px-8 py-2 border-b border-border-subtle/30 bg-surface/30 shrink-0">
+            <div class="flex items-center gap-2">
+              <div class="w-5 h-5 rounded bg-emerald-500/10 flex items-center justify-center">
+                <span class="material-symbols-outlined text-emerald-400 text-[13px]">language</span>
+              </div>
+              <span class="section-label text-slate-500">Multilingual ASR</span>
+              <span id="multilingual-lang-badge"
+                class="hidden ml-2 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 text-[10px] font-bold uppercase tracking-wide"></span>
+            </div>
+            <div class="flex items-center gap-2">
+              <select id="multilingual-source-lang"
+                class="bg-background-dark/80 border border-border-subtle rounded-lg px-2 py-1 text-[11px] text-slate-400 focus:outline-none focus:border-emerald-500/50 cursor-pointer transition-all">
+                <option value="auto">Auto-detect</option>
+                <option value="English">English</option>
+                <option value="Chinese">Chinese</option>
+                <option value="Korean">Korean</option>
+                <option value="Japanese">Japanese</option>
+                <option value="Spanish">Spanish</option>
+                <option value="French">French</option>
+                <option value="German">German</option>
+                <option value="Portuguese">Portuguese</option>
+                <option value="Russian">Russian</option>
+                <option value="Arabic">Arabic</option>
+                <option value="Italian">Italian</option>
+                <option value="Dutch">Dutch</option>
+                <option value="Turkish">Turkish</option>
+                <option value="Thai">Thai</option>
+                <option value="Vietnamese">Vietnamese</option>
+                <option value="Indonesian">Indonesian</option>
+                <option value="Malay">Malay</option>
+                <option value="Hindi">Hindi</option>
+                <option value="Swedish">Swedish</option>
+                <option value="Danish">Danish</option>
+                <option value="Finnish">Finnish</option>
+                <option value="Polish">Polish</option>
+                <option value="Czech">Czech</option>
+                <option value="Filipino">Filipino</option>
+                <option value="Persian">Persian</option>
+                <option value="Greek">Greek</option>
+                <option value="Hungarian">Hungarian</option>
+                <option value="Romanian">Romanian</option>
+                <option value="Cantonese">Cantonese</option>
+              </select>
+              <button id="multilingual-copy-btn" title="Copy transcript"
+                class="icon-btn flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:text-white hover:bg-white/10 transition-all">
+                <span class="material-symbols-outlined text-[16px]">content_copy</span>
+              </button>
+            </div>
+          </div>
+          <div id="multilingual-scroll" class="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-8 relative custom-scrollbar">
+            <!-- Placeholder -->
+            <div id="multilingual-placeholder"
+              class="absolute inset-0 flex flex-col items-center justify-center text-center space-y-5 z-10 bg-background-dark">
+              <div
+                class="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-xl shadow-emerald-500/20 placeholder-ring">
+                <span class="material-symbols-outlined text-white text-3xl">language</span>
+              </div>
+              <div>
+                <p class="text-slate-300 text-sm font-semibold">Multilingual ASR</p>
+                <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Real-time speech recognition in 52 languages<br>with automatic language detection<br>Powered by Qwen3-ASR</p>
+              </div>
+            </div>
+            <!-- Transcript content -->
+            <div class="max-w-4xl mx-auto">
+              <div id="multilingual-content" class="space-y-2">
+                <span id="multilingual-committed"
+                  class="text-slate-100 leading-[1.6] text-[0.9rem] font-medium"></span><span
+                  id="multilingual-partial"
+                  class="text-slate-500 leading-[1.6] text-[0.9rem] font-medium italic"></span><span
+                  id="multilingual-cursor" class="asr-transcript-cursor" style="display:none"></span>
+              </div>
+            </div>
+          </div>
+          <!-- Jump to bottom FAB -->
+          <button id="multilingual-jump-btn"
+            class="hidden absolute bottom-3 right-3 md:right-6 w-7 h-7 rounded-full bg-emerald-500/80 text-white shadow-md shadow-emerald-500/20 items-center justify-center hover:bg-emerald-500 transition-all z-20 opacity-70 hover:opacity-100">
+            <span class="material-symbols-outlined text-[14px]">keyboard_double_arrow_down</span>
+          </button>
+        </div>
+
+        <!-- ─── ASR+Translation Panel ─── -->
+        <div id="asr-translate-box" class="flex-1 flex flex-col overflow-hidden hidden relative">
+          <div class="flex items-center justify-between px-4 md:px-8 py-2 border-b border-border-subtle/30 bg-surface/30 shrink-0">
+            <div class="flex items-center gap-2">
+              <div class="w-5 h-5 rounded bg-amber-500/10 flex items-center justify-center">
+                <span class="material-symbols-outlined text-amber-400 text-[13px]">translate</span>
+              </div>
+              <span class="section-label text-slate-500">ASR + Translation</span>
+              <span id="asr-translate-lang-badge"
+                class="hidden ml-2 px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 text-[10px] font-bold uppercase tracking-wide"></span>
+            </div>
+            <div class="flex items-center gap-2">
+              <select id="asr-translate-target-lang"
+                class="bg-background-dark/80 border border-border-subtle rounded-lg px-2 py-1 text-[11px] text-slate-400 focus:outline-none focus:border-amber-500/50 cursor-pointer transition-all">
+                <option value="ko">Korean</option>
+                <option value="en">English</option>
+                <option value="ja">Japanese</option>
+                <option value="zh">Chinese</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+              </select>
+            </div>
+          </div>
+          <!-- Column headers -->
+          <div class="interp-col-headers border-b border-border-subtle/20 shrink-0">
+            <div class="interp-header flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[13px]">mic</span>
+                <span>Source (Auto-detect)</span>
+              </div>
+              <button id="asr-translate-copy-src" title="Copy source text"
+                class="icon-btn flex items-center justify-center w-6 h-6 rounded-lg text-slate-600 hover:text-white hover:bg-white/10 transition-all">
+                <span class="material-symbols-outlined text-[13px]">content_copy</span>
+              </button>
+            </div>
+            <div class="interp-header flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[13px]">g_translate</span>
+                <span id="asr-translate-target-label">Korean Translation</span>
+              </div>
+              <button id="asr-translate-copy-tl" title="Copy translation"
+                class="icon-btn flex items-center justify-center w-6 h-6 rounded-lg text-slate-600 hover:text-indigo-400/80 hover:bg-indigo-400/10 transition-all">
+                <span class="material-symbols-outlined text-[13px]">content_copy</span>
+              </button>
+            </div>
+          </div>
+          <div class="flex-1 flex overflow-hidden relative">
+            <!-- Placeholder -->
+            <div id="asr-translate-placeholder"
+              class="absolute inset-0 flex flex-col items-center justify-center text-center space-y-5 z-10 bg-background-dark">
+              <div
+                class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center shadow-xl shadow-amber-500/20 placeholder-ring">
+                <span class="material-symbols-outlined text-white text-3xl">translate</span>
+              </div>
+              <div>
+                <p class="text-slate-300 text-sm font-semibold">ASR + Translation</p>
+                <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Multilingual speech recognition with translation<br>Speak in any language, get real-time translation<br>Powered by Qwen3-ASR + EXAONE</p>
+              </div>
+            </div>
+            <!-- Source transcript -->
+            <div id="asr-translate-scroll-src"
+              class="flex-1 overflow-y-auto px-4 py-5 md:px-8 md:py-6 custom-scrollbar border-r border-border-subtle/30">
+              <div id="asr-translate-content-src" class="space-y-2">
+                <span id="asr-translate-committed-src"
+                  class="text-slate-100 leading-[1.6] text-[0.9rem] font-medium"></span><span
+                  id="asr-translate-partial-src"
+                  class="text-slate-500 leading-[1.6] text-[0.9rem] font-medium italic"></span>
+              </div>
+            </div>
+            <!-- Translation -->
+            <div id="asr-translate-scroll-tl"
+              class="flex-1 overflow-y-auto px-4 py-5 md:px-8 md:py-6 custom-scrollbar">
+              <div id="asr-translate-content-tl" class="space-y-2">
+                <span id="asr-translate-committed-tl"
+                  class="text-indigo-300 leading-[1.6] text-[0.9rem] font-medium"></span><span
+                  id="asr-translate-partial-tl"
+                  class="text-indigo-400/60 leading-[1.6] text-[0.9rem] font-medium italic"></span>
+              </div>
+            </div>
+          </div>
+          <!-- Jump to bottom FAB -->
+          <button id="asr-translate-jump-btn"
+            class="hidden absolute bottom-3 right-3 md:right-6 w-7 h-7 rounded-full bg-amber-500/80 text-white shadow-md shadow-amber-500/20 items-center justify-center hover:bg-amber-500 transition-all z-20 opacity-70 hover:opacity-100">
             <span class="material-symbols-outlined text-[14px]">keyboard_double_arrow_down</span>
           </button>
         </div>
