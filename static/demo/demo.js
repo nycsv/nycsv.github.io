@@ -104,7 +104,9 @@ let ackResolver = null;
 // Stats (shared)
 let recordingStartTime = null;
 let latestLatency = null;
-let bufferFillPct = null;
+
+// RTF chunk durations per backend
+const RTF_CHUNK_MS = { groupA: 160, groupB: 2000 };
 
 // DOM elements
 let dom = {};
@@ -138,7 +140,8 @@ function init() {
     errorMsg: document.getElementById('error-message'),
     statLatency: document.getElementById('stat-latency'),
     statDuration: document.getElementById('stat-duration'),
-    statBuffer: document.getElementById('stat-buffer'),
+    statWpm: document.getElementById('stat-wpm'),
+    statRtf: document.getElementById('stat-rtf'),
     statusFooterDot: document.getElementById('status-footer-dot'),
     audioSource: document.getElementById('audio-source'),
     copyBtn: document.getElementById('copy-btn'),
@@ -830,9 +833,6 @@ function handlePartialText(data) {
   if (data.inference_ms !== undefined) {
     latestLatency = data.inference_ms;
   }
-  if (data.buffer_fill_pct !== undefined) {
-    bufferFillPct = data.buffer_fill_pct;
-  }
 
   updateStats();
 }
@@ -1236,7 +1236,6 @@ function cleanup() {
 
   recordingStartTime = null;
   latestLatency = null;
-  bufferFillPct = null;
   readyToSendAudio = false;
   ackResolver = null;
 
@@ -1420,18 +1419,32 @@ function updateStats() {
   }
 
   // Duration
+  let elapsedMin = 0;
   if (recordingStartTime) {
     const elapsed = (Date.now() - recordingStartTime) / 1000;
     dom.statDuration.textContent = `${elapsed.toFixed(1)}s`;
+    elapsedMin = elapsed / 60;
   } else {
     dom.statDuration.textContent = '-';
   }
 
-  // Buffer fill
-  if (bufferFillPct !== null) {
-    dom.statBuffer.textContent = `${bufferFillPct.toFixed(0)}%`;
+  // WPM
+  if (elapsedMin > 0) {
+    const text = currentTabGroup === 'groupB'
+      ? (groupB.committedText + ' ' + groupB.partialText)
+      : (groupA.committedText + ' ' + groupA.partialText);
+    const words = text.trim().split(/\s+/).filter(Boolean).length;
+    dom.statWpm.textContent = Math.round(words / elapsedMin);
   } else {
-    dom.statBuffer.textContent = '-';
+    dom.statWpm.textContent = '-';
+  }
+
+  // RTF
+  if (latestLatency !== null) {
+    const chunkMs = RTF_CHUNK_MS[currentTabGroup] || 160;
+    dom.statRtf.textContent = (latestLatency / chunkMs).toFixed(2);
+  } else {
+    dom.statRtf.textContent = '-';
   }
 }
 
