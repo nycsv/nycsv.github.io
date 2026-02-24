@@ -561,6 +561,15 @@ body::after {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* ─── Tab navigation - horizontal scroll on mobile ─── */
+.tab-nav-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.tab-nav-scroll::-webkit-scrollbar {
+  display: none;
+}
+
 /* ─── Responsive mobile tweaks ─── */
 @media (max-width: 640px) {
   .summary-block { padding: 12px 14px; }
