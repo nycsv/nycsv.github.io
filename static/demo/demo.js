@@ -941,7 +941,7 @@ function handleRefinementInterpreter(data) {
   if (currentTabGroup !== 'groupA') return;
 
   const version = data.version || 0;
-  if (version <= groupA.refinementVersion && version !== groupA.refinementVersion) {
+  if (version < groupA.refinementVersion) {
     console.warn('[refinement_interpreter] Ignoring stale version:', version);
     return;
   }
