@@ -52,6 +52,7 @@ const groupA = {
   interpreterAutoScroll: true,
   transcriptAutoScroll: true,
   translateAutoScroll: true,
+  _lastTranslationSource: '',  // dedup: last committed_translation source text
 };
 
 /**
@@ -107,6 +108,8 @@ const conversation = {
     _rawCommitted: '', _formattedPrefix: '', _formattedRawLength: 0,
     partialText: '',
     lastSentenceCount: 0,
+    _flushedLen: 0,       // chars of committed text already flushed as rows
+    _flushTimer: null,    // debounce timer to promote pending → committed row
   },
   mic: {
     ws: null, audioContext: null, workletNode: null, mediaStream: null,
@@ -114,6 +117,8 @@ const conversation = {
     _rawCommitted: '', _formattedPrefix: '', _formattedRawLength: 0,
     partialText: '',
     lastSentenceCount: 0,
+    _flushedLen: 0,
+    _flushTimer: null,
   },
   autoScroll: true,
   active: false,
@@ -285,9 +290,19 @@ function initAudioSourceToggle() {
       btns.forEach(b => b.classList.remove('audio-src-active'));
       btn.classList.add('audio-src-active');
       dom.audioSource.value = btn.dataset.source;
-      // Show conversation tab only when "both" is selected
-      dom.tabConversation.classList.toggle('hidden', btn.dataset.source !== 'both');
-      if (btn.dataset.source !== 'both' && activeTab === 'conversation') {
+
+      const isBoth = btn.dataset.source === 'both';
+      // "Both" mode: show only Conversation tab; otherwise restore normal tabs
+      dom.tabConversation.classList.toggle('hidden', !isBoth);
+      dom.tabLive.classList.toggle('hidden', isBoth);
+      dom.tabTranslate.classList.toggle('hidden', isBoth);
+      dom.tabInterpreter.classList.toggle('hidden', isBoth);
+      dom.tabMultilingual.classList.toggle('hidden', isBoth);
+      // Interview tabs stay hidden regardless (they have their own visibility logic)
+
+      if (isBoth) {
+        setActiveTab('conversation');
+      } else if (activeTab === 'conversation') {
         setActiveTab('live');
       }
     });
@@ -809,6 +824,17 @@ function handleCommittedTranslation(data) {
 
   const tl = data.text || '';
   const source = data.source || '';
+
+  // Client-side dedup: skip if this source text was already processed
+  // (server-side dedup in gateway should prevent this, but guard against edge cases)
+  const normSource = source.replace(/[.!?,;:]/g, '').trim().toLowerCase();
+  const normLast = groupA._lastTranslationSource.replace(/[.!?,;:]/g, '').trim().toLowerCase();
+  if (normSource && normLast && normSource === normLast) {
+    console.warn('[dedup] Skipping duplicate committed_translation:', source);
+    return;
+  }
+  groupA._lastTranslationSource = source;
+
   groupA.translationCommitted += tl + ' ';
   groupA.translationPartial = '';
   updateTranscript();
@@ -1092,6 +1118,7 @@ async function startRecording() {
       groupA.interpreterAutoScroll = true;
       groupA.interpreterBuffer = { source: '', text: '' };
       groupA.interpreterLastFlushLen = 0;
+      groupA._lastTranslationSource = '';
       if (dom.interpreterRows) dom.interpreterRows.innerHTML = '';
       if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'flex';
     } else if (currentTabGroup === 'groupB') {
@@ -1785,6 +1812,8 @@ function resetConversationState() {
     s.lastSentenceCount = 0;
     s.readyToSendAudio = false;
     s.ackResolver = null;
+    s._flushedLen = 0;
+    if (s._flushTimer) { clearTimeout(s._flushTimer); s._flushTimer = null; }
   });
   conversation.autoScroll = true;
   if (dom.conversationRows) dom.conversationRows.innerHTML = '';
@@ -2012,34 +2041,28 @@ function handleConvMessage(source, event) {
       s._formattedPrefix = formatted;
       s._formattedRawLength = rawLength;
 
-      // Detect new sentences from the formatted text
       const fullText = convComputeCommitted(source);
-      const sentences = splitConvSentences(fullText);
-      const newCount = sentences.length;
-
-      // Add newly completed sentences as rows
-      for (let i = s.lastSentenceCount; i < newCount - 1; i++) {
-        addConversationRow(source, sentences[i].trim());
+      // Show un-flushed portion as pending
+      const unflushed = fullText.substring(s._flushedLen).trim();
+      if (unflushed) {
+        updateConvPending(source, unflushed);
       }
 
-      // The last segment may still be in progress - show as pending
-      const lastSegment = sentences[newCount - 1] || '';
-      if (lastSegment.trim()) {
-        updateConvPending(source, lastSegment.trim());
-      }
-
-      s.lastSentenceCount = Math.max(0, newCount - 1);
+      // Reset flush timer: after 1.5s of no new committed_formatted,
+      // promote the pending text to a committed row (utterance ended)
+      if (s._flushTimer) clearTimeout(s._flushTimer);
+      s._flushTimer = setTimeout(() => {
+        convFlushPending(source);
+      }, 1500);
       break;
     }
 
     case 'partial': {
       s.partialText = data.text || '';
-      // Update pending row with partial text appended
       const partialFull = convComputeCommitted(source);
-      const partialSentences = splitConvSentences(partialFull);
-      const partialLastSeg = (partialSentences[partialSentences.length - 1] || '').trim();
-      const pendingText = partialLastSeg
-        ? partialLastSeg + ' ' + s.partialText
+      const unflushed = partialFull.substring(s._flushedLen).trim();
+      const pendingText = unflushed
+        ? unflushed + ' ' + s.partialText
         : s.partialText;
       if (pendingText.trim()) {
         updateConvPending(source, pendingText.trim());
@@ -2058,18 +2081,9 @@ function handleConvMessage(source, event) {
     }
 
     case 'final': {
-      // Final result: flush any remaining text as a row
-      if (data.transcription) {
-        const finalSentences = splitConvSentences(data.transcription);
-        for (let i = s.lastSentenceCount; i < finalSentences.length; i++) {
-          const sent = finalSentences[i].trim();
-          if (sent) addConversationRow(source, sent);
-        }
-        s.lastSentenceCount = finalSentences.length;
-        // Remove pending for THIS source only
-        const finalPending = dom.conversationRows?.querySelector(`.conv-pending[data-source="${source}"]`);
-        if (finalPending) finalPending.remove();
-      }
+      // Final result: flush any remaining un-flushed text as a row
+      if (s._flushTimer) { clearTimeout(s._flushTimer); s._flushTimer = null; }
+      convFlushPending(source);
       break;
     }
 
@@ -2080,25 +2094,18 @@ function handleConvMessage(source, event) {
 }
 
 /**
- * Split text into sentences by punctuation boundaries.
- * Returns an array where all elements except possibly the last are complete sentences.
- * Uses a simple approach: split on ". " / "! " / "? " boundaries.
+ * Promote the pending text for a source to a committed row.
+ * Called by flush timer (utterance pause) or on final.
  */
-function splitConvSentences(text) {
-  if (!text) return [''];
-  // Split on sentence-ending punctuation followed by a space, keeping the punctuation
-  // Uses a capture group approach for broad compatibility (no lookbehind needed)
-  const parts = text.split(/([.!?])\s+/);
-  // Reassemble: ["Hello", ".", "World", ".", "Test"] → ["Hello.", "World.", "Test"]
-  const sentences = [];
-  for (let i = 0; i < parts.length; i += 2) {
-    let sentence = parts[i];
-    if (i + 1 < parts.length) {
-      sentence += parts[i + 1]; // append the punctuation
-    }
-    if (sentence) sentences.push(sentence);
+function convFlushPending(source) {
+  const s = conversation[source];
+  s._flushTimer = null;
+  const fullText = convComputeCommitted(source);
+  const unflushed = fullText.substring(s._flushedLen).trim();
+  if (unflushed) {
+    addConversationRow(source, unflushed);
+    s._flushedLen = fullText.length;
   }
-  return sentences.length ? sentences : [''];
 }
 
 /**
@@ -2162,6 +2169,10 @@ function stopConversation() {
 
   ['system', 'mic'].forEach(source => {
     const s = conversation[source];
+
+    // Clear flush timer and promote any remaining pending text
+    if (s._flushTimer) { clearTimeout(s._flushTimer); s._flushTimer = null; }
+    convFlushPending(source);
 
     // Disconnect worklet
     if (s.workletNode) {
