@@ -54,6 +54,7 @@ const groupA = {
   translateAutoScroll: true,
   _lastTranslationSource: '',  // dedup: last committed_translation source text
   _partialFlushTimer: null,   // promote stale partial → committed after silence
+  refinementVersion: 0,       // version counter for second-pass Qwen ASR refinement
 };
 
 /**
@@ -758,6 +759,14 @@ function handleWebSocketMessage(event) {
       handleSummaryResult(data);
       break;
 
+    case 'refinement':
+      handleRefinement(data);
+      break;
+
+    case 'refinement_interpreter':
+      handleRefinementInterpreter(data);
+      break;
+
     default:
       console.warn('Unknown message type:', msgType);
   }
@@ -885,6 +894,73 @@ function handleFinalTranslation(data) {
   groupA.translationCommitted = data.translation || '';
   groupA.translationPartial = '';
   updateTranscript();
+}
+
+/**
+ * Handle second-pass refinement from Qwen ASR batch re-transcription.
+ * Replaces the entire transcript and translation in-place.
+ */
+function handleRefinement(data) {
+  if (currentTabGroup !== 'groupA') return;
+
+  const version = data.version || 0;
+  if (version <= groupA.refinementVersion) {
+    console.warn('[refinement] Ignoring stale version:', version);
+    return;
+  }
+  groupA.refinementVersion = version;
+
+  console.log(`[refinement] v${version} replacing transcript (${data.audio_duration_sec}s audio, final=${data.is_final})`);
+
+  // Replace formatted prefix with refined text (covers all raw so far)
+  groupA._formattedPrefix = data.text || '';
+  groupA._formattedRawLength = groupA._rawCommitted.length;
+  groupA.committedText = groupA_computeCommittedText();
+
+  // Replace translation
+  if (data.translation) {
+    groupA.translationCommitted = data.translation;
+  }
+
+  // Clear partials
+  groupA.partialText = '';
+  groupA.translationPartial = '';
+  if (groupA._partialFlushTimer) {
+    clearTimeout(groupA._partialFlushTimer);
+    groupA._partialFlushTimer = null;
+  }
+
+  updateTranscript();
+}
+
+/**
+ * Handle second-pass refinement interpreter rows.
+ * Replaces all interpreter rows with refined sentence pairs.
+ */
+function handleRefinementInterpreter(data) {
+  if (currentTabGroup !== 'groupA') return;
+
+  const version = data.version || 0;
+  if (version <= groupA.refinementVersion && version !== groupA.refinementVersion) {
+    console.warn('[refinement_interpreter] Ignoring stale version:', version);
+    return;
+  }
+
+  const rows = data.rows || [];
+  if (!rows.length) return;
+
+  console.log(`[refinement_interpreter] v${version} replacing ${rows.length} interpreter rows`);
+
+  // Clear all existing interpreter rows
+  if (dom.interpreterRows) dom.interpreterRows.innerHTML = '';
+  groupA.interpreterSentenceCount = 0;
+  groupA.interpreterBuffer = { source: '', text: '' };
+  groupA.interpreterLastFlushLen = 0;
+
+  // Add refined rows
+  for (const row of rows) {
+    addInterpreterRow(row.source || '', row.translation || '');
+  }
 }
 
 /**
@@ -1118,6 +1194,7 @@ async function startRecording() {
       groupA.translationPartial = '';
       groupA.lastSummarizedWordCount = 0;
       groupA.summarizationInFlight = false;
+      groupA.refinementVersion = 0;
       if (groupA._partialFlushTimer) { clearTimeout(groupA._partialFlushTimer); groupA._partialFlushTimer = null; }
 
       // Hide summary footers for Group A
