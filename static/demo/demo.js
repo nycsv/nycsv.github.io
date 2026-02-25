@@ -53,6 +53,7 @@ const groupA = {
   transcriptAutoScroll: true,
   translateAutoScroll: true,
   _lastTranslationSource: '',  // dedup: last committed_translation source text
+  _partialFlushTimer: null,   // promote stale partial → committed after silence
 };
 
 /**
@@ -82,6 +83,7 @@ const groupB = {
   multilingualAutoScroll: true,
   lastSummarizedWordCount: 0,
   summarizationInFlight: false,
+  _partialFlushTimer: null,   // promote stale partial → committed after silence
 };
 
 /**
@@ -108,7 +110,7 @@ const conversation = {
     _rawCommitted: '', _formattedPrefix: '', _formattedRawLength: 0,
     partialText: '',
     lastSentenceCount: 0,
-    _flushedLen: 0,       // chars of committed text already flushed as rows
+    _flushedWordCount: 0, // words already flushed as rows (stable across reformatting)
     _flushTimer: null,    // debounce timer to promote pending → committed row
   },
   mic: {
@@ -117,7 +119,7 @@ const conversation = {
     _rawCommitted: '', _formattedPrefix: '', _formattedRawLength: 0,
     partialText: '',
     lastSentenceCount: 0,
-    _flushedLen: 0,
+    _flushedWordCount: 0,
     _flushTimer: null,
   },
   autoScroll: true,
@@ -771,6 +773,8 @@ function handleCommittedText(data) {
     groupA._rawCommitted += newText;
     groupA.committedText = groupA_computeCommittedText();
     groupA.partialText = '';
+    // Reset partial flush timer — committed just arrived, partial cleared
+    if (groupA._partialFlushTimer) { clearTimeout(groupA._partialFlushTimer); groupA._partialFlushTimer = null; }
     updateTranscript();
 
     const wordCount = groupA.committedText.split(/\s+/).filter(Boolean).length;
@@ -781,6 +785,8 @@ function handleCommittedText(data) {
     groupB._rawCommitted += newText;
     groupB.committedText = groupB_computeCommittedText();
     groupB.partialText = '';
+    // Reset partial flush timer — committed just arrived, partial cleared
+    if (groupB._partialFlushTimer) { clearTimeout(groupB._partialFlushTimer); groupB._partialFlushTimer = null; }
     updateMultilingualTranscript();
 
     const wordCount = groupB.committedText.split(/\s+/).filter(Boolean).length;
@@ -891,6 +897,12 @@ function handlePartialText(data) {
       groupA.translationPartial = data.translation;
     }
     updateTranscript();
+
+    // Debounce: if no new partial/committed for 2s, promote partial → committed
+    if (groupA._partialFlushTimer) clearTimeout(groupA._partialFlushTimer);
+    if (groupA.partialText) {
+      groupA._partialFlushTimer = setTimeout(flushGroupAPartial, 2000);
+    }
   } else if (currentTabGroup === 'groupB') {
     groupB.partialText = data.text || '';
     if (data.language && dom.multilingualLangBadge) {
@@ -898,6 +910,12 @@ function handlePartialText(data) {
       dom.multilingualLangBadge.classList.remove('hidden');
     }
     updateMultilingualTranscript();
+
+    // Debounce: if no new partial/committed for 2s, promote partial → committed
+    if (groupB._partialFlushTimer) clearTimeout(groupB._partialFlushTimer);
+    if (groupB.partialText) {
+      groupB._partialFlushTimer = setTimeout(flushGroupBPartial, 2000);
+    }
   }
 
   // Update stats (shared)
@@ -958,10 +976,12 @@ function handleFinalResult(data) {
     groupA.committedText = finalText;
     groupA.partialText = '';
     groupA.translationPartial = '';
+    if (groupA._partialFlushTimer) { clearTimeout(groupA._partialFlushTimer); groupA._partialFlushTimer = null; }
     updateTranscript();
   } else if (currentTabGroup === 'groupB') {
     groupB.committedText = finalText;
     groupB.partialText = '';
+    if (groupB._partialFlushTimer) { clearTimeout(groupB._partialFlushTimer); groupB._partialFlushTimer = null; }
     if (data.language && dom.multilingualLangBadge) {
       dom.multilingualLangBadge.textContent = data.language;
       dom.multilingualLangBadge.classList.remove('hidden');
@@ -1098,6 +1118,7 @@ async function startRecording() {
       groupA.translationPartial = '';
       groupA.lastSummarizedWordCount = 0;
       groupA.summarizationInFlight = false;
+      if (groupA._partialFlushTimer) { clearTimeout(groupA._partialFlushTimer); groupA._partialFlushTimer = null; }
 
       // Hide summary footers for Group A
       dom.summaryContentTranscript.classList.add('hidden');
@@ -1130,6 +1151,7 @@ async function startRecording() {
       groupB.detectedLanguage = '';
       groupB.lastSummarizedWordCount = 0;
       groupB.summarizationInFlight = false;
+      if (groupB._partialFlushTimer) { clearTimeout(groupB._partialFlushTimer); groupB._partialFlushTimer = null; }
 
       updateMultilingualTranscript();
 
@@ -1175,9 +1197,9 @@ async function startRecording() {
       mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: {
           channelCount: 1,
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false,
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
         },
       });
     }
@@ -1480,6 +1502,30 @@ function updateMultilingualTranscript() {
       dom.multilingualScroll.scrollTop = dom.multilingualScroll.scrollHeight;
     }
   }
+}
+
+/**
+ * Promote stale partial text → committed when no new messages arrive (VAD silence).
+ * Triggered by a 2s debounce timer set in handlePartialText.
+ */
+function flushGroupAPartial() {
+  groupA._partialFlushTimer = null;
+  if (!groupA.partialText) return;
+  groupA._rawCommitted += ' ' + groupA.partialText;
+  groupA.committedText = groupA_computeCommittedText();
+  groupA.partialText = '';
+  groupA.translationPartial = '';
+  updateTranscript();
+}
+
+function flushGroupBPartial() {
+  groupB._partialFlushTimer = null;
+  if (!groupB.partialText) return;
+  // Append partial to raw committed so it becomes white (committed) text
+  groupB._rawCommitted += ' ' + groupB.partialText;
+  groupB.committedText = groupB_computeCommittedText();
+  groupB.partialText = '';
+  updateMultilingualTranscript();
 }
 
 /**
@@ -1812,7 +1858,7 @@ function resetConversationState() {
     s.lastSentenceCount = 0;
     s.readyToSendAudio = false;
     s.ackResolver = null;
-    s._flushedLen = 0;
+    s._flushedWordCount = 0;
     if (s._flushTimer) { clearTimeout(s._flushTimer); s._flushTimer = null; }
   });
   conversation.autoScroll = true;
@@ -2041,9 +2087,8 @@ function handleConvMessage(source, event) {
       s._formattedPrefix = formatted;
       s._formattedRawLength = rawLength;
 
-      const fullText = convComputeCommitted(source);
-      // Show un-flushed portion as pending
-      const unflushed = fullText.substring(s._flushedLen).trim();
+      // Show un-flushed portion as pending (word-count based)
+      const unflushed = convGetUnflushed(source);
       if (unflushed) {
         updateConvPending(source, unflushed);
       }
@@ -2059,8 +2104,7 @@ function handleConvMessage(source, event) {
 
     case 'partial': {
       s.partialText = data.text || '';
-      const partialFull = convComputeCommitted(source);
-      const unflushed = partialFull.substring(s._flushedLen).trim();
+      const unflushed = convGetUnflushed(source);
       const pendingText = unflushed
         ? unflushed + ' ' + s.partialText
         : s.partialText;
@@ -2094,17 +2138,30 @@ function handleConvMessage(source, event) {
 }
 
 /**
+ * Extract unflushed portion of committed text by word count (not char position).
+ * Word count is stable across text reformatting (punctuation/capitalization changes).
+ */
+function convGetUnflushed(source) {
+  const s = conversation[source];
+  const fullText = convComputeCommitted(source);
+  if (!fullText) return '';
+  const words = fullText.split(/\s+/).filter(w => w);
+  return words.slice(s._flushedWordCount).join(' ');
+}
+
+/**
  * Promote the pending text for a source to a committed row.
  * Called by flush timer (utterance pause) or on final.
  */
 function convFlushPending(source) {
   const s = conversation[source];
   s._flushTimer = null;
-  const fullText = convComputeCommitted(source);
-  const unflushed = fullText.substring(s._flushedLen).trim();
+  const unflushed = convGetUnflushed(source);
   if (unflushed) {
     addConversationRow(source, unflushed);
-    s._flushedLen = fullText.length;
+    const fullText = convComputeCommitted(source);
+    const words = fullText.split(/\s+/).filter(w => w);
+    s._flushedWordCount = words.length;
   }
 }
 
