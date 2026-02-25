@@ -97,6 +97,28 @@ function groupB_computeCommittedText() {
   return prefix + rawTail;
 }
 
+// ════════════════════════════════════════════════════════════════════════════════
+// CONVERSATION STATE (dual-stream: system + mic as independent ASR pipelines)
+// ════════════════════════════════════════════════════════════════════════════════
+const conversation = {
+  system: {
+    ws: null, audioContext: null, workletNode: null, displayStream: null,
+    readyToSendAudio: false, ackResolver: null,
+    _rawCommitted: '', _formattedPrefix: '', _formattedRawLength: 0,
+    partialText: '',
+    lastSentenceCount: 0,
+  },
+  mic: {
+    ws: null, audioContext: null, workletNode: null, mediaStream: null,
+    readyToSendAudio: false, ackResolver: null,
+    _rawCommitted: '', _formattedPrefix: '', _formattedRawLength: 0,
+    partialText: '',
+    lastSentenceCount: 0,
+  },
+  autoScroll: true,
+  active: false,
+};
+
 // Audio gating: only send audio after server ack
 let readyToSendAudio = false;
 let ackResolver = null;
@@ -195,6 +217,14 @@ function init() {
     multilingualSourceLang: document.getElementById('multilingual-source-lang'),
     multilingualCopyBtn: document.getElementById('multilingual-copy-btn'),
     multilingualJumpBtn: document.getElementById('multilingual-jump-btn'),
+    // Conversation tab
+    tabConversation: document.getElementById('tab-conversation'),
+    conversationBox: document.getElementById('conversation-box'),
+    conversationScroll: document.getElementById('conversation-scroll'),
+    conversationRows: document.getElementById('conversation-rows'),
+    conversationPlaceholder: document.getElementById('conversation-placeholder'),
+    conversationJumpBtn: document.getElementById('conversation-jump-btn'),
+    conversationCopyBtn: document.getElementById('conversation-copy-btn'),
   };
 
   // Attach event listeners
@@ -212,6 +242,7 @@ function init() {
   dom.tabInterview.addEventListener('click', () => setActiveTab('interview'));
   dom.tabInterview2.addEventListener('click', () => setActiveTab('interview2'));
   dom.tabMultilingual.addEventListener('click', () => setActiveTab('multilingual'));
+  dom.tabConversation.addEventListener('click', () => setActiveTab('conversation'));
 
   // Multilingual copy button
   dom.multilingualCopyBtn.addEventListener('click', () => {
@@ -223,6 +254,9 @@ function init() {
 
   // Interpreter scroll & controls
   initInterpreterControls();
+
+  // Conversation scroll & controls
+  initConversationControls();
 
   // Transcript / translate scroll behavior
   initTranscriptScrollBehavior();
@@ -251,6 +285,11 @@ function initAudioSourceToggle() {
       btns.forEach(b => b.classList.remove('audio-src-active'));
       btn.classList.add('audio-src-active');
       dom.audioSource.value = btn.dataset.source;
+      // Show conversation tab only when "both" is selected
+      dom.tabConversation.classList.toggle('hidden', btn.dataset.source !== 'both');
+      if (btn.dataset.source !== 'both' && activeTab === 'conversation') {
+        setActiveTab('live');
+      }
     });
   });
 }
@@ -490,8 +529,17 @@ function setActiveTab(tab) {
     currentTabGroup = 'groupA';
   }
 
-  // If switching between groups, stop current recording
-  if (previousTabGroup !== currentTabGroup && currentState !== State.IDLE) {
+  // Stop conversation if switching away from conversation tab while active
+  if (tab !== 'conversation' && conversation.active) {
+    try { stopConversation(); } catch (e) { console.error('Error stopping conversation:', e); }
+  }
+  // Stop normal recording if switching to conversation tab while recording
+  if (tab === 'conversation' && currentState === State.RECORDING && !conversation.active) {
+    handleMicClick();
+  }
+
+  // If switching between groups (non-conversation), stop current recording
+  if (tab !== 'conversation' && previousTabGroup !== currentTabGroup && currentState !== State.IDLE) {
     handleMicClick();
   }
 
@@ -502,6 +550,7 @@ function setActiveTab(tab) {
   dom.interviewBox.classList.toggle('hidden', tab !== 'interview');
   dom.interview2Box.classList.toggle('hidden', tab !== 'interview2');
   dom.multilingualBox.classList.toggle('hidden', tab !== 'multilingual');
+  dom.conversationBox.classList.toggle('hidden', tab !== 'conversation');
 
   updateTabButton(dom.tabLive, tab === 'live');
   updateTabButton(dom.tabTranslate, tab === 'translate');
@@ -509,6 +558,7 @@ function setActiveTab(tab) {
   updateTabButton(dom.tabInterview, tab === 'interview');
   updateTabButton(dom.tabInterview2, tab === 'interview2');
   updateTabButton(dom.tabMultilingual, tab === 'multilingual');
+  updateTabButton(dom.tabConversation, tab === 'conversation');
 }
 
 function updateTabButton(button, isActive) {
@@ -902,10 +952,18 @@ function handleFinalResult(data) {
  */
 async function handleMicClick() {
   if (currentState === State.IDLE) {
-    await connectAndStart();
+    if (activeTab === 'conversation') {
+      await connectAndStartConversation();
+    } else {
+      await connectAndStart();
+    }
   } else if (currentState === State.RECORDING) {
-    await stopRecording();
-    disconnectWebSocket();
+    if (conversation.active) {
+      stopConversation();
+    } else {
+      await stopRecording();
+      disconnectWebSocket();
+    }
   }
 }
 
@@ -1641,6 +1699,562 @@ function updateInterpreterPending(source, translation) {
   if (dom.interpreterPlaceholder) dom.interpreterPlaceholder.style.display = 'none';
 
   interpreterScrollToBottom();
+}
+
+// ════════════════════════════════════════════════════════════════════════════════
+// CONVERSATION TAB - Dual-stream ASR (system + mic as independent pipelines)
+// ════════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Initialize conversation scroll behavior and controls
+ */
+function initConversationControls() {
+  if (dom.conversationJumpBtn) {
+    dom.conversationJumpBtn.addEventListener('click', () => {
+      dom.conversationScroll.scrollTop = dom.conversationScroll.scrollHeight;
+      conversation.autoScroll = true;
+      dom.conversationJumpBtn.classList.add('hidden');
+    });
+  }
+
+  if (dom.conversationScroll) {
+    dom.conversationScroll.addEventListener('scroll', () => {
+      const el = dom.conversationScroll;
+      const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+      if (!atBottom && conversation.autoScroll) {
+        conversation.autoScroll = false;
+      }
+      if (atBottom && !conversation.autoScroll) {
+        conversation.autoScroll = true;
+      }
+      if (dom.conversationJumpBtn) {
+        dom.conversationJumpBtn.classList.toggle('hidden', atBottom);
+        if (!atBottom) dom.conversationJumpBtn.style.display = 'flex';
+      }
+    });
+  }
+
+  // Copy conversation
+  if (dom.conversationCopyBtn) {
+    dom.conversationCopyBtn.addEventListener('click', async () => {
+      const rows = dom.conversationRows.querySelectorAll('.conv-row:not(.conv-pending)');
+      if (!rows.length) {
+        showError('No conversation to copy');
+        setTimeout(clearError, 2000);
+        return;
+      }
+      const lines = [];
+      rows.forEach((row) => {
+        const sysText = row.querySelector('.conv-col-system .conv-text')?.textContent || '';
+        const youText = row.querySelector('.conv-col-you .conv-text')?.textContent || '';
+        if (sysText) lines.push(`[System] ${sysText}`);
+        if (youText) lines.push(`[You] ${youText}`);
+      });
+      try {
+        await navigator.clipboard.writeText(lines.join('\n'));
+        const icon = dom.conversationCopyBtn.querySelector('.material-symbols-outlined');
+        icon.textContent = 'check';
+        setTimeout(() => { icon.textContent = 'content_copy'; }, 2000);
+      } catch (e) {
+        showError('Failed to copy');
+        setTimeout(clearError, 2000);
+      }
+    });
+  }
+}
+
+/**
+ * Scroll conversation to bottom if auto-scroll is on
+ */
+function convScrollToBottom() {
+  if (conversation.autoScroll && dom.conversationScroll) {
+    dom.conversationScroll.scrollTop = dom.conversationScroll.scrollHeight;
+  }
+}
+
+/**
+ * Reset conversation state for a new session
+ */
+function resetConversationState() {
+  ['system', 'mic'].forEach(src => {
+    const s = conversation[src];
+    s._rawCommitted = '';
+    s._formattedPrefix = '';
+    s._formattedRawLength = 0;
+    s.partialText = '';
+    s.lastSentenceCount = 0;
+    s.readyToSendAudio = false;
+    s.ackResolver = null;
+  });
+  conversation.autoScroll = true;
+  if (dom.conversationRows) dom.conversationRows.innerHTML = '';
+  if (dom.conversationPlaceholder) dom.conversationPlaceholder.style.display = 'flex';
+  if (dom.conversationJumpBtn) dom.conversationJumpBtn.classList.add('hidden');
+}
+
+/**
+ * Open a WebSocket connection for one conversation source (system or mic).
+ * Returns a Promise that resolves with the WebSocket after session_start.
+ */
+function openConversationWS(source) {
+  return new Promise((resolve, reject) => {
+    const sock = new WebSocket(SERVER_URL);
+    const timeout = setTimeout(() => {
+      sock.close();
+      reject(new Error(`Conv WS ${source} timeout`));
+    }, 10000);
+
+    sock.onopen = () => {
+      console.log(`[conv:${source}] WebSocket connected`);
+    };
+
+    sock.onmessage = (event) => {
+      let data;
+      try { data = JSON.parse(event.data); } catch (e) { return; }
+      if (data.type === 'session_start') {
+        console.log(`[conv:${source}] Session started:`, data.session_id);
+        clearTimeout(timeout);
+
+        // Set persistent handler
+        sock.onmessage = (evt) => handleConvMessage(source, evt);
+        sock.onerror = (err) => {
+          console.error(`[conv:${source}] WebSocket error:`, err);
+        };
+        sock.onclose = () => {
+          console.log(`[conv:${source}] WebSocket closed`);
+        };
+
+        conversation[source].ws = sock;
+        resolve(sock);
+      }
+    };
+
+    sock.onerror = (error) => {
+      clearTimeout(timeout);
+      reject(new Error(`Conv WS ${source} connection failed`));
+    };
+
+    sock.onclose = () => {
+      clearTimeout(timeout);
+      reject(new Error(`Conv WS ${source} closed during handshake`));
+    };
+  });
+}
+
+/**
+ * Set up an independent AudioContext + AudioWorklet for one conversation source.
+ */
+async function setupConvAudioPipeline(source, stream) {
+  const s = conversation[source];
+  s.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+  if (s.audioContext.state === 'suspended') {
+    await s.audioContext.resume();
+  }
+
+  const baseUrl = document.body.dataset.base || '';
+  const workletUrl = `${baseUrl}/demo/audio-resampler-worklet.js`;
+  await s.audioContext.audioWorklet.addModule(workletUrl);
+
+  s.workletNode = new AudioWorkletNode(s.audioContext, 'resampler-worklet');
+
+  // Send audio chunks to the corresponding WebSocket
+  s.workletNode.port.onmessage = (event) => {
+    if (!s.readyToSendAudio) return;
+    const pcm16Buffer = event.data;
+    if (s.ws && s.ws.readyState === WebSocket.OPEN) {
+      s.ws.send(pcm16Buffer);
+    }
+  };
+
+  // Connect the stream source to the worklet
+  const streamSource = s.audioContext.createMediaStreamSource(stream);
+  streamSource.connect(s.workletNode);
+  s.workletNode.connect(s.audioContext.destination);
+}
+
+/**
+ * Send the 'start' message for one conversation source and wait for ack.
+ */
+async function sendConvStart(source) {
+  const s = conversation[source];
+  const startMsg = {
+    type: 'start',
+    request_id: crypto.randomUUID(),
+    sample_rate: 16000,
+    channels: 1,
+    bytes_per_sample: 2,
+    client_t0_ns: Math.round(performance.now() * 1e6),
+    asr_backend: 'fastconformer',
+    skip_translation: true,
+  };
+  s.ws.send(JSON.stringify(startMsg));
+
+  // Wait for ack with timeout
+  await new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      s.ackResolver = null;
+      reject(new Error(`Timeout waiting for ack (conv:${source})`));
+    }, 5000);
+
+    s.ackResolver = () => {
+      clearTimeout(timer);
+      resolve();
+    };
+  });
+}
+
+/**
+ * Connect and start the dual-stream conversation mode.
+ */
+async function connectAndStartConversation() {
+  setState(State.CONNECTING);
+  clearError();
+  resetConversationState();
+
+  try {
+    // 1. Get system audio (getDisplayMedia)
+    const dispStream = await navigator.mediaDevices.getDisplayMedia({
+      audio: true,
+      video: true,
+    });
+    dispStream.getVideoTracks().forEach(t => t.stop());
+
+    if (!dispStream.getAudioTracks().length) {
+      showError('No system audio track available. Make sure to check "Share audio" in the picker.');
+      setState(State.IDLE);
+      return;
+    }
+    conversation.system.displayStream = dispStream;
+
+    // 2. Get mic audio (getUserMedia)
+    const micStream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        channelCount: 1,
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false,
+      },
+    });
+    conversation.mic.mediaStream = micStream;
+
+    // 3. Open 2 WebSocket connections in parallel
+    await Promise.all([
+      openConversationWS('system'),
+      openConversationWS('mic'),
+    ]);
+
+    // 4. Set up independent audio pipelines
+    await setupConvAudioPipeline('system', dispStream);
+    await setupConvAudioPipeline('mic', micStream);
+
+    // 5. Send start messages and wait for acks
+    await Promise.all([
+      sendConvStart('system'),
+      sendConvStart('mic'),
+    ]);
+
+    setState(State.RECORDING);
+    conversation.active = true;
+    recordingStartTime = Date.now();
+
+  } catch (e) {
+    console.error('Failed to start conversation:', e);
+    showError('Failed to start conversation: ' + e.message);
+    cleanupConversation();
+    setState(State.IDLE);
+  }
+}
+
+/**
+ * Compute committed text for a conversation source from formatted prefix + raw tail.
+ */
+function convComputeCommitted(source) {
+  const s = conversation[source];
+  const rawTail = s._rawCommitted.substring(s._formattedRawLength);
+  if (!s._formattedPrefix) return s._rawCommitted;
+  if (!rawTail) return s._formattedPrefix;
+  let prefix = s._formattedPrefix.replace(/[.!?]+\s*$/, '');
+  if (!prefix.endsWith(' ') && !rawTail.startsWith(' ')) {
+    prefix += ' ';
+  }
+  return prefix + rawTail;
+}
+
+/**
+ * Handle a WebSocket message for a conversation source.
+ */
+function handleConvMessage(source, event) {
+  let data;
+  try { data = JSON.parse(event.data); } catch (e) { return; }
+
+  const s = conversation[source];
+  const msgType = data.type;
+
+  switch (msgType) {
+    case 'ack':
+      console.log(`[conv:${source}] Server acknowledged start`);
+      s.readyToSendAudio = true;
+      if (s.ackResolver) {
+        s.ackResolver();
+        s.ackResolver = null;
+      }
+      break;
+
+    case 'committed':
+      s._rawCommitted += (data.text || '');
+      break;
+
+    case 'committed_formatted': {
+      const formatted = data.text || '';
+      const rawLength = data.raw_length || 0;
+      if (!formatted || rawLength <= s._formattedRawLength) break;
+      s._formattedPrefix = formatted;
+      s._formattedRawLength = rawLength;
+
+      // Detect new sentences from the formatted text
+      const fullText = convComputeCommitted(source);
+      const sentences = splitConvSentences(fullText);
+      const newCount = sentences.length;
+
+      // Add newly completed sentences as rows
+      for (let i = s.lastSentenceCount; i < newCount - 1; i++) {
+        addConversationRow(source, sentences[i].trim());
+      }
+
+      // The last segment may still be in progress - show as pending
+      const lastSegment = sentences[newCount - 1] || '';
+      if (lastSegment.trim()) {
+        updateConvPending(source, lastSegment.trim());
+      }
+
+      s.lastSentenceCount = Math.max(0, newCount - 1);
+      break;
+    }
+
+    case 'partial': {
+      s.partialText = data.text || '';
+      // Update pending row with partial text appended
+      const partialFull = convComputeCommitted(source);
+      const partialSentences = splitConvSentences(partialFull);
+      const partialLastSeg = (partialSentences[partialSentences.length - 1] || '').trim();
+      const pendingText = partialLastSeg
+        ? partialLastSeg + ' ' + s.partialText
+        : s.partialText;
+      if (pendingText.trim()) {
+        updateConvPending(source, pendingText.trim());
+      }
+      break;
+    }
+
+    case 'ping': {
+      const pongMsg = {
+        type: 'pong',
+        timestamp: Date.now() / 1000,
+        client_timestamp: data.timestamp,
+      };
+      s.ws.send(JSON.stringify(pongMsg));
+      break;
+    }
+
+    case 'final': {
+      // Final result: flush any remaining text as a row
+      if (data.transcription) {
+        const finalSentences = splitConvSentences(data.transcription);
+        for (let i = s.lastSentenceCount; i < finalSentences.length; i++) {
+          const sent = finalSentences[i].trim();
+          if (sent) addConversationRow(source, sent);
+        }
+        s.lastSentenceCount = finalSentences.length;
+        // Remove pending for THIS source only
+        const finalPending = dom.conversationRows?.querySelector(`.conv-pending[data-source="${source}"]`);
+        if (finalPending) finalPending.remove();
+      }
+      break;
+    }
+
+    default:
+      // Ignore other message types (committed_translation, etc.)
+      break;
+  }
+}
+
+/**
+ * Split text into sentences by punctuation boundaries.
+ * Returns an array where all elements except possibly the last are complete sentences.
+ * Uses a simple approach: split on ". " / "! " / "? " boundaries.
+ */
+function splitConvSentences(text) {
+  if (!text) return [''];
+  // Split on sentence-ending punctuation followed by a space, keeping the punctuation
+  // Uses a capture group approach for broad compatibility (no lookbehind needed)
+  const parts = text.split(/([.!?])\s+/);
+  // Reassemble: ["Hello", ".", "World", ".", "Test"] → ["Hello.", "World.", "Test"]
+  const sentences = [];
+  for (let i = 0; i < parts.length; i += 2) {
+    let sentence = parts[i];
+    if (i + 1 < parts.length) {
+      sentence += parts[i + 1]; // append the punctuation
+    }
+    if (sentence) sentences.push(sentence);
+  }
+  return sentences.length ? sentences : [''];
+}
+
+/**
+ * Add a committed sentence row to the conversation panel.
+ */
+function addConversationRow(source, text) {
+  if (!text || !dom.conversationRows) return;
+
+  // Remove the pending row for THIS source only (other source may have its own pending)
+  const pending = dom.conversationRows.querySelector(`.conv-pending[data-source="${source}"]`);
+  if (pending) pending.remove();
+
+  const row = document.createElement('div');
+  row.className = 'conv-row';
+  row.innerHTML = `
+    <div class="conv-col-system">
+      ${source === 'system' ? `<span class="conv-text">${escapeHtml(text)}</span>` : ''}
+    </div>
+    <div class="conv-col-you">
+      ${source === 'mic' ? `<span class="conv-text">${escapeHtml(text)}</span>` : ''}
+    </div>`;
+
+  dom.conversationRows.appendChild(row);
+  if (dom.conversationPlaceholder) dom.conversationPlaceholder.style.display = 'none';
+  convScrollToBottom();
+}
+
+/**
+ * Update or create the pending (in-progress) row in the conversation panel.
+ */
+function updateConvPending(source, text) {
+  if (!text || !dom.conversationRows) return;
+
+  // Find existing pending row for this source, or create a new one
+  let pending = dom.conversationRows.querySelector(`.conv-pending[data-source="${source}"]`);
+
+  if (!pending) {
+    pending = document.createElement('div');
+    pending.className = 'conv-row conv-pending';
+    pending.dataset.source = source;
+    dom.conversationRows.appendChild(pending);
+  }
+
+  pending.innerHTML = `
+    <div class="conv-col-system">
+      ${source === 'system' ? `<span class="conv-text-dim">${escapeHtml(text)}</span>` : ''}
+    </div>
+    <div class="conv-col-you">
+      ${source === 'mic' ? `<span class="conv-text-dim">${escapeHtml(text)}</span>` : ''}
+    </div>`;
+
+  if (dom.conversationPlaceholder) dom.conversationPlaceholder.style.display = 'none';
+  convScrollToBottom();
+}
+
+/**
+ * Stop the conversation mode: close both audio pipelines and WebSocket connections.
+ */
+function stopConversation() {
+  conversation.active = false;
+
+  ['system', 'mic'].forEach(source => {
+    const s = conversation[source];
+
+    // Disconnect worklet
+    if (s.workletNode) {
+      try {
+        s.workletNode.port.postMessage('stop');
+        s.workletNode.disconnect();
+      } catch (e) { /* ignore */ }
+      s.workletNode = null;
+    }
+
+    // Stop media tracks
+    if (source === 'system' && s.displayStream) {
+      s.displayStream.getTracks().forEach(t => t.stop());
+      s.displayStream = null;
+    }
+    if (source === 'mic' && s.mediaStream) {
+      s.mediaStream.getTracks().forEach(t => t.stop());
+      s.mediaStream = null;
+    }
+
+    // Close audio context
+    if (s.audioContext) {
+      s.audioContext.close().catch(() => {});
+      s.audioContext = null;
+    }
+
+    // Send end message and close WebSocket
+    if (s.ws && s.ws.readyState === WebSocket.OPEN) {
+      try {
+        s.ws.send(JSON.stringify({
+          type: 'end',
+          client_send_audio_start_ns: Math.round((recordingStartTime || Date.now()) * 1e6),
+          client_send_audio_end_ns: Math.round(performance.now() * 1e6),
+        }));
+      } catch (e) { /* ignore */ }
+      // Close after a short delay to allow the end message to be sent
+      setTimeout(() => {
+        if (s.ws) {
+          s.ws.close();
+          s.ws = null;
+        }
+      }, 2000);
+    } else if (s.ws) {
+      s.ws.close();
+      s.ws = null;
+    }
+
+    s.readyToSendAudio = false;
+    s.ackResolver = null;
+  });
+
+  setState(State.IDLE);
+}
+
+/**
+ * Cleanup conversation resources (called on error during startup).
+ */
+function cleanupConversation() {
+  ['system', 'mic'].forEach(source => {
+    const s = conversation[source];
+
+    if (s.workletNode) {
+      try {
+        s.workletNode.port.postMessage('stop');
+        s.workletNode.disconnect();
+      } catch (e) { /* ignore */ }
+      s.workletNode = null;
+    }
+
+    if (source === 'system' && s.displayStream) {
+      s.displayStream.getTracks().forEach(t => t.stop());
+      s.displayStream = null;
+    }
+    if (source === 'mic' && s.mediaStream) {
+      s.mediaStream.getTracks().forEach(t => t.stop());
+      s.mediaStream = null;
+    }
+
+    if (s.audioContext) {
+      s.audioContext.close().catch(() => {});
+      s.audioContext = null;
+    }
+
+    if (s.ws) {
+      s.ws.close();
+      s.ws = null;
+    }
+
+    s.readyToSendAudio = false;
+    s.ackResolver = null;
+  });
+
+  conversation.active = false;
 }
 
 // Start stats update loop (every 100ms)

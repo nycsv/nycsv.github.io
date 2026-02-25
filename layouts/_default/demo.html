@@ -141,6 +141,9 @@
             <button id="tab-interview2"
               class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors hidden">
               Interview2</button>
+            <button id="tab-conversation"
+              class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors hidden">
+              Conversation</button>
           </div>
         </div>
 
@@ -544,6 +547,58 @@
           </div>
           <!-- Jump to bottom FAB -->
           <button id="interpreter-jump-btn"
+            class="hidden absolute bottom-3 right-3 md:right-6 w-7 h-7 rounded-full bg-primary/80 text-white shadow-md shadow-primary/20 items-center justify-center hover:bg-primary transition-all z-20 opacity-70 hover:opacity-100">
+            <span class="material-symbols-outlined text-[14px]">keyboard_double_arrow_down</span>
+          </button>
+        </div>
+
+        <!-- ─── Conversation Panel (dual-stream ASR) ─── -->
+        <div id="conversation-box" class="flex-1 overflow-hidden hidden relative">
+          <!-- Header -->
+          <div class="flex items-center justify-between px-4 md:px-8 py-2 border-b border-border-subtle/30 bg-surface/30 shrink-0">
+            <div class="flex items-center gap-2">
+              <div class="w-5 h-5 rounded bg-primary/10 flex items-center justify-center">
+                <span class="material-symbols-outlined text-primary-light text-[13px]">forum</span>
+              </div>
+              <span class="section-label text-slate-500">Conversation</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="conversation-copy-btn" title="Copy conversation"
+                class="icon-btn flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:text-white hover:bg-white/10 transition-all">
+                <span class="material-symbols-outlined text-[16px]">content_copy</span>
+              </button>
+            </div>
+          </div>
+          <!-- Column headers -->
+          <div class="conv-col-headers border-b border-border-subtle/20 shrink-0">
+            <div class="conv-header flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[13px]">desktop_windows</span>
+              <span>System</span>
+            </div>
+            <div class="conv-header conv-header-you flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[13px]">mic</span>
+              <span>You</span>
+            </div>
+          </div>
+          <!-- Scroll area -->
+          <div id="conversation-scroll" class="flex-1 overflow-y-auto custom-scrollbar relative">
+            <div id="conversation-placeholder"
+              class="absolute inset-0 flex flex-col items-center justify-center text-center space-y-5 z-10 bg-background-dark">
+              <div
+                class="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shadow-xl shadow-primary/20 placeholder-ring">
+                <span class="material-symbols-outlined text-white text-3xl">forum</span>
+              </div>
+              <div>
+                <p class="text-slate-300 text-sm font-semibold">Conversation</p>
+                <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Dual-stream speech recognition<br>System and microphone audio separated</p>
+              </div>
+            </div>
+            <div id="conversation-rows" class="divide-y divide-border-subtle/15">
+              <!-- Rows dynamically inserted by JS -->
+            </div>
+          </div>
+          <!-- Jump to bottom FAB -->
+          <button id="conversation-jump-btn"
             class="hidden absolute bottom-3 right-3 md:right-6 w-7 h-7 rounded-full bg-primary/80 text-white shadow-md shadow-primary/20 items-center justify-center hover:bg-primary transition-all z-20 opacity-70 hover:opacity-100">
             <span class="material-symbols-outlined text-[14px]">keyboard_double_arrow_down</span>
           </button>

@@ -397,6 +397,92 @@ body::after {
   font-style: italic;
 }
 
+/* ─── Conversation panel layout ─── */
+#conversation-box:not(.hidden) {
+  display: flex !important;
+  flex-direction: column;
+}
+
+/* Column header wrapper */
+.conv-col-headers {
+  display: flex;
+}
+.conv-header {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 16px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(129, 140, 248, 0.6);
+}
+.conv-header:first-child {
+  border-right: 1px solid rgba(44, 40, 57, 0.25);
+  color: rgba(129, 140, 248, 0.6);
+}
+.conv-header-you {
+  color: rgba(52, 211, 153, 0.6) !important;
+}
+@media (min-width: 768px) {
+  .conv-header { padding: 6px 32px; }
+}
+
+/* Each conversation row */
+.conv-row {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid rgba(44, 40, 57, 0.15);
+  transition: background 0.15s ease;
+}
+.conv-row:hover {
+  background: rgba(91, 43, 238, 0.04);
+}
+.conv-row:nth-child(even) {
+  background: rgba(255, 255, 255, 0.01);
+}
+.conv-row.conv-pending {
+  opacity: 0.55;
+}
+
+/* System column (left) */
+.conv-col-system {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 16px;
+  border-right: 1px solid rgba(44, 40, 57, 0.25);
+}
+/* You column (right) */
+.conv-col-you {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 16px;
+}
+@media (min-width: 768px) {
+  .conv-col-system,
+  .conv-col-you { padding: 11px 32px; }
+}
+
+/* Conversation text */
+.conv-text {
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.6;
+  color: #e2e8f0;
+}
+.conv-text-dim {
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.6;
+  color: rgba(148, 163, 184, 0.5);
+  font-style: italic;
+}
+
+/* Jump to bottom FAB for conversation */
+#conversation-jump-btn {
+  animation: fade-in-up 0.2s ease-out;
+}
+
 /* ─── Summary footer (pinned at panel bottom, outside scroll area) ─── */
 #summary-footer-transcript,
 #summary-footer-translate {
