@@ -656,6 +656,27 @@ body::after {
   display: none;
 }
 
+/* ─── Refinement crossfade transition ─── */
+.refinement-fade-out {
+  opacity: 0.15;
+  transition: opacity 0.2s ease-out;
+}
+
+.refinement-fade-in {
+  opacity: 1;
+  transition: opacity 0.3s ease-in;
+}
+
+@keyframes refinement-pulse {
+  0%   { background-color: rgba(124, 58, 237, 0.12); }
+  100% { background-color: transparent; }
+}
+
+.refinement-updated {
+  animation: refinement-pulse 1.5s ease-out forwards;
+  border-radius: 4px;
+}
+
 /* ─── Responsive mobile tweaks ─── */
 @media (max-width: 640px) {
   .summary-block { padding: 12px 14px; }

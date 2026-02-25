@@ -926,25 +926,51 @@ function handleRefinement(data) {
 
   console.log(`[refinement] v${version} replacing transcript (${data.audio_duration_sec}s audio, final=${data.is_final})`);
 
-  // Replace formatted prefix with refined text (covers all raw so far)
-  groupA._formattedPrefix = data.text || '';
-  groupA._formattedRawLength = groupA._rawCommitted.length;
-  groupA.committedText = groupA_computeCommittedText();
+  // Smooth crossfade: fade out → replace → fade in with highlight
+  const fadeTargets = [
+    dom.committedSpan, dom.translateCommittedEn,
+    dom.translateCommittedKo, dom.partialSpan,
+    dom.translatePartialEn, dom.translatePartialKo
+  ].filter(Boolean);
 
-  // Replace translation
-  if (data.translation) {
-    groupA.translationCommitted = data.translation;
-  }
+  // Phase 1: Fade out
+  fadeTargets.forEach(el => {
+    el.classList.remove('refinement-fade-in', 'refinement-updated');
+    el.classList.add('refinement-fade-out');
+  });
 
-  // Clear partials
-  groupA.partialText = '';
-  groupA.translationPartial = '';
-  if (groupA._partialFlushTimer) {
-    clearTimeout(groupA._partialFlushTimer);
-    groupA._partialFlushTimer = null;
-  }
+  // Phase 2: Replace text after fade-out transition (200ms)
+  setTimeout(() => {
+    groupA._formattedPrefix = data.text || '';
+    groupA._formattedRawLength = groupA._rawCommitted.length;
+    groupA.committedText = groupA_computeCommittedText();
 
-  updateTranscript();
+    if (data.translation) {
+      groupA.translationCommitted = data.translation;
+    }
+
+    groupA.partialText = '';
+    groupA.translationPartial = '';
+    if (groupA._partialFlushTimer) {
+      clearTimeout(groupA._partialFlushTimer);
+      groupA._partialFlushTimer = null;
+    }
+
+    updateTranscript();
+
+    // Phase 3: Fade in with highlight pulse
+    fadeTargets.forEach(el => {
+      el.classList.remove('refinement-fade-out');
+      el.classList.add('refinement-fade-in', 'refinement-updated');
+    });
+
+    // Cleanup after animation completes
+    setTimeout(() => {
+      fadeTargets.forEach(el => {
+        el.classList.remove('refinement-updated', 'refinement-fade-in');
+      });
+    }, 1500);
+  }, 200);
 }
 
 /**
@@ -965,16 +991,30 @@ function handleRefinementInterpreter(data) {
 
   console.log(`[refinement_interpreter] v${version} replacing ${rows.length} interpreter rows`);
 
-  // Clear all existing interpreter rows
-  if (dom.interpreterRows) dom.interpreterRows.innerHTML = '';
-  groupA.interpreterSentenceCount = 0;
-  groupA.interpreterBuffer = { source: '', text: '' };
-  groupA.interpreterLastFlushLen = 0;
+  const container = dom.interpreterRows;
+  if (!container) return;
 
-  // Add refined rows
-  for (const row of rows) {
-    addInterpreterRow(row.source || '', row.translation || '');
-  }
+  // Smooth crossfade for interpreter rows
+  container.classList.remove('refinement-fade-in', 'refinement-updated');
+  container.classList.add('refinement-fade-out');
+
+  setTimeout(() => {
+    container.innerHTML = '';
+    groupA.interpreterSentenceCount = 0;
+    groupA.interpreterBuffer = { source: '', text: '' };
+    groupA.interpreterLastFlushLen = 0;
+
+    for (const row of rows) {
+      addInterpreterRow(row.source || '', row.translation || '');
+    }
+
+    container.classList.remove('refinement-fade-out');
+    container.classList.add('refinement-fade-in', 'refinement-updated');
+
+    setTimeout(() => {
+      container.classList.remove('refinement-updated', 'refinement-fade-in');
+    }, 1500);
+  }, 200);
 }
 
 /**
