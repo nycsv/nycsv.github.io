@@ -55,6 +55,7 @@ const groupA = {
   _lastTranslationSource: '',  // dedup: last committed_translation source text
   _partialFlushTimer: null,   // promote stale partial → committed after silence
   refinementVersion: 0,       // version counter for second-pass Qwen ASR refinement
+  refinementFinal: false,     // true after the final refinement — freeze transcript state
 };
 
 /**
@@ -779,6 +780,10 @@ function handleCommittedText(data) {
   const newText = data.text || '';
 
   if (currentTabGroup === 'groupA') {
+    // After final refinement, ignore further raw committed chunks (they would
+    // appear as rawTail duplicating the end of the refined text)
+    if (groupA.refinementFinal) return;
+
     groupA._rawCommitted += newText;
     groupA.committedText = groupA_computeCommittedText();
     groupA.partialText = '';
@@ -817,6 +822,8 @@ function handleCommittedFormatted(data) {
 
   if (currentTabGroup === 'groupA') {
     if (!formatted || rawLength <= groupA._formattedRawLength) return;
+    // After final refinement, don't let the text formatter overwrite the refined prefix
+    if (groupA.refinementFinal) return;
     groupA._formattedPrefix = formatted;
     groupA._formattedRawLength = rawLength;
     groupA.committedText = groupA_computeCommittedText();
@@ -836,6 +843,8 @@ function handleCommittedFormatted(data) {
 function handleCommittedTranslation(data) {
   // Only Group A (fastconformer backend) uses translation
   if (currentTabGroup !== 'groupA') return;
+  // After final refinement, ignore streaming translations (refined text is authoritative)
+  if (groupA.refinementFinal) return;
 
   const tl = data.text || '';
   const source = data.source || '';
@@ -873,6 +882,7 @@ function handleCommittedTranslation(data) {
 function handlePartialTranslation(data) {
   // Only Group A (fastconformer backend) uses translation
   if (currentTabGroup !== 'groupA') return;
+  if (groupA.refinementFinal) return;  // frozen after final refinement
 
   groupA.translationPartial = data.translation || '';
   updateTranscript();
@@ -891,7 +901,10 @@ function handleFinalTranslation(data) {
   // Only Group A (fastconformer backend) uses translation
   if (currentTabGroup !== 'groupA') return;
 
-  groupA.translationCommitted = data.translation || '';
+  // If refinement was applied, keep the refined translation
+  if (groupA.refinementVersion === 0) {
+    groupA.translationCommitted = data.translation || '';
+  }
   groupA.translationPartial = '';
   updateTranscript();
 }
@@ -909,6 +922,7 @@ function handleRefinement(data) {
     return;
   }
   groupA.refinementVersion = version;
+  if (data.is_final) groupA.refinementFinal = true;
 
   console.log(`[refinement] v${version} replacing transcript (${data.audio_duration_sec}s audio, final=${data.is_final})`);
 
@@ -968,6 +982,7 @@ function handleRefinementInterpreter(data) {
  */
 function handlePartialText(data) {
   if (currentTabGroup === 'groupA') {
+    if (groupA.refinementFinal) return;  // frozen after final refinement
     groupA.partialText = data.text || '';
     if (data.translation !== undefined) {
       groupA.translationPartial = data.translation;
@@ -1049,7 +1064,11 @@ function handleFinalResult(data) {
   const finalText = data.transcription || '';
 
   if (currentTabGroup === 'groupA') {
-    groupA.committedText = finalText;
+    // If refinement was applied, keep the refined text instead of overwriting
+    // with the raw FastConformer transcription
+    if (groupA.refinementVersion === 0) {
+      groupA.committedText = finalText;
+    }
     groupA.partialText = '';
     groupA.translationPartial = '';
     if (groupA._partialFlushTimer) { clearTimeout(groupA._partialFlushTimer); groupA._partialFlushTimer = null; }
@@ -1195,6 +1214,7 @@ async function startRecording() {
       groupA.lastSummarizedWordCount = 0;
       groupA.summarizationInFlight = false;
       groupA.refinementVersion = 0;
+      groupA.refinementFinal = false;
       if (groupA._partialFlushTimer) { clearTimeout(groupA._partialFlushTimer); groupA._partialFlushTimer = null; }
 
       // Hide summary footers for Group A
