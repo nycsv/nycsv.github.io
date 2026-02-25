@@ -1956,13 +1956,13 @@ async function connectAndStartConversation() {
     }
     conversation.system.displayStream = dispStream;
 
-    // 2. Get mic audio (getUserMedia)
+    // 2. Get mic audio (getUserMedia) — AEC on to suppress system echo
     const micStream = await navigator.mediaDevices.getUserMedia({
       audio: {
         channelCount: 1,
-        echoCancellation: false,
-        noiseSuppression: false,
-        autoGainControl: false,
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
       },
     });
     conversation.mic.mediaStream = micStream;
