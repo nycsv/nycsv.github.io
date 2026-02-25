@@ -56,6 +56,7 @@ const groupA = {
   _partialFlushTimer: null,   // promote stale partial → committed after silence
   refinementVersion: 0,       // version counter for second-pass Qwen ASR refinement
   refinementFinal: false,     // true after the final refinement — freeze transcript state
+  _animatingRefinement: false, // freeze streaming updates during refinement fade animation
 };
 
 /**
@@ -783,6 +784,8 @@ function handleCommittedText(data) {
     // After final refinement, ignore further raw committed chunks (they would
     // appear as rawTail duplicating the end of the refined text)
     if (groupA.refinementFinal) return;
+    // Ignore streaming updates during refinement fade animation
+    if (groupA._animatingRefinement) return;
 
     groupA._rawCommitted += newText;
     groupA.committedText = groupA_computeCommittedText();
@@ -824,6 +827,8 @@ function handleCommittedFormatted(data) {
     if (!formatted || rawLength <= groupA._formattedRawLength) return;
     // After final refinement, don't let the text formatter overwrite the refined prefix
     if (groupA.refinementFinal) return;
+    // Ignore formatting updates during refinement fade animation
+    if (groupA._animatingRefinement) return;
     groupA._formattedPrefix = formatted;
     groupA._formattedRawLength = rawLength;
     groupA.committedText = groupA_computeCommittedText();
@@ -845,6 +850,8 @@ function handleCommittedTranslation(data) {
   if (currentTabGroup !== 'groupA') return;
   // After final refinement, ignore streaming translations (refined text is authoritative)
   if (groupA.refinementFinal) return;
+  // Ignore translation updates during refinement fade animation
+  if (groupA._animatingRefinement) return;
 
   const tl = data.text || '';
   const source = data.source || '';
@@ -883,6 +890,7 @@ function handlePartialTranslation(data) {
   // Only Group A (fastconformer backend) uses translation
   if (currentTabGroup !== 'groupA') return;
   if (groupA.refinementFinal) return;  // frozen after final refinement
+  if (groupA._animatingRefinement) return;  // frozen during refinement animation
 
   groupA.translationPartial = data.translation || '';
   updateTranscript();
@@ -912,6 +920,7 @@ function handleFinalTranslation(data) {
 /**
  * Handle second-pass refinement from Qwen ASR batch re-transcription.
  * Replaces the entire transcript and translation in-place.
+ * Freezes streaming updates during fade animation to prevent text jitter.
  */
 function handleRefinement(data) {
   if (currentTabGroup !== 'groupA') return;
@@ -925,6 +934,9 @@ function handleRefinement(data) {
   if (data.is_final) groupA.refinementFinal = true;
 
   console.log(`[refinement] v${version} replacing transcript (${data.audio_duration_sec}s audio, final=${data.is_final})`);
+
+  // Freeze streaming updates during animation to prevent text jitter
+  groupA._animatingRefinement = true;
 
   // Smooth crossfade: fade out → replace → fade in with highlight
   const fadeTargets = [
@@ -964,11 +976,12 @@ function handleRefinement(data) {
       el.classList.add('refinement-fade-in', 'refinement-updated');
     });
 
-    // Cleanup after animation completes
+    // Cleanup after animation completes and unfreeze streaming
     setTimeout(() => {
       fadeTargets.forEach(el => {
         el.classList.remove('refinement-updated', 'refinement-fade-in');
       });
+      groupA._animatingRefinement = false;
     }, 1500);
   }, 200);
 }
@@ -1023,6 +1036,7 @@ function handleRefinementInterpreter(data) {
 function handlePartialText(data) {
   if (currentTabGroup === 'groupA') {
     if (groupA.refinementFinal) return;  // frozen after final refinement
+    if (groupA._animatingRefinement) return;  // frozen during refinement animation
     groupA.partialText = data.text || '';
     if (data.translation !== undefined) {
       groupA.translationPartial = data.translation;
