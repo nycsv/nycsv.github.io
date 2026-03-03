@@ -11,7 +11,9 @@
       "Bash(kill:*)",
       "WebSearch",
       "WebFetch(domain:news.samsung.com)",
-      "Bash(timeout 10 /tmp/gpu-monitor.sh:*)"
+      "Bash(timeout 10 /tmp/gpu-monitor.sh:*)",
+      "Bash(git push:*)",
+      "Bash(git remote:*)"
     ]
   },
   "disabledMcpjsonServers": [

@@ -104,6 +104,32 @@ function groupB_computeCommittedText() {
 }
 
 // ════════════════════════════════════════════════════════════════════════════════
+// GROUP C STATE (Parakeet) - parakeet backend (English-only)
+// ════════════════════════════════════════════════════════════════════════════════
+const groupC = {
+  committedText: '',
+  partialText: '',
+  _rawCommitted: '',
+  _formattedPrefix: '',
+  _formattedRawLength: 0,
+  parakeetAutoScroll: true,
+  lastSummarizedWordCount: 0,
+  summarizationInFlight: false,
+  _partialFlushTimer: null,
+};
+
+function groupC_computeCommittedText() {
+  const rawTail = groupC._rawCommitted.substring(groupC._formattedRawLength);
+  if (!groupC._formattedPrefix) return groupC._rawCommitted;
+  if (!rawTail) return groupC._formattedPrefix;
+  let prefix = groupC._formattedPrefix.replace(/[.!?]+\s*$/, '');
+  if (!prefix.endsWith(' ') && !rawTail.startsWith(' ')) {
+    prefix += ' ';
+  }
+  return prefix + rawTail;
+}
+
+// ════════════════════════════════════════════════════════════════════════════════
 // CONVERSATION STATE (dual-stream: system + mic as independent ASR pipelines)
 // ════════════════════════════════════════════════════════════════════════════════
 const conversation = {
@@ -138,7 +164,7 @@ let recordingStartTime = null;
 let latestLatency = null;
 
 // RTF chunk durations per backend
-const RTF_CHUNK_MS = { groupA: 160, groupB: 2000 };
+const RTF_CHUNK_MS = { groupA: 160, groupB: 2000, groupC: 160 };
 
 // DOM elements
 let dom = {};
@@ -227,6 +253,16 @@ function init() {
     multilingualSourceLang: document.getElementById('multilingual-source-lang'),
     multilingualCopyBtn: document.getElementById('multilingual-copy-btn'),
     multilingualJumpBtn: document.getElementById('multilingual-jump-btn'),
+    // Parakeet ASR tab
+    tabParakeet: document.getElementById('tab-parakeet'),
+    parakeetBox: document.getElementById('parakeet-box'),
+    parakeetScroll: document.getElementById('parakeet-scroll'),
+    parakeetCommitted: document.getElementById('parakeet-committed'),
+    parakeetPartial: document.getElementById('parakeet-partial'),
+    parakeetCursor: document.getElementById('parakeet-cursor'),
+    parakeetPlaceholder: document.getElementById('parakeet-placeholder'),
+    parakeetCopyBtn: document.getElementById('parakeet-copy-btn'),
+    parakeetJumpBtn: document.getElementById('parakeet-jump-btn'),
     // Conversation tab
     tabConversation: document.getElementById('tab-conversation'),
     conversationBox: document.getElementById('conversation-box'),
@@ -252,11 +288,17 @@ function init() {
   dom.tabInterview.addEventListener('click', () => setActiveTab('interview'));
   dom.tabInterview2.addEventListener('click', () => setActiveTab('interview2'));
   dom.tabMultilingual.addEventListener('click', () => setActiveTab('multilingual'));
+  dom.tabParakeet.addEventListener('click', () => setActiveTab('parakeet'));
   dom.tabConversation.addEventListener('click', () => setActiveTab('conversation'));
 
   // Multilingual copy button
   dom.multilingualCopyBtn.addEventListener('click', () => {
     handleTranslateCopy(dom.multilingualCopyBtn, () => groupB.committedText + groupB.partialText);
+  });
+
+  // Parakeet copy button
+  dom.parakeetCopyBtn.addEventListener('click', () => {
+    handleTranslateCopy(dom.parakeetCopyBtn, () => groupC.committedText + groupC.partialText);
   });
 
   // Audio source toggle buttons
@@ -478,6 +520,27 @@ function initTranscriptScrollBehavior() {
       dom.multilingualJumpBtn.classList.add('hidden');
     });
   }
+
+  // ── Parakeet ASR ──
+  if (dom.parakeetScroll) {
+    dom.parakeetScroll.addEventListener('scroll', () => {
+      const el = dom.parakeetScroll;
+      const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+      if (!atBottom && groupC.parakeetAutoScroll) groupC.parakeetAutoScroll = false;
+      if (atBottom && !groupC.parakeetAutoScroll) groupC.parakeetAutoScroll = true;
+      if (dom.parakeetJumpBtn) {
+        dom.parakeetJumpBtn.classList.toggle('hidden', atBottom);
+        if (!atBottom) dom.parakeetJumpBtn.style.display = 'flex';
+      }
+    });
+  }
+  if (dom.parakeetJumpBtn) {
+    dom.parakeetJumpBtn.addEventListener('click', () => {
+      dom.parakeetScroll.scrollTop = dom.parakeetScroll.scrollHeight;
+      groupC.parakeetAutoScroll = true;
+      dom.parakeetJumpBtn.classList.add('hidden');
+    });
+  }
 }
 
 /**
@@ -545,6 +608,8 @@ function setActiveTab(tab) {
   // Determine new tab group
   if (tab === 'multilingual') {
     currentTabGroup = 'groupB';
+  } else if (tab === 'parakeet') {
+    currentTabGroup = 'groupC';
   } else {
     currentTabGroup = 'groupA';
   }
@@ -570,6 +635,7 @@ function setActiveTab(tab) {
   dom.interviewBox.classList.toggle('hidden', tab !== 'interview');
   dom.interview2Box.classList.toggle('hidden', tab !== 'interview2');
   dom.multilingualBox.classList.toggle('hidden', tab !== 'multilingual');
+  dom.parakeetBox.classList.toggle('hidden', tab !== 'parakeet');
   dom.conversationBox.classList.toggle('hidden', tab !== 'conversation');
 
   updateTabButton(dom.tabLive, tab === 'live');
@@ -578,6 +644,7 @@ function setActiveTab(tab) {
   updateTabButton(dom.tabInterview, tab === 'interview');
   updateTabButton(dom.tabInterview2, tab === 'interview2');
   updateTabButton(dom.tabMultilingual, tab === 'multilingual');
+  updateTabButton(dom.tabParakeet, tab === 'parakeet');
   updateTabButton(dom.tabConversation, tab === 'conversation');
 }
 
@@ -673,9 +740,10 @@ function disconnectWebSocket() {
     ws = null;
   }
   setState(State.IDLE);
-  // Re-render transcript so full punctuation is restored after streaming ends
   if (currentTabGroup === 'groupB') {
     updateMultilingualTranscript();
+  } else if (currentTabGroup === 'groupC') {
+    updateParakeetTranscript();
   } else {
     updateTranscript();
   }
@@ -802,7 +870,6 @@ function handleCommittedText(data) {
     groupB._rawCommitted += newText;
     groupB.committedText = groupB_computeCommittedText();
     groupB.partialText = '';
-    // Reset partial flush timer — committed just arrived, partial cleared
     if (groupB._partialFlushTimer) { clearTimeout(groupB._partialFlushTimer); groupB._partialFlushTimer = null; }
     updateMultilingualTranscript();
 
@@ -810,6 +877,12 @@ function handleCommittedText(data) {
     if (!groupB.summarizationInFlight && wordCount - groupB.lastSummarizedWordCount >= 200) {
       requestSummarization(groupB.committedText);
     }
+  } else if (currentTabGroup === 'groupC') {
+    groupC._rawCommitted += newText;
+    groupC.committedText = groupC_computeCommittedText();
+    groupC.partialText = '';
+    if (groupC._partialFlushTimer) { clearTimeout(groupC._partialFlushTimer); groupC._partialFlushTimer = null; }
+    updateParakeetTranscript();
   }
 }
 
@@ -839,6 +912,12 @@ function handleCommittedFormatted(data) {
     groupB._formattedRawLength = rawLength;
     groupB.committedText = groupB_computeCommittedText();
     updateMultilingualTranscript();
+  } else if (currentTabGroup === 'groupC') {
+    if (!formatted || rawLength <= groupC._formattedRawLength) return;
+    groupC._formattedPrefix = formatted;
+    groupC._formattedRawLength = rawLength;
+    groupC.committedText = groupC_computeCommittedText();
+    updateParakeetTranscript();
   }
 }
 
@@ -1056,10 +1135,17 @@ function handlePartialText(data) {
     }
     updateMultilingualTranscript();
 
-    // Debounce: if no new partial/committed for 2s, promote partial → committed
     if (groupB._partialFlushTimer) clearTimeout(groupB._partialFlushTimer);
     if (groupB.partialText) {
       groupB._partialFlushTimer = setTimeout(flushGroupBPartial, 2000);
+    }
+  } else if (currentTabGroup === 'groupC') {
+    groupC.partialText = data.text || '';
+    updateParakeetTranscript();
+
+    if (groupC._partialFlushTimer) clearTimeout(groupC._partialFlushTimer);
+    if (groupC.partialText) {
+      groupC._partialFlushTimer = setTimeout(flushGroupCPartial, 2000);
     }
   }
 
@@ -1136,6 +1222,11 @@ function handleFinalResult(data) {
       dom.multilingualLangBadge.classList.remove('hidden');
     }
     updateMultilingualTranscript();
+  } else if (currentTabGroup === 'groupC') {
+    groupC.committedText = finalText;
+    groupC.partialText = '';
+    if (groupC._partialFlushTimer) { clearTimeout(groupC._partialFlushTimer); groupC._partialFlushTimer = null; }
+    updateParakeetTranscript();
   }
 
   setState(State.CONNECTED);
@@ -1236,6 +1327,9 @@ function getAsrBackend() {
   if (activeTab === 'multilingual') {
     return 'qwen3';
   }
+  if (activeTab === 'parakeet') {
+    return 'parakeet';
+  }
   return 'fastconformer';
 }
 
@@ -1306,10 +1400,23 @@ async function startRecording() {
 
       updateMultilingualTranscript();
 
-      // Reset scroll state for Group B
       groupB.multilingualAutoScroll = true;
       if (dom.multilingualLangBadge) dom.multilingualLangBadge.classList.add('hidden');
       if (dom.multilingualJumpBtn) dom.multilingualJumpBtn.classList.add('hidden');
+    } else if (currentTabGroup === 'groupC') {
+      groupC.committedText = '';
+      groupC.partialText = '';
+      groupC._rawCommitted = '';
+      groupC._formattedPrefix = '';
+      groupC._formattedRawLength = 0;
+      groupC.lastSummarizedWordCount = 0;
+      groupC.summarizationInFlight = false;
+      if (groupC._partialFlushTimer) { clearTimeout(groupC._partialFlushTimer); groupC._partialFlushTimer = null; }
+
+      updateParakeetTranscript();
+
+      groupC.parakeetAutoScroll = true;
+      if (dom.parakeetJumpBtn) dom.parakeetJumpBtn.classList.add('hidden');
     }
 
     const audioSource = getAudioSource();
@@ -1672,11 +1779,43 @@ function flushGroupAPartial() {
 function flushGroupBPartial() {
   groupB._partialFlushTimer = null;
   if (!groupB.partialText) return;
-  // Append partial to raw committed so it becomes white (committed) text
   groupB._rawCommitted += ' ' + groupB.partialText;
   groupB.committedText = groupB_computeCommittedText();
   groupB.partialText = '';
   updateMultilingualTranscript();
+}
+
+/**
+ * Update transcript display (GROUP C only: Parakeet)
+ */
+function updateParakeetTranscript() {
+  if (currentTabGroup !== 'groupC') return;
+
+  const isStreaming = currentState === State.RECORDING || currentState === State.CONNECTED;
+  const displayCommitted = isStreaming ? groupC.committedText.replace(/[.!?]+\s*$/, '') : groupC.committedText;
+
+  if (dom.parakeetCommitted) {
+    dom.parakeetCommitted.textContent = displayCommitted;
+    dom.parakeetPartial.textContent = groupC.partialText;
+    if (dom.parakeetCursor) {
+      dom.parakeetCursor.style.display = currentState === State.RECORDING ? 'inline-block' : 'none';
+    }
+    if (dom.parakeetPlaceholder) {
+      dom.parakeetPlaceholder.style.display = (groupC.committedText || groupC.partialText) ? 'none' : 'flex';
+    }
+    if (groupC.parakeetAutoScroll && dom.parakeetScroll) {
+      dom.parakeetScroll.scrollTop = dom.parakeetScroll.scrollHeight;
+    }
+  }
+}
+
+function flushGroupCPartial() {
+  groupC._partialFlushTimer = null;
+  if (!groupC.partialText) return;
+  groupC._rawCommitted += ' ' + groupC.partialText;
+  groupC.committedText = groupC_computeCommittedText();
+  groupC.partialText = '';
+  updateParakeetTranscript();
 }
 
 /**
@@ -1706,6 +1845,8 @@ function updateStats() {
   if (elapsedMin > 0) {
     const text = currentTabGroup === 'groupB'
       ? (groupB.committedText + ' ' + groupB.partialText)
+      : currentTabGroup === 'groupC'
+      ? (groupC.committedText + ' ' + groupC.partialText)
       : (groupA.committedText + ' ' + groupA.partialText);
     const words = text.trim().split(/\s+/).filter(Boolean).length;
     dom.statWpm.textContent = `${Math.round(words / elapsedMin)}wpm`;
