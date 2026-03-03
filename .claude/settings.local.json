@@ -13,7 +13,10 @@
       "WebFetch(domain:news.samsung.com)",
       "Bash(timeout 10 /tmp/gpu-monitor.sh:*)",
       "Bash(git push:*)",
-      "Bash(git remote:*)"
+      "Bash(git remote:*)",
+      "Bash(ssh:*)",
+      "Bash(git fetch:*)",
+      "Bash(git:*)"
     ]
   },
   "disabledMcpjsonServers": [

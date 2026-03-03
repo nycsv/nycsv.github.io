@@ -1321,16 +1321,13 @@ function waitForAck(timeoutMs) {
 
 /**
  * Get the ASR backend based on the active tab
- * @returns {'fastconformer'|'qwen3'}
+ * @returns {'nemotron'|'qwen3'}
  */
 function getAsrBackend() {
   if (activeTab === 'multilingual') {
     return 'qwen3';
   }
-  if (activeTab === 'parakeet') {
-    return 'parakeet';
-  }
-  return 'fastconformer';
+  return 'nemotron';
 }
 
 /**
