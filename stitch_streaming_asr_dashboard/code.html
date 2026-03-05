@@ -338,6 +338,13 @@
 </div>
 </div>
 <script>
+document.addEventListener('keydown', function(e) {
+    if (e.altKey && e.key === 'i') switchTab('interview');
+    if (e.altKey && e.key === '1') switchTab('transcript');
+    if (e.altKey && e.key === '2') switchTab('confidence');
+    if (e.altKey && e.key === '3') switchTab('analytics');
+});
+
 function switchTab(name) {
     const tabs = ['transcript', 'confidence', 'analytics', 'interview'];
     tabs.forEach(t => {
