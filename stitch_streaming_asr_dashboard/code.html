@@ -339,10 +339,10 @@
 </div>
 <script>
 document.addEventListener('keydown', function(e) {
-    if (e.altKey && e.key === 'i') switchTab('interview');
-    if (e.altKey && e.key === '1') switchTab('transcript');
-    if (e.altKey && e.key === '2') switchTab('confidence');
-    if (e.altKey && e.key === '3') switchTab('analytics');
+    if (e.shiftKey && e.altKey && e.key === 'I') switchTab('interview');
+    if (e.shiftKey && e.altKey && e.key === '!') switchTab('transcript');
+    if (e.shiftKey && e.altKey && e.key === '@') switchTab('confidence');
+    if (e.shiftKey && e.altKey && e.key === '#') switchTab('analytics');
 });
 
 function switchTab(name) {
