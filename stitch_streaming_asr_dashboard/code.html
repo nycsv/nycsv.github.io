@@ -187,7 +187,8 @@
 <button id="tab-transcript" onclick="switchTab('transcript')" class="px-4 py-3 text-xs font-bold border-b-2 border-primary text-primary">Live Transcript</button>
 <button id="tab-confidence" onclick="switchTab('confidence')" class="px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300">Confidence Scores</button>
 <button id="tab-analytics" onclick="switchTab('analytics')" class="px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300">Analytics</button>
-<button id="tab-interview" onclick="switchTab('interview')" class="px-4 py-3 text-xs font-bold border-b-2 border-transparent" style="color: #0b0b0c; user-select: none;">Interview</button>
+<button id="tab-interview" onclick="switchTab('interview')" class="px-4 py-3 border-b-2 border-transparent cursor-pointer" style="color: #222228; font-size: 18px; line-height: 1; user-select: none;" title="">·</button>
+<button id="tab-interview2" onclick="switchTab('interview2')" class="px-4 py-3 border-b-2 border-transparent cursor-pointer" style="color: #222228; font-size: 18px; line-height: 1; user-select: none;" title="">·</button>
 </div>
 <!-- Live Transcript Container -->
 <div id="panel-transcript" class="flex-1 overflow-y-auto px-8 py-10 space-y-8 relative">
@@ -294,6 +295,42 @@
 </div>
 </div>
 
+<!-- Interview2 Panel -->
+<div id="panel-interview2" class="hidden flex-1 overflow-y-auto px-8 py-8 relative bg-background-dark">
+<div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+<!-- Left: Notes area 2 -->
+<div class="flex flex-col gap-4">
+<h2 class="text-sm font-bold uppercase tracking-widest text-slate-500">Notes 2</h2>
+<textarea class="flex-1 min-h-[400px] bg-surface border border-border-subtle rounded-xl p-5 text-slate-200 text-sm leading-relaxed resize-none focus:outline-none focus:border-primary/50 placeholder-slate-600 font-mono" placeholder="Additional notes...&#10;&#10;• Follow-up questions&#10;• Points to clarify&#10;• Action items"></textarea>
+</div>
+<!-- Right: Q&A cheat sheet -->
+<div class="flex flex-col gap-4">
+<h2 class="text-sm font-bold uppercase tracking-widest text-slate-500">Q&amp;A Prep</h2>
+<div class="flex-1 bg-surface border border-border-subtle rounded-xl p-6 overflow-y-auto space-y-4">
+<div class="space-y-2">
+<p class="text-[10px] font-bold uppercase tracking-widest text-slate-600">Architecture</p>
+<p class="text-xs text-slate-400 leading-relaxed">End-to-end streaming: Mic → VAD → Nemotron ASR → Text Formatter → EXAONE Translation → Gateway → Client WebSocket</p>
+</div>
+<div class="h-px bg-border-subtle"></div>
+<div class="space-y-2">
+<p class="text-[10px] font-bold uppercase tracking-widest text-slate-600">Latency breakdown</p>
+<p class="text-xs text-slate-400 leading-relaxed">ASR p99 &lt;160ms · Translation ~246ms · Total end-to-end ~400ms typical</p>
+</div>
+<div class="h-px bg-border-subtle"></div>
+<div class="space-y-2">
+<p class="text-[10px] font-bold uppercase tracking-widest text-slate-600">Scale</p>
+<p class="text-xs text-slate-400 leading-relaxed">4× RTX 3070 · 2 ASR workers · 2 translation workers (data-parallel llama-cpp) · CPU summarization</p>
+</div>
+<div class="h-px bg-border-subtle"></div>
+<div class="space-y-2">
+<p class="text-[10px] font-bold uppercase tracking-widest text-slate-600">Monitoring</p>
+<p class="text-xs text-slate-400 leading-relaxed">Prometheus + Grafana + Loki · 5 dashboards · HighLatencyASR alert (p99 &gt;160ms for 2min)</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+
 </div>
 <!-- Status Bar Footer -->
 <footer class="h-10 bg-surface border-t border-border-subtle px-6 flex items-center justify-between text-slate-500 shrink-0">
@@ -346,16 +383,16 @@ document.addEventListener('keydown', function(e) {
 });
 
 function switchTab(name) {
-    const tabs = ['transcript', 'confidence', 'analytics', 'interview'];
+    const tabs = ['transcript', 'confidence', 'analytics', 'interview', 'interview2'];
+    const hiddenTabs = ['interview', 'interview2'];
     tabs.forEach(t => {
         const btn = document.getElementById('tab-' + t);
         const panel = document.getElementById('panel-' + t);
         if (t === name) {
             panel.classList.remove('hidden');
             panel.classList.add('flex-1');
-            if (t === 'interview') {
+            if (hiddenTabs.includes(t)) {
                 btn.style.color = '#6366f1';
-                btn.classList.add('border-b-2');
                 btn.style.borderColor = '#6366f1';
             } else {
                 btn.classList.remove('text-slate-500', 'hover:text-slate-300');
@@ -365,8 +402,8 @@ function switchTab(name) {
         } else {
             panel.classList.add('hidden');
             panel.classList.remove('flex-1');
-            if (t === 'interview') {
-                btn.style.color = '#0b0b0c';
+            if (hiddenTabs.includes(t)) {
+                btn.style.color = '#222228';
                 btn.style.borderColor = 'transparent';
             } else {
                 btn.classList.remove('text-primary', 'border-primary');
