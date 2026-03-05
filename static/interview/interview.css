@@ -2,9 +2,9 @@
 
 /* Split pane: transcript side fixed width */
 .interview-transcript-pane {
-  width: 38%;
-  min-width: 200px;
-  max-width: 480px;
+  width: 22%;
+  min-width: 140px;
+  max-width: 220px;
   flex-shrink: 0;
 }
 
@@ -65,40 +65,43 @@
   color: #e2e8f0;
 }
 
-/* Section cards */
+/* Flat sections — no card borders */
 .interview-section {
-  background: #161618;
-  border: 1px solid #2c2839;
-  border-radius: 10px;
-  overflow: hidden;
+  background: transparent;
+  border: none;
+  border-left: 2px solid #2c2839;
+  border-radius: 0;
+  overflow: visible;
+  padding-left: 12px;
 }
 
 .interview-section-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  background: #1a1a1f;
-  border-bottom: 1px solid #2c2839;
+  gap: 5px;
+  padding: 0 0 5px 0;
+  background: transparent;
+  border-bottom: none;
 }
 
 .interview-section-icon {
-  font-size: 15px !important;
+  font-size: 12px !important;
+  opacity: 0.6;
 }
 
 .interview-section-title {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #94a3b8;
+  letter-spacing: 0.1em;
+  color: #64748b;
 }
 
 .interview-section-body {
-  padding: 12px 14px;
-  font-size: 0.82rem;
-  color: #cbd5e1;
-  line-height: 1.65;
+  padding: 0;
+  font-size: 0.9rem;
+  color: #e2e8f0;
+  line-height: 1.7;
 }
 
 /* Problem statement */
@@ -232,7 +235,14 @@
   line-height: 1.5;
 }
 
-/* Approach text - markdown-like paragraphs */
+/* Response content: gaps between flat sections */
+#interview-response-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Approach text */
 .interview-approach-text p {
   margin-bottom: 8px;
 }

@@ -249,24 +249,18 @@ Rules:
     const badgeClass = getBadgeClass(r.problem_type);
 
     const html = `
-      <!-- Problem Statement -->
-      <div class="interview-section">
-        <div class="interview-section-header">
-          <span class="material-symbols-outlined interview-section-icon text-primary">assignment</span>
-          <span class="interview-section-title">Problem</span>
-        </div>
-        <div class="interview-section-body">
-          <div class="interview-problem-type-badge ${badgeClass}">
-            ${escapeHtml(r.problem_type || 'Unknown')}
-          </div>
-          <p>${escapeHtml(r.problem_statement || '')}</p>
-        </div>
+      <!-- Problem header: badge + statement inline -->
+      <div style="display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;">
+        <span class="interview-problem-type-badge ${badgeClass}" style="margin-bottom:0;flex-shrink:0;">
+          ${escapeHtml(r.problem_type || 'Unknown')}
+        </span>
+        <span style="font-size:0.82rem;color:#94a3b8;line-height:1.5;">${escapeHtml(r.problem_statement || '')}</span>
       </div>
 
       <!-- Approach -->
       <div class="interview-section">
         <div class="interview-section-header">
-          <span class="material-symbols-outlined interview-section-icon text-amber-400">lightbulb</span>
+          <span class="material-symbols-outlined interview-section-icon" style="color:#fbbf24;">lightbulb</span>
           <span class="interview-section-title">Approach</span>
         </div>
         <div class="interview-section-body interview-approach-text">
@@ -274,42 +268,25 @@ Rules:
         </div>
       </div>
 
+      <!-- Follow-up Questions -->
+      ${renderList(r.follow_ups, 'Follow-up Questions', 'quiz', 'text-slate-400', 'interview-followup-list')}
+
       <!-- Solution Code -->
       <div class="interview-section">
         <div class="interview-section-header">
-          <span class="material-symbols-outlined interview-section-icon text-emerald-400">code</span>
+          <span class="material-symbols-outlined interview-section-icon" style="color:#34d399;">code</span>
           <span class="interview-section-title">Solution — ${escapeHtml(r.language || 'python')}</span>
+          <span style="margin-left:auto;font-size:9px;color:#64748b;font-family:monospace;">
+            ${escapeHtml(r.time_complexity || '')} · ${escapeHtml(r.space_complexity || '')}
+          </span>
         </div>
         <div class="interview-section-body" style="padding:0;">
           ${renderCodeBlock(r.solution_code || '', r.language || 'python')}
         </div>
       </div>
 
-      <!-- Complexity -->
-      <div class="interview-section">
-        <div class="interview-section-header">
-          <span class="material-symbols-outlined interview-section-icon text-cyan-400">query_stats</span>
-          <span class="interview-section-title">Complexity</span>
-        </div>
-        <div class="interview-section-body">
-          <div class="interview-complexity-row">
-            <div class="interview-complexity-item">
-              <span class="interview-complexity-label">Time</span>
-              <span class="interview-complexity-value">${escapeHtml(r.time_complexity || '—')}</span>
-            </div>
-            <div class="interview-complexity-item">
-              <span class="interview-complexity-label">Space</span>
-              <span class="interview-complexity-value">${escapeHtml(r.space_complexity || '—')}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Key Insights -->
       ${renderList(r.key_insights, 'Key Insights', 'tips_and_updates', 'text-violet-400', 'interview-insights-list')}
-
-      <!-- Follow-up Questions -->
-      ${renderList(r.follow_ups, 'Follow-up Questions', 'quiz', 'text-slate-400', 'interview-followup-list')}
     `;
 
     el.responseContent.innerHTML = html;

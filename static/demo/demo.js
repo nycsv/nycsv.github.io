@@ -234,8 +234,6 @@ function init() {
     summaryContentTranslate: document.getElementById('summary-content-translate'),
     tabInterview: document.getElementById('tab-interview'),
     interviewBox: document.getElementById('interview-box'),
-    tabInterview2: document.getElementById('tab-interview2'),
-    interview2Box: document.getElementById('interview2-box'),
     audioTrackIndicators: document.getElementById('audio-track-indicators'),
     indicatorMic: document.getElementById('indicator-mic'),
     indicatorMicLabel: document.getElementById('indicator-mic-label'),
@@ -286,7 +284,6 @@ function init() {
   dom.tabTranslate.addEventListener('click', () => setActiveTab('translate'));
   dom.tabInterpreter.addEventListener('click', () => setActiveTab('interpreter'));
   dom.tabInterview.addEventListener('click', () => setActiveTab('interview'));
-  dom.tabInterview2.addEventListener('click', () => setActiveTab('interview2'));
   dom.tabMultilingual.addEventListener('click', () => setActiveTab('multilingual'));
   dom.tabParakeet.addEventListener('click', () => setActiveTab('parakeet'));
   dom.tabConversation.addEventListener('click', () => setActiveTab('conversation'));
@@ -346,7 +343,6 @@ function initAudioSourceToggle() {
       dom.tabInterpreter.classList.toggle('hidden', isBoth);
       dom.tabMultilingual.classList.toggle('hidden', isBoth);
       dom.tabInterview.classList.toggle('hidden', isBoth);
-      dom.tabInterview2.classList.toggle('hidden', isBoth);
 
       if (isBoth) {
         setActiveTab('conversation');
@@ -634,7 +630,6 @@ function setActiveTab(tab) {
   dom.translateBox.classList.toggle('hidden', tab !== 'translate');
   dom.interpreterBox.classList.toggle('hidden', tab !== 'interpreter');
   dom.interviewBox.classList.toggle('hidden', tab !== 'interview');
-  dom.interview2Box.classList.toggle('hidden', tab !== 'interview2');
   dom.multilingualBox.classList.toggle('hidden', tab !== 'multilingual');
   dom.parakeetBox.classList.toggle('hidden', tab !== 'parakeet');
   dom.conversationBox.classList.toggle('hidden', tab !== 'conversation');
@@ -643,7 +638,6 @@ function setActiveTab(tab) {
   updateTabButton(dom.tabTranslate, tab === 'translate');
   updateTabButton(dom.tabInterpreter, tab === 'interpreter');
   updateTabButton(dom.tabInterview, tab === 'interview');
-  updateTabButton(dom.tabInterview2, tab === 'interview2');
   updateTabButton(dom.tabMultilingual, tab === 'multilingual');
   updateTabButton(dom.tabParakeet, tab === 'parakeet');
   updateTabButton(dom.tabConversation, tab === 'conversation');
