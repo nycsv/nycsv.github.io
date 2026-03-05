@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Streaming ASR Pro Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#5b2bee",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#0b0b0c",
+                        "surface": "#161618",
+                        "border-subtle": "#2c2839",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .transcript-gradient {
+            background: linear-gradient(to bottom, transparent 0%, rgba(11, 11, 12, 0) 90%, rgba(11, 11, 12, 1) 100%);
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2c2839;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #413b54;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased overflow-hidden">
+<div class="flex h-screen w-full overflow-hidden">
+<!-- Sidebar -->
+<aside class="w-72 flex flex-col border-r border-border-subtle bg-surface dark:bg-surface/50 shrink-0">
+<div class="p-6 flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 bg-primary rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-xl">graphic_eq</span>
+</div>
+<h1 class="text-lg font-bold tracking-tight text-white leading-none">Streaming ASR</h1>
+</div>
+<p class="text-xs text-slate-500 font-medium ml-10">Pro v3.0 • Enterprise</p>
+</div>
+<nav class="flex-1 px-4 overflow-y-auto space-y-6">
+<!-- Configuration Section -->
+<div>
+<h3 class="px-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Configuration</h3>
+<div class="space-y-1">
+<div class="group flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary border border-primary/20 cursor-pointer">
+<span class="material-symbols-outlined text-[20px]">settings_input_component</span>
+<span class="text-sm font-semibold">Audio Source</span>
+</div>
+<div class="group flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-white/5 hover:text-white transition-all cursor-pointer">
+<span class="material-symbols-outlined text-[20px]">language</span>
+<span class="text-sm font-medium">Model: Whisper-v3</span>
+</div>
+<div class="group flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-white/5 hover:text-white transition-all cursor-pointer">
+<span class="material-symbols-outlined text-[20px]">translate</span>
+<span class="text-sm font-medium">English (US)</span>
+</div>
+</div>
+</div>
+<!-- Recent Sessions Section -->
+<div>
+<div class="flex items-center justify-between px-2 mb-3">
+<h3 class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Recent Sessions</h3>
+<span class="material-symbols-outlined text-xs text-slate-500 cursor-pointer hover:text-white">history</span>
+</div>
+<div class="space-y-2">
+<div class="p-3 rounded-lg border border-border-subtle bg-background-dark/30 hover:bg-background-dark/50 cursor-pointer transition-colors">
+<div class="flex justify-between items-start mb-1">
+<span class="text-xs font-semibold text-white">Client Briefing</span>
+<span class="text-[10px] text-slate-500">12m ago</span>
+</div>
+<p class="text-[11px] text-slate-400 line-clamp-1 italic">"We need to finalize the quarterly report by Friday..."</p>
+</div>
+<div class="p-3 rounded-lg border border-border-subtle bg-background-dark/30 hover:bg-background-dark/50 cursor-pointer transition-colors opacity-70">
+<div class="flex justify-between items-start mb-1">
+<span class="text-xs font-semibold text-white">Standup Sync</span>
+<span class="text-[10px] text-slate-500">2h ago</span>
+</div>
+<p class="text-[11px] text-slate-400 line-clamp-1 italic">"The backend latency is currently sitting at..."</p>
+</div>
+<div class="p-3 rounded-lg border border-border-subtle bg-background-dark/30 hover:bg-background-dark/50 cursor-pointer transition-colors opacity-50">
+<div class="flex justify-between items-start mb-1">
+<span class="text-xs font-semibold text-white">Interview #42</span>
+<span class="text-[10px] text-slate-500">Yesterday</span>
+</div>
+<p class="text-[11px] text-slate-400 line-clamp-1 italic">"Could you describe your experience with..."</p>
+</div>
+</div>
+</div>
+</nav>
+<div class="p-4 mt-auto">
+<button class="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white text-sm font-bold py-3 rounded-lg transition-transform active:scale-95 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+                    New Session
+                </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col overflow-hidden relative">
+<!-- Compact Control Header (Replaces large CTA) -->
+<header class="h-16 border-b border-border-subtle bg-surface/30 px-6 flex items-center justify-between z-10">
+<div class="flex items-center gap-6">
+<button class="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-primary/90 transition-all shadow-md shadow-primary/10">
+<span class="material-symbols-outlined text-[20px] fill-1">mic</span>
+<span>Start Transcribing</span>
+</button>
+<div class="h-6 w-px bg-border-subtle"></div>
+<div class="flex items-center gap-4 text-slate-400">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+<span class="text-xs font-medium">Mic: Ready</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">speed</span>
+<span class="text-xs font-medium">120ms latency</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<div class="flex items-center gap-1 bg-background-dark/50 border border-border-subtle px-3 py-1.5 rounded-lg mr-2">
+<div class="w-1 h-3 bg-slate-600 rounded-full"></div>
+<div class="w-1 h-5 bg-slate-500 rounded-full"></div>
+<div class="w-1 h-2 bg-slate-600 rounded-full"></div>
+<div class="w-1 h-4 bg-slate-400 rounded-full"></div>
+<div class="w-1 h-6 bg-primary rounded-full"></div>
+<div class="w-1 h-3 bg-slate-500 rounded-full"></div>
+<div class="w-1 h-4 bg-slate-600 rounded-full"></div>
+</div>
+<div class="flex gap-1">
+<button class="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors" title="Notifications">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors" title="Account">
+<span class="material-symbols-outlined text-[20px]">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Transcript Focus Area -->
+<div class="flex-1 flex flex-col bg-background-dark relative overflow-hidden">
+<!-- Action Toolbar for Transcript -->
+<div class="absolute top-4 right-8 flex items-center gap-2 z-20">
+<button class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold bg-surface border border-border-subtle text-slate-300 hover:text-white hover:border-slate-500 rounded-lg transition-all shadow-xl">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+                        Copy
+                    </button>
+<button class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold bg-surface border border-border-subtle text-slate-300 hover:text-white hover:border-slate-500 rounded-lg transition-all shadow-xl">
+<span class="material-symbols-outlined text-[16px]">download</span>
+                        Export
+                    </button>
+<button class="p-1.5 text-slate-400 hover:text-rose-400 transition-colors" title="Clear Transcript">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+<!-- Navigation Tabs (Small) -->
+<div class="flex px-8 border-b border-border-subtle/50 bg-background-dark/50">
+<button id="tab-transcript" onclick="switchTab('transcript')" class="px-4 py-3 text-xs font-bold border-b-2 border-primary text-primary">Live Transcript</button>
+<button id="tab-confidence" onclick="switchTab('confidence')" class="px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300">Confidence Scores</button>
+<button id="tab-analytics" onclick="switchTab('analytics')" class="px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300">Analytics</button>
+<button id="tab-interview" onclick="switchTab('interview')" class="px-4 py-3 text-xs font-bold border-b-2 border-transparent" style="color: #0b0b0c; user-select: none;">Interview</button>
+</div>
+<!-- Live Transcript Container -->
+<div id="panel-transcript" class="flex-1 overflow-y-auto px-8 py-10 space-y-8 relative">
+<!-- Session Start Marker -->
+<div class="flex items-center justify-center gap-4 py-4">
+<div class="h-px flex-1 bg-border-subtle"></div>
+<span class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Session Started at 14:20:05</span>
+<div class="h-px flex-1 bg-border-subtle"></div>
+</div>
+<!-- Transcript Blocks -->
+<div class="flex gap-6 max-w-4xl mx-auto group">
+<div class="w-16 shrink-0 text-right">
+<span class="text-[11px] font-mono text-slate-600">00:00:12</span>
+</div>
+<div class="flex-1 space-y-2">
+<p class="text-slate-100 leading-relaxed text-lg font-medium">Good afternoon everyone. Welcome to the technical review for the streaming engine integration project. We're going to start by looking at the current architecture bottlenecks.</p>
+<div class="flex gap-2">
+<span class="px-2 py-0.5 rounded bg-primary/20 text-primary text-[10px] font-bold uppercase tracking-tight">Speaker 1</span>
+<span class="px-2 py-0.5 rounded bg-white/5 text-slate-500 text-[10px] font-medium">98% confidence</span>
+</div>
+</div>
+</div>
+<div class="flex gap-6 max-w-4xl mx-auto group">
+<div class="w-16 shrink-0 text-right">
+<span class="text-[11px] font-mono text-slate-600">00:00:28</span>
+</div>
+<div class="flex-1 space-y-2">
+<p class="text-slate-100 leading-relaxed text-lg font-medium">I've noticed that the WebSocket connection tends to drop when the packet size exceeds 512 kilobytes. We should probably implement a chunking mechanism on the client-side buffer.</p>
+<div class="flex gap-2">
+<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-500 text-[10px] font-bold uppercase tracking-tight">Speaker 2</span>
+<span class="px-2 py-0.5 rounded bg-white/5 text-slate-500 text-[10px] font-medium">94% confidence</span>
+</div>
+</div>
+</div>
+<div class="flex gap-6 max-w-4xl mx-auto group">
+<div class="w-16 shrink-0 text-right">
+<span class="text-[11px] font-mono text-primary animate-pulse font-bold">LIVE</span>
+</div>
+<div class="flex-1 space-y-2">
+<p class="text-slate-100/90 leading-relaxed text-lg font-medium italic">
+                                That is a valid point. If we implement <span class="text-slate-500">dynamic resizing for the input</span> <span class="text-slate-600 italic">... [processing]</span>
+</p>
+<div class="flex gap-2 items-center">
+<span class="px-2 py-0.5 rounded bg-primary/20 text-primary text-[10px] font-bold uppercase tracking-tight">Speaker 1</span>
+<div class="flex gap-0.5">
+<div class="w-1 h-1 bg-primary rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+<div class="w-1 h-1 bg-primary rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+<div class="w-1 h-1 bg-primary rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom gradient for focus -->
+<div class="fixed bottom-12 left-72 right-0 h-24 transcript-gradient pointer-events-none z-10"></div>
+</div>
+
+<!-- Confidence Scores Panel (placeholder) -->
+<div id="panel-confidence" class="hidden flex-1 overflow-y-auto px-8 py-10 relative">
+<div class="max-w-4xl mx-auto text-slate-500 text-sm flex items-center justify-center h-40">Confidence Scores view — coming soon</div>
+</div>
+
+<!-- Analytics Panel (placeholder) -->
+<div id="panel-analytics" class="hidden flex-1 overflow-y-auto px-8 py-10 relative">
+<div class="max-w-4xl mx-auto text-slate-500 text-sm flex items-center justify-center h-40">Analytics view — coming soon</div>
+</div>
+
+<!-- Interview Panel -->
+<div id="panel-interview" class="hidden flex-1 overflow-y-auto px-8 py-8 relative bg-background-dark">
+<div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+<!-- Left: Live transcript mirror -->
+<div class="flex flex-col gap-4">
+<h2 class="text-sm font-bold uppercase tracking-widest text-slate-500">Live Feed</h2>
+<div class="flex-1 bg-surface border border-border-subtle rounded-xl p-6 overflow-y-auto space-y-4 min-h-[300px]">
+<p class="text-slate-100 leading-relaxed text-base font-medium">Good afternoon everyone. Welcome to the technical review for the streaming engine integration project. We're going to start by looking at the current architecture bottlenecks.</p>
+<p class="text-slate-100 leading-relaxed text-base font-medium">I've noticed that the WebSocket connection tends to drop when the packet size exceeds 512 kilobytes. We should probably implement a chunking mechanism on the client-side buffer.</p>
+<p class="text-slate-400 leading-relaxed text-base italic">That is a valid point. If we implement dynamic resizing for the input <span class="text-slate-600">... [processing]</span></p>
+</div>
+</div>
+<!-- Right: Notes / Cheat sheet -->
+<div class="flex flex-col gap-4">
+<h2 class="text-sm font-bold uppercase tracking-widest text-slate-500">Notes</h2>
+<textarea class="flex-1 min-h-[300px] bg-surface border border-border-subtle rounded-xl p-5 text-slate-200 text-sm leading-relaxed resize-none focus:outline-none focus:border-primary/50 placeholder-slate-600 font-mono" placeholder="Your private notes here...&#10;&#10;• Key points to emphasize&#10;• Questions to ask&#10;• Terms to remember"></textarea>
+<div class="grid grid-cols-2 gap-3">
+<div class="bg-surface border border-border-subtle rounded-lg p-4">
+<p class="text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-2">Key Metrics</p>
+<ul class="space-y-1 text-xs text-slate-400">
+<li>• ASR p99 latency: <span class="text-emerald-400 font-bold">&lt;160ms</span></li>
+<li>• Translation: <span class="text-emerald-400 font-bold">~246ms/req</span></li>
+<li>• RTF: <span class="text-emerald-400 font-bold">1.0 boundary</span></li>
+<li>• GPUs: <span class="text-slate-300 font-bold">4× RTX 3070</span></li>
+</ul>
+</div>
+<div class="bg-surface border border-border-subtle rounded-lg p-4">
+<p class="text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-2">Stack</p>
+<ul class="space-y-1 text-xs text-slate-400">
+<li>• Nemotron ASR (ONNX)</li>
+<li>• EXAONE 7.8B (llama-cpp)</li>
+<li>• Triton Inference Server</li>
+<li>• Prometheus + Grafana</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+<!-- Status Bar Footer -->
+<footer class="h-10 bg-surface border-t border-border-subtle px-6 flex items-center justify-between text-slate-500 shrink-0">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+<span class="text-xs font-medium">Duration: 00:00:45</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">description</span>
+<span class="text-xs font-medium">Word Count: 124</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-bold uppercase tracking-widest">Connection: Stable</span>
+<div class="flex gap-0.5">
+<div class="w-1 h-2 bg-emerald-500 rounded-full"></div>
+<div class="w-1 h-3 bg-emerald-500 rounded-full"></div>
+<div class="w-1 h-4 bg-emerald-500 rounded-full"></div>
+</div>
+</div>
+<div class="h-4 w-px bg-border-subtle mx-2"></div>
+<span class="text-xs font-medium">Engine: Whisper-v3-Turbo</span>
+</div>
+</footer>
+</main>
+</div>
+<!-- Empty State Placeholder (Hidden by default, used when no transcript) -->
+<div class="hidden fixed inset-0 flex items-center justify-center bg-background-dark/95 z-50">
+<div class="text-center space-y-6 max-w-sm">
+<div class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto ring-8 ring-primary/5">
+<span class="material-symbols-outlined text-primary text-4xl">mic_none</span>
+</div>
+<div>
+<h2 class="text-xl font-bold text-white mb-2">Ready to Listen</h2>
+<p class="text-slate-400 text-sm leading-relaxed">Select your audio source from the sidebar and click the button to begin real-time transcription.</p>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-primary/20 transition-all">
+                Click to Start Session
+            </button>
+</div>
+</div>
+<script>
+function switchTab(name) {
+    const tabs = ['transcript', 'confidence', 'analytics', 'interview'];
+    tabs.forEach(t => {
+        const btn = document.getElementById('tab-' + t);
+        const panel = document.getElementById('panel-' + t);
+        if (t === name) {
+            panel.classList.remove('hidden');
+            panel.classList.add('flex-1');
+            if (t === 'interview') {
+                btn.style.color = '#6366f1';
+                btn.classList.add('border-b-2');
+                btn.style.borderColor = '#6366f1';
+            } else {
+                btn.classList.remove('text-slate-500', 'hover:text-slate-300');
+                btn.classList.add('text-primary', 'border-primary');
+                btn.style.borderBottomWidth = '2px';
+            }
+        } else {
+            panel.classList.add('hidden');
+            panel.classList.remove('flex-1');
+            if (t === 'interview') {
+                btn.style.color = '#0b0b0c';
+                btn.style.borderColor = 'transparent';
+            } else {
+                btn.classList.remove('text-primary', 'border-primary');
+                btn.classList.add('text-slate-500', 'hover:text-slate-300');
+                btn.style.borderBottomWidth = '';
+            }
+        }
+    });
+}
+</script>
+</body></html>
