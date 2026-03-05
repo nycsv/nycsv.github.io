@@ -345,7 +345,8 @@ function initAudioSourceToggle() {
       dom.tabTranslate.classList.toggle('hidden', isBoth);
       dom.tabInterpreter.classList.toggle('hidden', isBoth);
       dom.tabMultilingual.classList.toggle('hidden', isBoth);
-      // Interview tabs stay hidden regardless (they have their own visibility logic)
+      dom.tabInterview.classList.toggle('hidden', isBoth);
+      dom.tabInterview2.classList.toggle('hidden', isBoth);
 
       if (isBoth) {
         setActiveTab('conversation');

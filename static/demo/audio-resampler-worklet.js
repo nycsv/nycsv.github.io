@@ -20,8 +20,8 @@ class ResamplerProcessor extends AudioWorkletProcessor {
     // Resampling ratio: number of input samples per output sample
     this.ratio = this.inputSampleRate / this.outputSampleRate;
 
-    // Output buffer accumulator (100ms = 1600 samples at 16kHz)
-    this.targetSamples = Math.floor(this.outputSampleRate * 0.1); // 100ms
+    // Output buffer accumulator (160ms = 2560 samples at 16kHz)
+    this.targetSamples = Math.floor(this.outputSampleRate * 0.16); // 160ms
     this.outputBuffer = new Float32Array(this.targetSamples);
     this.outputIndex = 0;
 
