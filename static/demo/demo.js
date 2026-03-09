@@ -6,7 +6,7 @@
  */
 
 // Server URL — update to match your deployment
-const SERVER_URL = 'wss://localhost/ws';
+const SERVER_URL = 'wss://ai.eesungkim.com/ws';
 
 // Pending summarization callback (resolved when server replies)
 let summarizeCallback = null;
