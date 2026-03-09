@@ -1129,11 +1129,9 @@ function handlePartialText(data) {
       dom.multilingualLangBadge.classList.remove('hidden');
     }
     updateMultilingualTranscript();
-
-    if (groupB._partialFlushTimer) clearTimeout(groupB._partialFlushTimer);
-    if (groupB.partialText) {
-      groupB._partialFlushTimer = setTimeout(flushGroupBPartial, 2000);
-    }
+    // No flush timer for groupB: the server manages the committed/partial boundary.
+    // Client-side flushing causes duplication because the server later re-sends the
+    // same text as a committed delta.
   } else if (currentTabGroup === 'groupC') {
     groupC.partialText = data.text || '';
     updateParakeetTranscript();
@@ -1770,11 +1768,8 @@ function flushGroupAPartial() {
 
 function flushGroupBPartial() {
   groupB._partialFlushTimer = null;
-  if (!groupB.partialText) return;
-  groupB._rawCommitted += ' ' + groupB.partialText;
-  groupB.committedText = groupB_computeCommittedText();
-  groupB.partialText = '';
-  updateMultilingualTranscript();
+  // groupB partial is managed server-side; do not modify _rawCommitted here.
+  // This function is intentionally a no-op to avoid duplicate text bugs.
 }
 
 /**
