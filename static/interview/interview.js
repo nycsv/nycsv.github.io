@@ -1,7 +1,7 @@
 /**
  * Interview Assistant Module
  *
- * Reads the live ASR transcript and uses the Claude API to analyze coding /
+ * Reads the live ASR transcript and uses an AI API to analyze coding /
  * ML-design interview problems, then renders structured solutions in the
  * right-hand panel.
  */
@@ -12,9 +12,9 @@
   // ──────────────────────────────────────────────
   // Constants
   // ──────────────────────────────────────────────
-  const CLAUDE_API_URL = 'https://api.anthropic.com/v1/messages';
-  const ANTHROPIC_VERSION = '2023-06-01';
-  const LS_API_KEY = 'interview_anthropic_api_key';
+  const AI_API_URL = 'https://api.anthropic.com/v1/messages';
+  const API_VERSION = '2023-06-01';
+  const LS_API_KEY = 'interview_api_key';
 
   const SYSTEM_PROMPT = `You are an expert coding interview assistant specializing in algorithms, data structures, and ML system design. \
 When given a transcript of an interview question, extract and solve it.
@@ -139,10 +139,10 @@ Rules:
     showThinking();
 
     try {
-      const result = await callClaude(apiKey, el.model.value, transcript);
+      const result = await callAI(apiKey, el.model.value, transcript);
       renderResult(result);
     } catch (err) {
-      showError(err.message || 'Unknown error calling Claude API.');
+      showError(err.message || 'Unknown error calling AI API.');
     } finally {
       setAnalyzing(false);
     }
@@ -156,9 +156,9 @@ Rules:
   }
 
   // ──────────────────────────────────────────────
-  // Claude API call
+  // AI API call
   // ──────────────────────────────────────────────
-  async function callClaude(apiKey, model, transcript) {
+  async function callAI(apiKey, model, transcript) {
     const userMessage = `Here is the live transcript of an interview session. Please analyze it and extract the coding/ML problem being asked, then solve it:\n\n---\n${transcript}\n---`;
 
     const body = {
@@ -170,12 +170,12 @@ Rules:
       ],
     };
 
-    const response = await fetch(CLAUDE_API_URL, {
+    const response = await fetch(AI_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
-        'anthropic-version': ANTHROPIC_VERSION,
+        'anthropic-version': API_VERSION,
         'anthropic-dangerous-direct-browser-access': 'true',
       },
       body: JSON.stringify(body),
@@ -193,14 +193,14 @@ Rules:
     const data = await response.json();
     const rawText = data?.content?.[0]?.text || '';
 
-    // Parse JSON from Claude's response
+    // Parse JSON from AI response
     let parsed;
     try {
       // Strip any accidental markdown fences
       const clean = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
       parsed = JSON.parse(clean);
     } catch (_) {
-      throw new Error('Failed to parse Claude response as JSON. Raw response:\n' + rawText.slice(0, 300));
+      throw new Error('Failed to parse AI response as JSON. Raw response:\n' + rawText.slice(0, 300));
     }
 
     return parsed;

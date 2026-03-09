@@ -170,9 +170,9 @@ Per-Session State Machine
 
 | File | Description |
 |---|---|
-| `/home/eesung/sourcecode/qwen3_asr_triton/triton/model_repository/qwen3_asr_streaming/1/model.py` | Triton Python Backend — Phase 1 streaming |
-| `/home/eesung/sourcecode/qwen3_asr_triton/server/qwen3_asr_server.py` | FastAPI wrapper over same Transformers model |
-| `/home/eesung/sourcecode/qwen3_asr_triton/server/test_phase2.py` | Planned Phase 2 incremental encoder caching |
-| `/home/eesung/sourcecode/qwen3_asr_triton/TECHNICAL_COMPARISON.md` | Triton project's own benchmark documentation |
-| `/home/eesung/sourcecode/qwen3_asr_triton/server/benchmark_comparison.py` | Benchmark runner: Transformers vs vLLM |
-| `/home/eesung/sourcecode/production_asr/speechLLM/qwen_asr_server.py` | vLLM-based streaming server (speechLLM) |
+| `/home/user/sourcecode/qwen3_asr_triton/triton/model_repository/qwen3_asr_streaming/1/model.py` | Triton Python Backend — Phase 1 streaming |
+| `/home/user/sourcecode/qwen3_asr_triton/server/qwen3_asr_server.py` | FastAPI wrapper over same Transformers model |
+| `/home/user/sourcecode/qwen3_asr_triton/server/test_phase2.py` | Planned Phase 2 incremental encoder caching |
+| `/home/user/sourcecode/qwen3_asr_triton/TECHNICAL_COMPARISON.md` | Triton project's own benchmark documentation |
+| `/home/user/sourcecode/qwen3_asr_triton/server/benchmark_comparison.py` | Benchmark runner: Transformers vs vLLM |
+| `/home/user/sourcecode/production_asr/speechLLM/qwen_asr_server.py` | vLLM-based streaming server (speechLLM) |

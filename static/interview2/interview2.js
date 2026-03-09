@@ -2,7 +2,7 @@
  * Interview2 Assistant Module
  *
  * Same output format as the Interview tab, but calls a local Qwen2.5-Coder
- * server instead of the Claude API.
+ * server instead of the external AI API.
  */
 
 (function () {
@@ -11,7 +11,7 @@
   // ──────────────────────────────────────────────
   // Constants
   // ──────────────────────────────────────────────
-  const DEFAULT_SERVER_URL = 'https://ai.eesungkim.com';
+  const DEFAULT_SERVER_URL = 'https://localhost';
   const LS_SERVER_URL = 'interview2_server_url';
 
   // ──────────────────────────────────────────────
