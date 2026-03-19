@@ -1,0 +1,39 @@
+name: Astro Build & Deploy
+
+on:
+  push:
+    branches:
+      - astro-version
+  pull_request:
+    branches:
+      - astro-version
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build site
+      run: npm run build
+
+    - name: Deploy to GitHub Pages
+      if: github.event_name == 'push' && github.ref == 'refs/heads/astro-version'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./dist
+        destination_dir: astro

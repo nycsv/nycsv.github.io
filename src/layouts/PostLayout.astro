@@ -1,0 +1,43 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+
+export interface Props {
+  title: string;
+  date?: Date;
+  tags?: string[];
+}
+
+const { title, date, tags } = Astro.props;
+
+const readableDate = date?.toLocaleDateString("en-US", {
+  year: "numeric",
+  month: "long",
+  day: "numeric"
+});
+---
+
+<BaseLayout title={title}>
+  <article class="post">
+    <header class="post-header">
+      <h1>{title}</h1>
+      {date && (
+        <time datetime={date.toISOString().split('T')[0]} class="post-date">
+          {readableDate}
+        </time>
+      )}
+      {tags && tags.length > 0 && (
+        <div class="post-tags">
+          {tags.map((tag) => (
+            <a href={`/tags/${tag.toLowerCase()}/`} class="tag">
+              #{tag}
+            </a>
+          ))}
+        </div>
+      )}
+    </header>
+
+    <div class="post-content">
+      <slot />
+    </div>
+  </article>
+</BaseLayout>

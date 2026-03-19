@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html class="dark" lang="{{ .Page.Lang }}">
+<html class="dark" lang="en">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ .Title }} - {{ .Site.Title }}</title>
+  <title>BT Studio - Log</title>
   <meta name="description" content="BT Studio - Real-time speech recognition, translation & interpretation">
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
@@ -12,7 +12,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
     rel="stylesheet">
-  <link rel="icon" type="image/x-icon" href="{{ .Site.BaseURL }}/favicon.ico">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <script>
     tailwind.config = {
       darkMode: "class",
@@ -34,12 +34,12 @@
       },
     }
   </script>
-  <link rel="stylesheet" href="{{ .Site.BaseURL }}/demo/demo.css">
-  <link rel="stylesheet" href="{{ .Site.BaseURL }}/interview/interview.css">
+  <link rel="stylesheet" href="/demo/demo.css">
+  <link rel="stylesheet" href="/interview/interview.css">
 </head>
 
 <body class="bg-background-dark font-display text-slate-100 antialiased overflow-hidden"
-  data-base="{{ .Site.BaseURL }}">
+  data-base="">
 
   <div class="flex h-dvh w-full overflow-hidden">
 
@@ -59,7 +59,7 @@
         <div class="flex items-center gap-3 md:gap-4">
 
           <!-- Brand mark -->
-          <a href="{{ .Site.BaseURL }}/demo" class="hidden md:flex items-center gap-2.5 pr-4 border-r border-border-subtle hover:opacity-80 transition-opacity">
+          <a href="/demo" class="hidden md:flex items-center gap-2.5 pr-4 border-r border-border-subtle hover:opacity-80 transition-opacity">
             <div
               class="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shadow-lg shadow-primary/20">
               <span class="text-white text-sm font-extrabold tracking-tight">BT</span>
@@ -691,9 +691,9 @@
   </script>
 
   <!-- Main application script -->
-  <script src="{{ .Site.BaseURL }}/demo/demo.js?v={{ now.Unix }}"></script>
+  <script src="/demo/demo.js?v=1"></script>
   <!-- Interview assistant script -->
-  <script src="{{ .Site.BaseURL }}/interview/interview.js?v={{ now.Unix }}"></script>
+  <script src="/interview/interview.js?v=1"></script>
 
 
 </body>

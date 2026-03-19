@@ -1,0 +1,85 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+const allPosts = await getCollection("posts");
+const allReviews = (await getCollection("reviews")).filter((r) => r.slug !== "_index");
+const allEntries = [...allPosts.map(p => ({
+  title: p.data.title,
+  url: `/posts/${p.slug}/`,
+  tags: p.data.tags || [],
+  date: p.data.date,
+})), ...allReviews.map(r => ({
+  title: r.data.title,
+  url: `/reviews/${r.slug}/`,
+  tags: r.data.tags || [],
+  date: r.data.date,
+}))].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+---
+
+<BaseLayout title="Search">
+  <div class="search-page">
+    <input
+      type="text"
+      id="search-input"
+      placeholder="Search posts and reviews..."
+      autofocus
+    />
+    <ul id="search-results" class="entry-list">
+      {allEntries.map((entry) => (
+        <li class="entry-item search-entry" data-title={entry.title.toLowerCase()} data-tags={entry.tags.join(' ').toLowerCase()}>
+          <a href={entry.url} class="entry-link">
+            <span class="entry-title">{entry.title}</span>
+            <time class="entry-date">
+              {new Date(entry.date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+            </time>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</BaseLayout>
+
+<style>
+  .search-page {
+    padding-top: 2rem;
+  }
+
+  #search-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-family: var(--sans);
+    font-size: 1rem;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--text);
+    outline: none;
+    margin-bottom: 1.5rem;
+    transition: border-color 0.2s;
+  }
+
+  #search-input:focus {
+    border-color: var(--accent);
+  }
+
+  #search-input::placeholder {
+    color: var(--text-faint);
+  }
+</style>
+
+<script>
+  const input = document.getElementById('search-input') as HTMLInputElement;
+  const items = document.querySelectorAll('.search-entry');
+
+  input?.addEventListener('input', () => {
+    const q = input.value.toLowerCase().trim();
+    items.forEach((item) => {
+      const el = item as HTMLElement;
+      const title = el.dataset.title || '';
+      const tags = el.dataset.tags || '';
+      const match = !q || title.includes(q) || tags.includes(q);
+      el.style.display = match ? '' : 'none';
+    });
+  });
+</script>

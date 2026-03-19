@@ -1,0 +1,39 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+const reviews = (await getCollection("reviews"))
+  .filter((r) => r.slug !== "_index")
+  .sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime());
+
+const formatDate = (date: Date) => {
+  const d = new Date(date);
+  return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+};
+
+const isoDate = (date: Date) => new Date(date).toISOString().split('T')[0];
+---
+
+<BaseLayout title="Review Papers">
+  <section>
+    <ul class="entry-list">
+      {reviews.map((review) => (
+        <li class="entry-item">
+          <a href={`/reviews/${review.slug}/`} class="entry-link">
+            <span class="entry-title">{review.data.title}</span>
+            <time datetime={isoDate(review.data.date)} class="entry-date">
+              {formatDate(review.data.date)}
+            </time>
+          </a>
+          {review.data.tags && review.data.tags.length > 0 && (
+            <div class="entry-tags">
+              {review.data.tags.slice(0, 5).map((tag: string) => (
+                <span class="entry-tag">{tag}</span>
+              ))}
+            </div>
+          )}
+        </li>
+      ))}
+    </ul>
+  </section>
+</BaseLayout>
