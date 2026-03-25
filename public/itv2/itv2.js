@@ -336,6 +336,9 @@
         </div>
       </div>
 
+      <!-- Clarify Questions -->
+      ${renderList(r.clarify_questions, 'Clarify Questions', 'help_outline', 'text-sky-400', 'itv-insights-list')}
+
       <!-- Approach -->
       <div class="itv-section">
         <div class="itv-section-header">
@@ -346,6 +349,9 @@
           ${formatApproach(r.approach || '')}
         </div>
       </div>
+
+      <!-- Key Insights -->
+      ${renderList(r.key_insights, 'Key Insights', 'tips_and_updates', 'text-violet-400', 'itv-insights-list')}
 
       <!-- Solution Code -->
       ${renderSolutionCode(r)}
@@ -369,9 +375,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Key Insights -->
-      ${renderList(r.key_insights, 'Key Insights', 'tips_and_updates', 'text-violet-400', 'itv-insights-list')}
 
       <!-- Follow-up Questions -->
       ${renderList(r.follow_ups, 'Follow-up Questions', 'quiz', 'text-slate-400', 'itv-followup-list')}
