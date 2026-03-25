@@ -412,35 +412,39 @@
 
   function renderSolutionCode(r) {
     const lang = r.language || 'python';
-    const labels = ['[Brute Force]', '[Improved]'];
-    const keys = ['solution_code1', 'solution_code2', 'solution_code'];
-    const blocks = [];
 
-    keys.forEach((key, idx) => {
-      if (!r[key]) return;
-      const label = idx < 2 ? labels[idx] : '';
-      const title = label
-        ? `Solution ${label} — ${escapeHtml(lang)}`
-        : `Solution — ${escapeHtml(lang)}`;
-      blocks.push(`
+    // Side-by-side when both solution_code1 and solution_code2 exist
+    if (r.solution_code1 && r.solution_code2) {
+      return `
         <div class="itv-section">
           <div class="itv-section-header">
             <span class="material-symbols-outlined itv-section-icon text-emerald-400">code</span>
-            <span class="itv-section-title">${title}</span>
+            <span class="itv-section-title">Solution — ${escapeHtml(lang)}</span>
           </div>
-          <div class="itv-section-body" style="padding:0;">
-            ${renderCodeBlock(r[key], lang)}
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(100,116,139,0.15);">
+            <div>
+              <div style="padding:6px 10px;background:#161b22;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6e7681;border-bottom:1px solid rgba(255,255,255,0.06);">Brute Force</div>
+              ${renderCodeBlock(r.solution_code1, lang)}
+            </div>
+            <div>
+              <div style="padding:6px 10px;background:#161b22;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#34d399;border-bottom:1px solid rgba(255,255,255,0.06);">Improved</div>
+              ${renderCodeBlock(r.solution_code2, lang)}
+            </div>
           </div>
-        </div>`);
-    });
+        </div>`;
+    }
 
-    return blocks.length ? blocks.join('') : `
+    // Single solution fallback
+    const code = r.solution_code || r.solution_code1 || '';
+    return `
       <div class="itv-section">
         <div class="itv-section-header">
           <span class="material-symbols-outlined itv-section-icon text-emerald-400">code</span>
           <span class="itv-section-title">Solution — ${escapeHtml(lang)}</span>
         </div>
-        <div class="itv-section-body" style="padding:0;"></div>
+        <div class="itv-section-body" style="padding:0;">
+          ${renderCodeBlock(code, lang)}
+        </div>
       </div>`;
   }
 
