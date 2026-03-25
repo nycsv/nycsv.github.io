@@ -12,7 +12,7 @@
   // Constants
   // ──────────────────────────────────────────────
   const LS_AUTO_ENABLED   = 'itv2_auto_enabled';
-  const AUTO_INTERVAL_SEC = 10;
+  const AUTO_INTERVAL_SEC = 20;
 
   // Derive gateway HTTP URL from the WebSocket SERVER_URL defined in demo.js
   // e.g. "wss://ai.eesungkim.com/ws" → "https://ai.eesungkim.com"
@@ -285,7 +285,11 @@
   function showThinking() {
     el.placeholder.classList.add('hidden');
     el.thinking.classList.remove('hidden');
-    el.responseContent.classList.add('hidden');
+    el.thinking.classList.add('flex');
+    // Keep previous result visible while new result loads
+    if (el.responseContent.innerHTML.trim() === '') {
+      el.responseContent.classList.add('hidden');
+    }
   }
 
   function clearResults() {
@@ -301,6 +305,7 @@
   // ──────────────────────────────────────────────
   function showError(msg) {
     el.thinking.classList.add('hidden');
+    el.thinking.classList.remove('flex');
     el.placeholder.classList.add('hidden');
     el.responseContent.innerHTML = `<div class="itv-error">${escapeHtml(msg)}</div>`;
     el.responseContent.classList.remove('hidden');
@@ -311,6 +316,7 @@
   // ──────────────────────────────────────────────
   function renderResult(r) {
     el.thinking.classList.add('hidden');
+    el.thinking.classList.remove('flex');
     el.placeholder.classList.add('hidden');
 
     const badgeClass = getBadgeClass(r.problem_type);
