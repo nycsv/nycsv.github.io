@@ -337,7 +337,7 @@
       </div>
 
       <!-- Clarify Questions -->
-      ${renderList(r.clarify_questions, 'Clarify Questions', 'help_outline', 'text-sky-400', 'itv-insights-list')}
+      ${renderList(r.clarify_questions || r.clarifying_questions, 'Clarify Questions', 'help_outline', 'text-sky-400', 'itv-insights-list')}
 
       <!-- Approach -->
       <div class="itv-section">
