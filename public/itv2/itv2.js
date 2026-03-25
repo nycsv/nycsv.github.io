@@ -11,7 +11,7 @@
   // ──────────────────────────────────────────────
   // Constants
   // ──────────────────────────────────────────────
-  const DEFAULT_SERVER_URL  = 'https://localhost';
+  const DEFAULT_SERVER_URL  = 'http://localhost:8200';
   const LS_SERVER_URL       = 'itv2_server_url';
   const LS_AUTO_ENABLED     = 'itv2_auto_enabled';
   const AUTO_INTERVAL_SEC   = 10;
