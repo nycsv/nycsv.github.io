@@ -448,6 +448,14 @@
                 <div class="h-4 w-px bg-border-subtle hidden sm:block"></div>
                 <input id="itv2-server-url" type="text" placeholder="Server URL (e.g. https://localhost)"
                   class="flex-1 min-w-0 bg-background-dark/80 border border-border-subtle rounded-lg px-3 py-1.5 text-xs text-slate-300 placeholder-slate-600 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 font-mono transition-all" />
+                <!-- Auto toggle + countdown -->
+                <button id="itv2-auto-btn" title="Toggle auto-analyze every 10s"
+                  class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-primary hover:text-primary-light hover:bg-primary/10 transition-all shrink-0 border border-primary/30">
+                  <span class="material-symbols-outlined text-[13px]">autorenew</span>
+                  <span id="itv2-auto-label">Auto</span>
+                </button>
+                <span id="itv2-countdown"
+                  class="text-[11px] font-mono font-bold text-primary/70 w-6 text-center shrink-0"></span>
                 <button id="itv2-analyze-btn"
                   class="btn-primary flex items-center gap-1.5 text-white text-xs font-bold px-4 py-1.5 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed shrink-0">
                   <span class="material-symbols-outlined text-[14px]" id="itv2-analyze-icon">psychology</span>

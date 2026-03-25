@@ -1,11 +1,20 @@
+/**
+ * Interview2 Assistant Module
+ *
+ * Calls a local Qwen2.5-Coder server with the live ASR transcript.
+ * Auto-analyzes every 10 seconds when the tab is active and transcript changed.
+ */
+
 (function () {
   'use strict';
 
   // ──────────────────────────────────────────────
   // Constants
   // ──────────────────────────────────────────────
-  const DEFAULT_SERVER_URL = 'https://localhost';
-  const LS_SERVER_URL = 'itv2_server_url';
+  const DEFAULT_SERVER_URL  = 'https://localhost';
+  const LS_SERVER_URL       = 'itv2_server_url';
+  const LS_AUTO_ENABLED     = 'itv2_auto_enabled';
+  const AUTO_INTERVAL_SEC   = 10;
 
   // ──────────────────────────────────────────────
   // DOM refs (populated on init)
@@ -15,41 +24,161 @@
   // ──────────────────────────────────────────────
   // State
   // ──────────────────────────────────────────────
-  let analyzing = false;
+  let analyzing            = false;
+  let autoEnabled          = true;
+  let countdownSec         = AUTO_INTERVAL_SEC;
+  let countdownTimer       = null;      // setInterval handle (1s tick)
+  let lastAnalyzedText     = '';
+  let tabVisible           = false;
 
   // ──────────────────────────────────────────────
-  // Init (called after DOM is ready)
+  // Init
   // ──────────────────────────────────────────────
   function init() {
     el = {
-      serverUrl:       document.getElementById('itv2-server-url'),
-      analyzeBtn:      document.getElementById('itv2-analyze-btn'),
-      analyzeIcon:     document.getElementById('itv2-analyze-icon'),
-      analyzeLabel:    document.getElementById('itv2-analyze-label'),
-      clearBtn:        document.getElementById('itv2-clear-btn'),
-      placeholder:     document.getElementById('itv2-placeholder'),
-      thinking:        document.getElementById('itv2-thinking'),
-      responseContent: document.getElementById('itv2-response-content'),
-      transcriptText:  document.getElementById('itv2-transcript-text'),
-      transcriptPart:  document.getElementById('itv2-transcript-partial'),
-      transcriptPh:    document.getElementById('itv2-transcript-placeholder'),
-      transcriptScroll:document.getElementById('itv2-transcript-scroll'),
+      serverUrl:        document.getElementById('itv2-server-url'),
+      analyzeBtn:       document.getElementById('itv2-analyze-btn'),
+      analyzeIcon:      document.getElementById('itv2-analyze-icon'),
+      analyzeLabel:     document.getElementById('itv2-analyze-label'),
+      clearBtn:         document.getElementById('itv2-clear-btn'),
+      autoBtn:          document.getElementById('itv2-auto-btn'),
+      autoLabel:        document.getElementById('itv2-auto-label'),
+      countdown:        document.getElementById('itv2-countdown'),
+      placeholder:      document.getElementById('itv2-placeholder'),
+      thinking:         document.getElementById('itv2-thinking'),
+      responseContent:  document.getElementById('itv2-response-content'),
+      transcriptText:   document.getElementById('itv2-transcript-text'),
+      transcriptPart:   document.getElementById('itv2-transcript-partial'),
+      transcriptPh:     document.getElementById('itv2-transcript-placeholder'),
+      transcriptScroll: document.getElementById('itv2-transcript-scroll'),
+      itv2Box:          document.getElementById('itv2-box'),
     };
 
-    // Restore saved server URL
-    const saved = localStorage.getItem(LS_SERVER_URL);
-    if (saved) el.serverUrl.value = saved;
-    else el.serverUrl.value = DEFAULT_SERVER_URL;
-
-    // Save URL on change
+    // Restore saved settings
+    const savedUrl  = localStorage.getItem(LS_SERVER_URL);
+    el.serverUrl.value = savedUrl || DEFAULT_SERVER_URL;
     el.serverUrl.addEventListener('input', () => {
       localStorage.setItem(LS_SERVER_URL, el.serverUrl.value.trim());
     });
 
-    el.analyzeBtn.addEventListener('click', handleAnalyze);
-    el.clearBtn.addEventListener('click', clearResults);
+    const savedAuto = localStorage.getItem(LS_AUTO_ENABLED);
+    autoEnabled = savedAuto === null ? true : savedAuto === 'true';
+    updateAutoBtn();
 
+    el.analyzeBtn.addEventListener('click', () => handleAnalyze(true));
+    el.clearBtn.addEventListener('click', clearResults);
+    el.autoBtn.addEventListener('click', toggleAuto);
+
+    // Mirror live transcript
     startTranscriptMirror();
+
+    // Watch tab visibility (MutationObserver on itv2-box class changes)
+    watchTabVisibility();
+  }
+
+  // ──────────────────────────────────────────────
+  // Tab visibility watcher
+  // ──────────────────────────────────────────────
+  function watchTabVisibility() {
+    if (!el.itv2Box) return;
+
+    const observer = new MutationObserver(() => {
+      const hidden = el.itv2Box.classList.contains('hidden');
+      if (!hidden && !tabVisible) {
+        tabVisible = true;
+        onTabActivated();
+      } else if (hidden && tabVisible) {
+        tabVisible = false;
+        onTabDeactivated();
+      }
+    });
+
+    observer.observe(el.itv2Box, { attributes: true, attributeFilter: ['class'] });
+
+    // Initial state
+    tabVisible = !el.itv2Box.classList.contains('hidden');
+    if (tabVisible) onTabActivated();
+  }
+
+  function onTabActivated() {
+    if (autoEnabled) startCountdown();
+  }
+
+  function onTabDeactivated() {
+    stopCountdown();
+  }
+
+  // ──────────────────────────────────────────────
+  // Auto-analyze countdown
+  // ──────────────────────────────────────────────
+  function startCountdown() {
+    stopCountdown();
+    countdownSec = AUTO_INTERVAL_SEC;
+    updateCountdownDisplay();
+    countdownTimer = setInterval(onCountdownTick, 1000);
+  }
+
+  function stopCountdown() {
+    if (countdownTimer !== null) {
+      clearInterval(countdownTimer);
+      countdownTimer = null;
+    }
+    if (el.countdown) el.countdown.textContent = '';
+  }
+
+  function onCountdownTick() {
+    countdownSec -= 1;
+    updateCountdownDisplay();
+
+    if (countdownSec <= 0) {
+      countdownSec = AUTO_INTERVAL_SEC;
+      updateCountdownDisplay();
+      triggerAutoAnalyze();
+    }
+  }
+
+  function updateCountdownDisplay() {
+    if (!el.countdown) return;
+    el.countdown.textContent = autoEnabled ? `${countdownSec}s` : '';
+  }
+
+  function triggerAutoAnalyze() {
+    if (analyzing) return;
+
+    const text = getFullTranscript();
+    if (!text.trim()) return;
+    if (text === lastAnalyzedText) return; // no change, skip
+
+    handleAnalyze(false);
+  }
+
+  // ──────────────────────────────────────────────
+  // Auto toggle
+  // ──────────────────────────────────────────────
+  function toggleAuto() {
+    autoEnabled = !autoEnabled;
+    localStorage.setItem(LS_AUTO_ENABLED, String(autoEnabled));
+    updateAutoBtn();
+
+    if (autoEnabled && tabVisible) {
+      startCountdown();
+    } else {
+      stopCountdown();
+    }
+  }
+
+  function updateAutoBtn() {
+    if (!el.autoBtn || !el.autoLabel) return;
+    if (autoEnabled) {
+      el.autoBtn.classList.remove('text-slate-600', 'hover:text-slate-400');
+      el.autoBtn.classList.add('text-primary', 'hover:text-primary-light');
+      el.autoLabel.textContent = 'Auto';
+    } else {
+      el.autoBtn.classList.remove('text-primary', 'hover:text-primary-light');
+      el.autoBtn.classList.add('text-slate-600', 'hover:text-slate-400');
+      el.autoLabel.textContent = 'Auto';
+    }
+    updateCountdownDisplay();
   }
 
   // ──────────────────────────────────────────────
@@ -58,7 +187,6 @@
   function startTranscriptMirror() {
     const committed = document.getElementById('transcript-committed');
     const partial   = document.getElementById('transcript-partial');
-
     if (!committed || !partial) return;
 
     const observer = new MutationObserver(() => {
@@ -68,25 +196,21 @@
     observer.observe(committed, { characterData: true, childList: true, subtree: true });
     observer.observe(partial,   { characterData: true, childList: true, subtree: true });
 
-    // Initial sync
     syncTranscript(committed.textContent, partial.textContent);
   }
 
   function syncTranscript(committed, partial) {
     const hasContent = committed.trim() || partial.trim();
-
     el.transcriptText.textContent = committed;
     el.transcriptPart.textContent = partial;
     el.transcriptPh.classList.toggle('hidden', !!hasContent);
-
-    // Auto-scroll to bottom
     el.transcriptScroll.scrollTop = el.transcriptScroll.scrollHeight;
   }
 
   // ──────────────────────────────────────────────
-  // Analyze handler
+  // Analyze
   // ──────────────────────────────────────────────
-  async function handleAnalyze() {
+  async function handleAnalyze(resetCountdown) {
     if (analyzing) return;
 
     const serverUrl = (el.serverUrl.value || '').trim();
@@ -97,12 +221,13 @@
 
     const transcript = getFullTranscript();
     if (!transcript.trim()) {
-      showError('No transcript yet. Start recording and describe the problem first.');
+      showError('No transcript yet. Start recording first.');
       return;
     }
 
     setAnalyzing(true);
     showThinking();
+    lastAnalyzedText = transcript;
 
     try {
       const result = await callLocalServer(serverUrl, transcript);
@@ -111,6 +236,10 @@
       showError(err.message || 'Unknown error calling local server.');
     } finally {
       setAnalyzing(false);
+      // Reset countdown after manual or auto analysis
+      if (autoEnabled && tabVisible && resetCountdown !== false) {
+        startCountdown();
+      }
     }
   }
 
@@ -121,19 +250,20 @@
             (partial   ? partial.textContent   : '')).trim();
   }
 
+  // ──────────────────────────────────────────────
+  // Local server API call
+  // ──────────────────────────────────────────────
   async function callLocalServer(serverUrl, transcript) {
     const url = serverUrl.replace(/\/+$/, '') + '/interview';
-
-    const body = {
-      transcript: transcript,
-      max_new_tokens: 4096,
-      temperature: 0.7,
-    };
 
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        transcript:     transcript,
+        max_new_tokens: 4096,
+        temperature:    0.7,
+      }),
     });
 
     if (!response.ok) {
@@ -169,6 +299,7 @@
     el.responseContent.classList.add('hidden');
     el.thinking.classList.add('hidden');
     el.placeholder.classList.remove('hidden');
+    lastAnalyzedText = '';
   }
 
   // ──────────────────────────────────────────────
@@ -181,6 +312,9 @@
     el.responseContent.classList.remove('hidden');
   }
 
+  // ──────────────────────────────────────────────
+  // Result rendering
+  // ──────────────────────────────────────────────
   function renderResult(r) {
     el.thinking.classList.add('hidden');
     el.placeholder.classList.add('hidden');
@@ -254,7 +388,7 @@
     el.responseContent.innerHTML = html;
     el.responseContent.classList.remove('hidden');
 
-    // Wire up copy buttons for code blocks
+    // Wire up copy buttons
     el.responseContent.querySelectorAll('.itv-code-copy-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const pre = btn.closest('.itv-code-block').querySelector('pre');
@@ -265,7 +399,6 @@
       });
     });
 
-    // Scroll response to top
     el.responseContent.parentElement.scrollTop = 0;
   }
 
@@ -301,6 +434,10 @@
     `;
   }
 
+  // ──────────────────────────────────────────────
+  // Syntax highlighter
+  // ──────────────────────────────────────────────
+
   const LANG_KEYWORDS = {
     python: {
       kw: new Set('def,return,if,elif,else,for,while,in,not,and,or,import,from,class,pass,break,continue,yield,lambda,with,as,try,except,finally,raise,None,True,False,self,is,del,global,nonlocal,assert'.split(',')),
@@ -323,17 +460,12 @@
     const langDef = LANG_KEYWORDS[lang] || {};
     const kwSet = langDef.kw || new Set();
     const biSet = langDef.bi || new Set();
-
     const parts = [];
-    let match;
-    let lastIndex = 0;
+    let match, lastIndex = 0;
 
     TOKEN_RE.lastIndex = 0;
-
     while ((match = TOKEN_RE.exec(code)) !== null) {
-      if (match.index > lastIndex) {
-        parts.push(escapeHtml(code.slice(lastIndex, match.index)));
-      }
+      if (match.index > lastIndex) parts.push(escapeHtml(code.slice(lastIndex, match.index)));
       lastIndex = TOKEN_RE.lastIndex;
 
       const tok = match[0];
@@ -352,13 +484,9 @@
       } else if (first === '@') {
         parts.push('<span class="sh-decorator">' + escapeHtml(tok) + '</span>');
       } else if (/^[a-zA-Z_]/.test(first)) {
-        if (kwSet.has(tok)) {
-          parts.push('<span class="sh-keyword">' + escapeHtml(tok) + '</span>');
-        } else if (biSet.has(tok)) {
-          parts.push('<span class="sh-builtin">' + escapeHtml(tok) + '</span>');
-        } else {
-          parts.push(escapeHtml(tok));
-        }
+        if (kwSet.has(tok))      parts.push('<span class="sh-keyword">' + escapeHtml(tok) + '</span>');
+        else if (biSet.has(tok)) parts.push('<span class="sh-builtin">'  + escapeHtml(tok) + '</span>');
+        else                     parts.push(escapeHtml(tok));
       } else if (/^\d/.test(first)) {
         parts.push('<span class="sh-number">' + escapeHtml(tok) + '</span>');
       } else {
@@ -366,10 +494,7 @@
       }
     }
 
-    if (lastIndex < code.length) {
-      parts.push(escapeHtml(code.slice(lastIndex)));
-    }
-
+    if (lastIndex < code.length) parts.push(escapeHtml(code.slice(lastIndex)));
     return parts.join('');
   }
 
