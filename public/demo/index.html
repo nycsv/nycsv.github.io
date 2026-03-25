@@ -139,6 +139,9 @@
               class="tab-btn px-4 py-3 text-xs font-bold transition-colors hidden"
               style="color: rgba(17,17,19,0.4);">
               Interview</button>
+            <button id="tab-itv2"
+              class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors">
+              Interview2</button>
             <button id="tab-parakeet"
               class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors hidden">Parakeet</button>
             <button id="tab-conversation"
@@ -403,6 +406,86 @@
                   <p class="text-slate-500 text-xs font-medium">Analyzing problem...</p>
                 </div>
                 <div id="interview-response-content" class="hidden space-y-4"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── Interview2 Panel ─── -->
+        <div id="itv2-box" class="flex-1 overflow-hidden hidden">
+          <div class="h-full flex">
+            <!-- Left: Live Transcript Mirror -->
+            <div class="interview-transcript-pane flex flex-col border-r border-border-subtle/30">
+              <div
+                class="flex items-center justify-between px-4 py-2.5 border-b border-border-subtle/30 shrink-0 bg-surface/30">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-slate-500 text-[16px]">mic</span>
+                  <span class="section-label text-slate-500">Live Transcript</span>
+                </div>
+              </div>
+              <div id="itv2-transcript-scroll" class="flex-1 overflow-y-auto px-4 py-4 custom-scrollbar">
+                <div id="itv2-transcript-text"
+                  class="text-slate-300 leading-relaxed text-sm font-medium whitespace-pre-wrap break-words"></div>
+                <div id="itv2-transcript-partial" class="text-slate-500 italic text-sm font-medium"></div>
+                <div id="itv2-transcript-placeholder"
+                  class="flex flex-col items-center justify-center h-48 text-center space-y-3">
+                  <span class="material-symbols-outlined text-primary/30 text-3xl">record_voice_over</span>
+                  <p class="text-slate-600 text-xs">Start recording to see transcript</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Local AI Assistant -->
+            <div class="flex-1 flex flex-col min-w-0">
+              <!-- Server URL + Controls bar -->
+              <div
+                class="flex items-center gap-2 px-4 py-2.5 border-b border-border-subtle/30 shrink-0 flex-wrap bg-surface/30">
+                <div class="w-6 h-6 rounded-md gradient-primary flex items-center justify-center shrink-0">
+                  <span class="material-symbols-outlined text-white text-[14px]">smart_toy</span>
+                </div>
+                <span class="section-label text-primary/60 hidden sm:inline">Local AI</span>
+                <div class="h-4 w-px bg-border-subtle hidden sm:block"></div>
+                <input id="itv2-server-url" type="text" placeholder="Server URL (e.g. https://localhost)"
+                  class="flex-1 min-w-0 bg-background-dark/80 border border-border-subtle rounded-lg px-3 py-1.5 text-xs text-slate-300 placeholder-slate-600 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 font-mono transition-all" />
+                <button id="itv2-analyze-btn"
+                  class="btn-primary flex items-center gap-1.5 text-white text-xs font-bold px-4 py-1.5 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed shrink-0">
+                  <span class="material-symbols-outlined text-[14px]" id="itv2-analyze-icon">psychology</span>
+                  <span id="itv2-analyze-label">Analyze</span>
+                </button>
+                <button id="itv2-clear-btn" title="Clear results"
+                  class="icon-btn flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:text-slate-400 hover:bg-white/5 transition-all shrink-0">
+                  <span class="material-symbols-outlined text-[15px]">delete_sweep</span>
+                </button>
+              </div>
+
+              <!-- AI Response Area -->
+              <div id="itv2-response-scroll" class="flex-1 overflow-y-auto px-4 py-4 custom-scrollbar">
+                <div id="itv2-placeholder"
+                  class="flex flex-col items-center justify-center h-full text-center space-y-5 py-12">
+                  <div
+                    class="w-20 h-20 rounded-2xl gradient-primary flex items-center justify-center shadow-xl shadow-primary/20 placeholder-ring">
+                    <span class="material-symbols-outlined text-white text-4xl">code_blocks</span>
+                  </div>
+                  <div>
+                    <p class="text-slate-300 text-sm font-semibold">Coding Interview Assistant (Local)</p>
+                    <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Enter the local server URL, then click Analyze to<br>solve the problem described in the live transcript</p>
+                  </div>
+                  <div class="flex flex-col gap-2.5 text-xs text-slate-500 mt-2">
+                    <div class="flex items-center gap-2"><span
+                        class="material-symbols-outlined text-[14px] text-primary/50">check_circle</span>Algorithm &
+                      Data Structure problems</div>
+                    <div class="flex items-center gap-2"><span
+                        class="material-symbols-outlined text-[14px] text-primary/50">check_circle</span>ML System
+                      Design questions</div>
+                    <div class="flex items-center gap-2"><span
+                        class="material-symbols-outlined text-[14px] text-primary/50">check_circle</span>Powered by local Qwen2.5-Coder</div>
+                  </div>
+                </div>
+                <div id="itv2-thinking" class="hidden flex flex-col items-center justify-center h-32 gap-3">
+                  <div class="interview-spinner"></div>
+                  <p class="text-slate-500 text-xs font-medium">Analyzing problem...</p>
+                </div>
+                <div id="itv2-response-content" class="hidden space-y-4"></div>
               </div>
             </div>
           </div>
@@ -694,6 +777,7 @@
   <script src="/demo/demo.js?v=1"></script>
   <!-- Interview assistant script -->
   <script src="/interview/interview.js?v=1"></script>
+  <script src="/itv2/itv2.js?v=1"></script>
 
 
 </body>
