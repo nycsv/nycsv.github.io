@@ -181,9 +181,6 @@
     el.responseContent.classList.remove('hidden');
   }
 
-  // ──────────────────────────────────────────────
-  // Result rendering (identical to interview tab)
-  // ──────────────────────────────────────────────
   function renderResult(r) {
     el.thinking.classList.add('hidden');
     el.placeholder.classList.add('hidden');
