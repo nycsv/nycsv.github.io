@@ -403,22 +403,9 @@
   }
 
   function renderCodeBlock(code, lang) {
-    const isPython = (lang || '').toLowerCase() === 'python';
-    const highlighted = syntaxHighlight(code.trimEnd(), lang);
-
-    let preContent;
-    if (isPython) {
-      // Add line numbers per line
-      const lines = highlighted.split('\n');
-      preContent = lines.map((line, i) =>
-        `<span class="code-line"><span class="code-line-num">${i + 1}</span>${line}</span>`
-      ).join('\n');
-    } else {
-      preContent = highlighted;
-    }
-
+    const highlighted = syntaxHighlight(code, lang);
     return `
-      <div class="itv-code-block${isPython ? ' lang-python' : ''}">
+      <div class="itv-code-block">
         <div class="itv-code-header">
           <span class="itv-code-lang">${escapeHtml(lang)}</span>
           <button class="itv-code-copy-btn">
@@ -426,7 +413,7 @@
             <span class="label">Copy</span>
           </button>
         </div>
-        <pre>${preContent}</pre>
+        <pre>${highlighted}</pre>
       </div>
     `;
   }
@@ -475,7 +462,6 @@
     const biSet = langDef.bi || new Set();
     const parts = [];
     let match, lastIndex = 0;
-    let prevKeyword = '';
 
     TOKEN_RE.lastIndex = 0;
     while ((match = TOKEN_RE.exec(code)) !== null) {
@@ -488,43 +474,23 @@
       const first3 = tok.slice(0, 3);
 
       if (first3 === '"""' || first3 === "'''") {
-        parts.push('<span class="sh-comment">' + escapeHtml(tok) + '</span>');
-        prevKeyword = '';
+        parts.push('<span class="sh-keyword">' + escapeHtml(tok) + '</span>');
       } else if ((first === '"' || first === "'") && tok.length > 1) {
         parts.push('<span class="sh-string">' + escapeHtml(tok) + '</span>');
-        prevKeyword = '';
       } else if (first2 === '/*') {
         parts.push('<span class="sh-comment">' + escapeHtml(tok) + '</span>');
-        prevKeyword = '';
       } else if (first2 === '//' || first === '#') {
         parts.push('<span class="sh-comment">' + escapeHtml(tok) + '</span>');
-        prevKeyword = '';
       } else if (first === '@') {
         parts.push('<span class="sh-decorator">' + escapeHtml(tok) + '</span>');
-        prevKeyword = '';
       } else if (/^[a-zA-Z_]/.test(first)) {
-        if (kwSet.has(tok)) {
-          parts.push('<span class="sh-keyword">' + escapeHtml(tok) + '</span>');
-          prevKeyword = tok;
-        } else if (prevKeyword === 'class' || prevKeyword === 'def') {
-          // Class name or function definition name
-          const cls = prevKeyword === 'class' ? 'sh-type' : 'sh-builtin';
-          parts.push('<span class="' + cls + '">' + escapeHtml(tok) + '</span>');
-          prevKeyword = '';
-        } else if (biSet.has(tok)) {
-          parts.push('<span class="sh-builtin">' + escapeHtml(tok) + '</span>');
-          prevKeyword = '';
-        } else {
-          parts.push(escapeHtml(tok));
-          prevKeyword = '';
-        }
+        if (kwSet.has(tok))      parts.push('<span class="sh-keyword">' + escapeHtml(tok) + '</span>');
+        else if (biSet.has(tok)) parts.push('<span class="sh-builtin">'  + escapeHtml(tok) + '</span>');
+        else                     parts.push(escapeHtml(tok));
       } else if (/^\d/.test(first)) {
         parts.push('<span class="sh-number">' + escapeHtml(tok) + '</span>');
-        prevKeyword = '';
       } else {
         parts.push(escapeHtml(tok));
-        // don't reset prevKeyword for whitespace/punctuation between class and name
-        if (tok.trim()) prevKeyword = '';
       }
     }
 
@@ -545,38 +511,9 @@
   }
 
   function formatApproach(text) {
-    const blocks = text.split(/\n\n+/);
-    return blocks.map(block => {
-      const trimmed = block.trim();
-      if (!trimmed) return '';
-
-      // Numbered list block: lines starting with "1." / "2." etc.
-      const lines = trimmed.split('\n');
-      const numberedLines = lines.filter(l => /^\s*\d+[\.\)]\s+/.test(l));
-      if (numberedLines.length >= 2) {
-        return lines.map((line, i) => {
-          const m = line.match(/^\s*(\d+)[\.\)]\s+(.*)/);
-          if (m) {
-            return `<div class="itv-approach-step"><span class="itv-approach-step-num">${m[1]}</span><span>${escapeHtml(m[2])}</span></div>`;
-          }
-          return `<p>${escapeHtml(line.trim())}</p>`;
-        }).join('');
-      }
-
-      // Bullet list block: lines starting with "-" / "*" / "•"
-      const bulletLines = lines.filter(l => /^\s*[-*•]\s+/.test(l));
-      if (bulletLines.length >= 2) {
-        return lines.map(line => {
-          const m = line.match(/^\s*[-*•]\s+(.*)/);
-          if (m) {
-            return `<div class="itv-approach-bullet"><span>${escapeHtml(m[1])}</span></div>`;
-          }
-          return `<p>${escapeHtml(line.trim())}</p>`;
-        }).join('');
-      }
-
-      return `<p>${escapeHtml(trimmed)}</p>`;
-    }).join('');
+    return text.split(/\n\n+/)
+      .map(p => `<p>${escapeHtml(p.trim())}</p>`)
+      .join('');
   }
 
   function getBadgeClass(type) {
