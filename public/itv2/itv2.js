@@ -397,15 +397,15 @@
   function renderCodeBlock(code, lang) {
     const highlighted = syntaxHighlight(code, lang);
     return `
-      <div class="itv-code-block">
-        <div class="itv-code-header">
-          <span class="itv-code-lang">${escapeHtml(lang)}</span>
-          <button class="itv-code-copy-btn">
-            <span class="material-symbols-outlined">content_copy</span>
+      <div class="itv-code-block" style="background:#0d1117;overflow:hidden;">
+        <div class="itv-code-header" style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:#161b22;border-bottom:1px solid rgba(255,255,255,0.06);">
+          <span class="itv-code-lang" style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6e7681;">${escapeHtml(lang)}</span>
+          <button class="itv-code-copy-btn" style="display:flex;align-items:center;gap:4px;background:none;border:none;cursor:pointer;color:#6e7681;font-size:11px;padding:2px 6px;border-radius:4px;">
+            <span class="material-symbols-outlined" style="font-size:13px;">content_copy</span>
             <span class="label">Copy</span>
           </button>
         </div>
-        <pre>${highlighted}</pre>
+        <pre style="margin:0;padding:12px 14px;overflow-x:auto;font-family:'JetBrains Mono','Fira Code',Consolas,monospace;font-size:12.5px;line-height:1.7;color:#e6edf3;tab-size:4;">${highlighted}</pre>
       </div>
     `;
   }
@@ -504,21 +504,21 @@
       const first3 = tok.slice(0, 3);
 
       if (first3 === '"""' || first3 === "'''") {
-        parts.push('<span class="sh-keyword">' + escapeHtml(tok) + '</span>');
+        parts.push('<span style="color:#8b949e;font-style:italic">' + escapeHtml(tok) + '</span>');
       } else if ((first === '"' || first === "'") && tok.length > 1) {
-        parts.push('<span class="sh-string">' + escapeHtml(tok) + '</span>');
+        parts.push('<span style="color:#a5d6ff">' + escapeHtml(tok) + '</span>');
       } else if (first2 === '/*') {
-        parts.push('<span class="sh-comment">' + escapeHtml(tok) + '</span>');
+        parts.push('<span style="color:#8b949e;font-style:italic">' + escapeHtml(tok) + '</span>');
       } else if (first2 === '//' || first === '#') {
-        parts.push('<span class="sh-comment">' + escapeHtml(tok) + '</span>');
+        parts.push('<span style="color:#8b949e;font-style:italic">' + escapeHtml(tok) + '</span>');
       } else if (first === '@') {
-        parts.push('<span class="sh-decorator">' + escapeHtml(tok) + '</span>');
+        parts.push('<span style="color:#d2a8ff">' + escapeHtml(tok) + '</span>');
       } else if (/^[a-zA-Z_]/.test(first)) {
-        if (kwSet.has(tok))      parts.push('<span class="sh-keyword">' + escapeHtml(tok) + '</span>');
-        else if (biSet.has(tok)) parts.push('<span class="sh-builtin">'  + escapeHtml(tok) + '</span>');
+        if (kwSet.has(tok))      parts.push('<span style="color:#ff7b72">' + escapeHtml(tok) + '</span>');
+        else if (biSet.has(tok)) parts.push('<span style="color:#79c0ff">' + escapeHtml(tok) + '</span>');
         else                     parts.push(escapeHtml(tok));
       } else if (/^\d/.test(first)) {
-        parts.push('<span class="sh-number">' + escapeHtml(tok) + '</span>');
+        parts.push('<span style="color:#f2cc60">' + escapeHtml(tok) + '</span>');
       } else {
         parts.push(escapeHtml(tok));
       }
