@@ -1,10 +1,3 @@
-/**
- * Interview2 Assistant Module
- *
- * Same output format as the Interview tab, but calls a local Qwen2.5-Coder
- * server instead of the external AI API.
- */
-
 (function () {
   'use strict';
 
@@ -56,7 +49,6 @@
     el.analyzeBtn.addEventListener('click', handleAnalyze);
     el.clearBtn.addEventListener('click', clearResults);
 
-    // Mirror transcript updates into interview2 panel
     startTranscriptMirror();
   }
 
@@ -129,9 +121,6 @@
             (partial   ? partial.textContent   : '')).trim();
   }
 
-  // ──────────────────────────────────────────────
-  // Local server API call
-  // ──────────────────────────────────────────────
   async function callLocalServer(serverUrl, transcript) {
     const url = serverUrl.replace(/\/+$/, '') + '/interview';
 
@@ -314,10 +303,6 @@
       </div>
     `;
   }
-
-  // ──────────────────────────────────────────────
-  // Syntax highlighter (identical to interview tab)
-  // ──────────────────────────────────────────────
 
   const LANG_KEYWORDS = {
     python: {
