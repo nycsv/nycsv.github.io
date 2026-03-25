@@ -681,3 +681,238 @@ body::after {
 @media (max-width: 640px) {
   .summary-block { padding: 12px 14px; }
 }
+
+/* ─── ITV2 Result Sections ─── */
+.itv-section {
+  border: 1px solid rgba(100,116,139,0.2);
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(15,23,42,0.5);
+}
+
+.itv-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(30,41,59,0.6);
+  border-bottom: 1px solid rgba(100,116,139,0.15);
+}
+
+.itv-section-icon { font-size: 16px !important; }
+.itv-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.itv-section-body {
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: #cbd5e1;
+}
+
+.itv-section-body p { margin: 0 0 8px; }
+.itv-section-body p:last-child { margin-bottom: 0; }
+
+/* Approach: numbered steps & bullets */
+.itv-approach-step {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+  align-items: flex-start;
+}
+.itv-approach-step-num {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(99,102,241,0.3);
+  color: #a5b4fc;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+.itv-approach-bullet {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+  align-items: flex-start;
+}
+.itv-approach-bullet::before {
+  content: '•';
+  color: #6366f1;
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: -1px;
+}
+
+/* Complexity */
+.itv-complexity-row {
+  display: flex;
+  gap: 16px;
+}
+.itv-complexity-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.itv-complexity-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+  font-weight: 600;
+}
+.itv-complexity-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #22d3ee;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* Lists */
+.itv-insights-list,
+.itv-followup-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.itv-insights-list li,
+.itv-followup-list li {
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  border-left: 2px solid;
+}
+
+.itv-insights-list li {
+  background: rgba(139,92,246,0.08);
+  border-color: #7c3aed;
+  color: #c4b5fd;
+}
+
+.itv-followup-list li {
+  background: rgba(100,116,139,0.08);
+  border-color: #475569;
+  color: #94a3b8;
+}
+
+/* Problem type badge */
+.itv-problem-type-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+.itv-badge-ml     { background: rgba(34,211,238,0.15); color: #22d3ee; }
+.itv-badge-system { background: rgba(251,191,36,0.15);  color: #fbbf24; }
+.itv-badge-algo   { background: rgba(52,211,153,0.15);  color: #34d399; }
+.itv-badge-other  { background: rgba(148,163,184,0.12); color: #94a3b8; }
+
+/* Code block */
+.itv-code-block {
+  border-radius: 0;
+  overflow: hidden;
+  background: #0d1117;
+}
+
+.itv-code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 14px;
+  background: #161b22;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.itv-code-lang {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6e7681;
+}
+
+.itv-code-copy-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6e7681;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+.itv-code-copy-btn:hover { color: #c9d1d9; background: rgba(255,255,255,0.06); }
+.itv-code-copy-btn .material-symbols-outlined { font-size: 13px !important; }
+
+.itv-code-block pre {
+  margin: 0;
+  padding: 14px;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: #e6edf3;
+  tab-size: 4;
+  counter-reset: line;
+}
+
+/* Line numbers for Python */
+.itv-code-block.lang-python pre {
+  padding-left: 0;
+}
+.code-line {
+  display: block;
+  padding-left: 14px;
+}
+.code-line:hover { background: rgba(255,255,255,0.03); }
+
+.code-line-num {
+  display: inline-block;
+  width: 32px;
+  text-align: right;
+  margin-right: 16px;
+  color: #3d444d;
+  font-size: 11px;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* Syntax colors (GitHub Dark) */
+.sh-keyword   { color: #ff7b72; }   /* red — def, return, if, for */
+.sh-builtin   { color: #79c0ff; }   /* blue — len, range, print */
+.sh-string    { color: #a5d6ff; }   /* light blue — strings */
+.sh-comment   { color: #8b949e; font-style: italic; }
+.sh-number    { color: #f2cc60; }   /* yellow — numbers */
+.sh-decorator { color: #d2a8ff; }   /* purple — @decorator */
+.sh-type      { color: #ffa657; }   /* orange — class names */
+
+/* Error */
+.itv-error {
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.3);
+  color: #fca5a5;
+  font-size: 13px;
+}
