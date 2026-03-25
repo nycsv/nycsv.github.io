@@ -348,15 +348,7 @@
       </div>
 
       <!-- Solution Code -->
-      <div class="itv-section">
-        <div class="itv-section-header">
-          <span class="material-symbols-outlined itv-section-icon text-emerald-400">code</span>
-          <span class="itv-section-title">Solution — ${escapeHtml(r.language || 'python')}</span>
-        </div>
-        <div class="itv-section-body" style="padding:0;">
-          ${renderCodeBlock(r.solution_code || '', r.language || 'python')}
-        </div>
-      </div>
+      ${renderSolutionCode(r)}
 
       <!-- Complexity -->
       <div class="itv-section">
@@ -416,6 +408,40 @@
         <pre>${highlighted}</pre>
       </div>
     `;
+  }
+
+  function renderSolutionCode(r) {
+    const lang = r.language || 'python';
+    const labels = ['[Brute Force]', '[Improved]'];
+    const keys = ['solution_code1', 'solution_code2', 'solution_code'];
+    const blocks = [];
+
+    keys.forEach((key, idx) => {
+      if (!r[key]) return;
+      const label = idx < 2 ? labels[idx] : '';
+      const title = label
+        ? `Solution ${label} — ${escapeHtml(lang)}`
+        : `Solution — ${escapeHtml(lang)}`;
+      blocks.push(`
+        <div class="itv-section">
+          <div class="itv-section-header">
+            <span class="material-symbols-outlined itv-section-icon text-emerald-400">code</span>
+            <span class="itv-section-title">${title}</span>
+          </div>
+          <div class="itv-section-body" style="padding:0;">
+            ${renderCodeBlock(r[key], lang)}
+          </div>
+        </div>`);
+    });
+
+    return blocks.length ? blocks.join('') : `
+      <div class="itv-section">
+        <div class="itv-section-header">
+          <span class="material-symbols-outlined itv-section-icon text-emerald-400">code</span>
+          <span class="itv-section-title">Solution — ${escapeHtml(lang)}</span>
+        </div>
+        <div class="itv-section-body" style="padding:0;"></div>
+      </div>`;
   }
 
   function renderList(items, title, icon, iconColor, listClass) {
