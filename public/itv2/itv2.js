@@ -11,10 +11,18 @@
   // ──────────────────────────────────────────────
   // Constants
   // ──────────────────────────────────────────────
-  const DEFAULT_SERVER_URL  = '';
-  const LS_SERVER_URL       = 'itv2_server_url';
-  const LS_AUTO_ENABLED     = 'itv2_auto_enabled';
-  const AUTO_INTERVAL_SEC   = 10;
+  const LS_AUTO_ENABLED   = 'itv2_auto_enabled';
+  const AUTO_INTERVAL_SEC = 10;
+
+  // Derive gateway HTTP URL from the WebSocket SERVER_URL defined in demo.js
+  // e.g. "wss://ai.eesungkim.com/ws" → "https://ai.eesungkim.com"
+  function getGatewayUrl() {
+    if (typeof SERVER_URL !== 'undefined' && SERVER_URL) {
+      return SERVER_URL.replace(/^wss?:\/\//, (m) => m.startsWith('wss') ? 'https://' : 'http://')
+                       .replace(/\/ws$/, '');
+    }
+    return window.location.origin;
+  }
 
   // ──────────────────────────────────────────────
   // DOM refs (populated on init)
@@ -36,7 +44,6 @@
   // ──────────────────────────────────────────────
   function init() {
     el = {
-      serverUrl:        document.getElementById('itv2-server-url'),
       analyzeBtn:       document.getElementById('itv2-analyze-btn'),
       analyzeIcon:      document.getElementById('itv2-analyze-icon'),
       analyzeLabel:     document.getElementById('itv2-analyze-label'),
@@ -53,13 +60,6 @@
       transcriptScroll: document.getElementById('itv2-transcript-scroll'),
       itv2Box:          document.getElementById('itv2-box'),
     };
-
-    // Restore saved settings
-    const savedUrl  = localStorage.getItem(LS_SERVER_URL);
-    el.serverUrl.value = savedUrl || DEFAULT_SERVER_URL;
-    el.serverUrl.addEventListener('input', () => {
-      localStorage.setItem(LS_SERVER_URL, el.serverUrl.value.trim());
-    });
 
     const savedAuto = localStorage.getItem(LS_AUTO_ENABLED);
     autoEnabled = savedAuto === null ? true : savedAuto === 'true';
@@ -213,12 +213,6 @@
   async function handleAnalyze(resetCountdown) {
     if (analyzing) return;
 
-    const serverUrl = (el.serverUrl.value || '').trim();
-    if (!serverUrl) {
-      showError('Please enter the local server URL.');
-      return;
-    }
-
     const transcript = getFullTranscript();
     if (!transcript.trim()) {
       showError('No transcript yet. Start recording first.');
@@ -230,7 +224,7 @@
     lastAnalyzedText = transcript;
 
     try {
-      const result = await callLocalServer(serverUrl, transcript);
+      const result = await callLocalServer(getGatewayUrl(), transcript);
       renderResult(result);
     } catch (err) {
       showError(err.message || 'Unknown error calling local server.');
