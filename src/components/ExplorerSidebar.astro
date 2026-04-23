@@ -1,0 +1,90 @@
+---
+import { getCollection } from 'astro:content';
+
+export interface Props {
+  currentSlug?: string;
+}
+
+const { currentSlug = '' } = Astro.props;
+
+const notes = await getCollection('notes');
+const reviews = (await getCollection('reviews')).filter(r => r.slug !== '_index');
+
+// Build a nested tree from note slugs
+type TreeNode = { [key: string]: TreeNode | { _leaf: true; title: string; slug: string } };
+
+function buildTree(entries: typeof notes): TreeNode {
+  const tree: TreeNode = {};
+  for (const entry of entries) {
+    const parts = entry.slug.split('/');
+    let node = tree;
+    for (let i = 0; i < parts.length - 1; i++) {
+      if (!node[parts[i]]) node[parts[i]] = {};
+      node = node[parts[i]] as TreeNode;
+    }
+    const leaf = parts[parts.length - 1];
+    node[leaf] = { _leaf: true, title: entry.data.title, slug: entry.slug };
+  }
+  return tree;
+}
+
+function isLeaf(val: unknown): val is { _leaf: true; title: string; slug: string } {
+  return typeof val === 'object' && val !== null && '_leaf' in val;
+}
+
+function renderTree(tree: TreeNode, cur: string, depth = 0): string {
+  const indent = depth * 12;
+  const entries = Object.entries(tree).sort(([a], [b]) => {
+    const aIsLeaf = isLeaf(tree[a]);
+    const bIsLeaf = isLeaf(tree[b]);
+    if (aIsLeaf !== bIsLeaf) return aIsLeaf ? 1 : -1;
+    return a.localeCompare(b);
+  });
+
+  let html = `<ul class="explorer-list" style="padding-left:${indent ? indent + 'px' : '0'}">`;
+  for (const [key, val] of entries) {
+    if (isLeaf(val)) {
+      const active = cur === val.slug;
+      html += `<li class="explorer-leaf${active ? ' explorer-active' : ''}">
+        <a href="/notes/${val.slug}/">${val.title}</a>
+      </li>`;
+    } else {
+      const childHtml = renderTree(val as TreeNode, cur, depth + 1);
+      const label = key.charAt(0).toUpperCase() + key.slice(1);
+      html += `<li class="explorer-folder">
+        <details open>
+          <summary class="explorer-folder-name">
+            <span class="folder-icon"></span>${label}
+          </summary>
+          ${childHtml}
+        </details>
+      </li>`;
+    }
+  }
+  html += '</ul>';
+  return html;
+}
+
+const tree = buildTree(notes);
+const treeHtml = renderTree(tree, currentSlug);
+---
+
+<nav class="explorer-nav">
+  <div class="explorer-section">
+    <p class="explorer-section-label">Notes</p>
+    <Fragment set:html={treeHtml} />
+  </div>
+
+  {reviews.length > 0 && (
+    <div class="explorer-section">
+      <p class="explorer-section-label">Log</p>
+      <ul class="explorer-list">
+        {reviews.map(r => (
+          <li class="explorer-leaf">
+            <a href={`/reviews/${r.slug}/`}>{r.data.title}</a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
+</nav>

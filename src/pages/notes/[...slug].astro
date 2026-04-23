@@ -1,0 +1,34 @@
+---
+import { getCollection } from 'astro:content';
+import PostLayout from '../../layouts/PostLayout.astro';
+
+export async function getStaticPaths() {
+  const notes = await getCollection('notes');
+  return notes.map(note => ({
+    params: { slug: note.slug },
+    props: { note },
+  }));
+}
+
+const { note } = Astro.props;
+const { Content, headings } = await note.render();
+
+// Build breadcrumbs from slug path: ML/Engineering/Coding/einops → ML › Engineering › Coding › title
+const parts = note.slug.split('/');
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+const breadcrumbs = parts.slice(0, -1).map((part) => ({
+  label: capitalize(part),
+}));
+breadcrumbs.push({ label: note.data.title });
+---
+
+<PostLayout
+  title={note.data.title}
+  date={note.data.date}
+  tags={note.data.tags}
+  currentSlug={note.slug}
+  headings={headings}
+  breadcrumbs={breadcrumbs}
+>
+  <Content />
+</PostLayout>

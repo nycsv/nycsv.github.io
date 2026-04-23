@@ -5,9 +5,12 @@ export interface Props {
   title: string;
   date?: Date;
   tags?: string[];
+  currentSlug?: string;
+  headings?: { depth: number; slug: string; text: string }[];
+  breadcrumbs?: { label: string; href?: string }[];
 }
 
-const { title, date, tags } = Astro.props;
+const { title, date, tags, currentSlug = '', headings = [], breadcrumbs = [] } = Astro.props;
 
 const readableDate = date?.toLocaleDateString("en-US", {
   year: "numeric",
@@ -16,7 +19,22 @@ const readableDate = date?.toLocaleDateString("en-US", {
 });
 ---
 
-<BaseLayout title={title}>
+<BaseLayout title={title} currentSlug={currentSlug} headings={headings} showToc={headings.length > 0}>
+  {breadcrumbs.length > 0 && (
+    <nav class="breadcrumbs" aria-label="breadcrumb">
+      <a href="/">Home</a>
+      {breadcrumbs.map((crumb, i) => (
+        <>
+          <span class="breadcrumb-sep">›</span>
+          {crumb.href
+            ? <a href={crumb.href}>{crumb.label}</a>
+            : <span class="breadcrumb-current">{crumb.label}</span>
+          }
+        </>
+      ))}
+    </nav>
+  )}
+
   <article class="post">
     <header class="post-header">
       <h1>{title}</h1>

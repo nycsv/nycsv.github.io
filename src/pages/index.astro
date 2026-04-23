@@ -2,9 +2,14 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
 
+const notes = (await getCollection("notes"))
+  .sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime())
+  .slice(0, 6);
+
 const reviews = (await getCollection("reviews"))
   .filter((r) => r.slug !== "_index")
-  .sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime());
+  .sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime())
+  .slice(0, 5);
 
 const formatDate = (date: Date) => {
   const d = new Date(date);
@@ -14,26 +19,74 @@ const formatDate = (date: Date) => {
 const isoDate = (date: Date) => new Date(date).toISOString().split('T')[0];
 ---
 
-<BaseLayout title="Log">
-  <section>
-    <ul class="entry-list">
-      {reviews.map((review) => (
-        <li class="entry-item">
-          <a href={`/reviews/${review.slug}/`} class="entry-link">
-            <span class="entry-title">{review.data.title}</span>
-            <time datetime={isoDate(review.data.date)} class="entry-date">
-              {formatDate(review.data.date)}
-            </time>
-          </a>
-          {review.data.tags && review.data.tags.length > 0 && (
-            <div class="entry-tags">
-              {review.data.tags.slice(0, 4).map((tag: string) => (
-                <span class="entry-tag">{tag}</span>
-              ))}
-            </div>
-          )}
-        </li>
-      ))}
-    </ul>
-  </section>
+<BaseLayout title="Home">
+  <div class="home-page">
+    <section class="home-hero">
+      <h1 class="home-title">Eesung Kim</h1>
+      <p class="home-description">
+        Production AI systems — ASR, translation, summarization.<br />
+        Notes on ML engineering, research, and real-time speech infrastructure.
+      </p>
+      <div class="home-links">
+        <a href="https://github.com/nycsv" target="_blank" rel="noopener">GitHub</a>
+        <span class="home-link-sep">·</span>
+        <a href="/reviews/">Log</a>
+        <span class="home-link-sep">·</span>
+        <a href="/search/">Search</a>
+      </div>
+    </section>
+
+    {notes.length > 0 && (
+      <section class="home-section">
+        <p class="section-label">Recent Notes</p>
+        <ul class="entry-list">
+          {notes.map((note) => (
+            <li class="entry-item">
+              <a href={`/notes/${note.slug}/`} class="entry-link">
+                <span class="entry-title">{note.data.title}</span>
+                <time datetime={isoDate(note.data.date)} class="entry-date">
+                  {formatDate(note.data.date)}
+                </time>
+              </a>
+              {note.data.description && (
+                <p class="entry-description">{note.data.description}</p>
+              )}
+              {note.data.tags && note.data.tags.length > 0 && (
+                <div class="entry-tags">
+                  {note.data.tags.slice(0, 4).map((tag: string) => (
+                    <span class="entry-tag">{tag}</span>
+                  ))}
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {reviews.length > 0 && (
+      <section class="home-section">
+        <p class="section-label">Recent Log</p>
+        <ul class="entry-list">
+          {reviews.map((review) => (
+            <li class="entry-item">
+              <a href={`/reviews/${review.slug}/`} class="entry-link">
+                <span class="entry-title">{review.data.title}</span>
+                <time datetime={isoDate(review.data.date)} class="entry-date">
+                  {formatDate(review.data.date)}
+                </time>
+              </a>
+              {review.data.tags && review.data.tags.length > 0 && (
+                <div class="entry-tags">
+                  {review.data.tags.slice(0, 4).map((tag: string) => (
+                    <span class="entry-tag">{tag}</span>
+                  ))}
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+  </div>
 </BaseLayout>

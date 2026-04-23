@@ -1,9 +1,15 @@
 ---
+import ExplorerSidebar from '../components/ExplorerSidebar.astro';
+
 export interface Props {
   title: string;
+  currentSlug?: string;
+  headings?: { depth: number; slug: string; text: string }[];
+  showToc?: boolean;
 }
 
-const { title } = Astro.props;
+const { title, currentSlug = '', headings = [], showToc = false } = Astro.props;
+const tocHeadings = headings.filter(h => h.depth >= 2 && h.depth <= 3);
 ---
 
 <!DOCTYPE html>
@@ -18,23 +24,47 @@ const { title } = Astro.props;
   </head>
   <body>
     <header class="site-header">
-      <nav class="site-nav">
+      <div class="header-inner">
         <div class="nav-brand">
-          <a href="/">Log</a>
+          <a href="/">eesungkim</a>
         </div>
         <ul class="nav-menu">
-          <li><a href="/reviews/">Review</a></li>
+          <li><a href="/">Home</a></li>
+          <li><a href="/reviews/">Log</a></li>
           <li><a href="/search/">Search</a></li>
         </ul>
-      </nav>
+      </div>
     </header>
 
-    <main class="site-main">
-      <slot />
-    </main>
+    <div class="page-wrapper">
+      <aside class="sidebar">
+        <ExplorerSidebar currentSlug={currentSlug} />
+      </aside>
+
+      <main class="site-main">
+        <slot />
+      </main>
+
+      <aside class="toc-wrapper">
+        {showToc && tocHeadings.length > 0 && (
+          <div class="toc-panel">
+            <p class="toc-label">On this page</p>
+            <nav>
+              <ul class="toc-list">
+                {tocHeadings.map(h => (
+                  <li class={`toc-item toc-h${h.depth}`}>
+                    <a href={`#${h.slug}`}>{h.text}</a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </div>
+        )}
+      </aside>
+    </div>
 
     <footer class="site-footer">
-      <p>&copy; 2026 eesungkim.com. All rights reserved.</p>
+      <p>&copy; 2026 eesungkim.com</p>
     </footer>
   </body>
 </html>
