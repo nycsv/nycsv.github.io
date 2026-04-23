@@ -2,6 +2,7 @@
 title: Perfetto Trace Debugging for Distributed Training
 description: How to read ui.perfetto.dev traces to find bottlenecks in distributed PyTorch training
 tags: [pytorch, distributed, profiling, perfetto, debugging]
+date: 2026-04-23
 ---
 
 ## Capturing a Trace

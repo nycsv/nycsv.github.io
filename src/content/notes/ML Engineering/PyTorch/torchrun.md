@@ -2,6 +2,7 @@
 title: torchrun
 description: Multi-node distributed training with torchrun — core concepts and best practices
 tags: [pytorch, distributed, training, torchrun]
+date: 2026-04-23
 ---
 
 ## What torchrun Does

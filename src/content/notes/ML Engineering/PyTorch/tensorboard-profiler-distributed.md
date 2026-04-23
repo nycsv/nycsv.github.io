@@ -2,6 +2,7 @@
 title: TensorBoard PyTorch Profiler — Distributed Debugging
 description: Using the PyTorch Profiler TensorBoard plugin to diagnose bottlenecks in distributed training
 tags: [pytorch, distributed, profiling, tensorboard, debugging]
+date: 2026-04-23
 ---
 
 ## Setup
