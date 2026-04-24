@@ -11,3 +11,5 @@ date: 2026-04-23
 ### Understanding GPU Memory 1: Visualizing All Allocations over Time
 - https://pytorch.org/blog/understanding-gpu-memory-1/
 
+### OOMs with PyTorch FSDP, torchao, and debugging
+- https://www.youtube.com/watch?v=UvRl4ansfCg
