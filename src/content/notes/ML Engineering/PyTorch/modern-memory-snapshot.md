@@ -297,3 +297,263 @@ Top 5 largest live tensors:
 | OOM with no obvious cause | Wrap loop in `try/except OutOfMemoryError`, dump on crash |
 | One DDP rank OOMs, others don't | Compare per-rank snapshots |
 | Gradient accumulation bloating memory | Check live tensors between `.zero_grad()` calls |
+
+---
+
+## Combining with `torch.profiler.profile`
+
+The memory snapshot API and `torch.profiler.profile` are complementary. The profiler adds operator-level CPU/CUDA timelines on top of memory tracking when you enable `profile_memory=True`, `record_shapes=True`, and `with_stack=True`.
+
+```python
+import torch
+import pickle
+
+torch.cuda.memory._record_memory_history(max_entries=100_000)
+
+model = torch.nn.Linear(4096, 4096).cuda()
+optimizer = torch.optim.Adam(model.parameters())
+
+with torch.profiler.profile(
+    activities=[
+        torch.profiler.ProfilerActivity.CPU,
+        torch.profiler.ProfilerActivity.CUDA,
+    ],
+    profile_memory=True,   # per-op memory delta in the Chrome trace
+    record_shapes=True,    # tensor shapes alongside op names
+    with_stack=True,       # Python call stack per op
+    on_trace_ready=torch.profiler.tensorboard_trace_handler("./tb_logs"),
+) as prof:
+    for step in range(5):
+        x = torch.randn(64, 4096, device="cuda")
+        loss = model(x).sum()
+        loss.backward()
+        optimizer.step()
+        optimizer.zero_grad()
+        prof.step()
+
+# Save memory snapshot alongside the Chrome trace
+snapshot = torch.cuda.memory._snapshot()
+with open("snapshot_with_profiler.pkl", "wb") as f:
+    pickle.dump(snapshot, f)
+
+torch.cuda.memory._record_memory_history(enabled=None)
+```
+
+```bash
+# Memory snapshot timeline
+python -m torch.cuda._memory_viz trace snapshot_with_profiler.pkl -o memory.html
+
+# Operator timeline (open in Chrome → chrome://tracing or TensorBoard)
+tensorboard --logdir ./tb_logs
+```
+
+The two views are complementary: the profiler shows **what ops ran and how long**, the snapshot shows **which allocations survived across steps**.
+
+---
+
+## Step-Range Scheduling
+
+Instead of recording the full run, activate memory history only for the steps you care about — this matches the NeMo `PytorchProfilerCallback` pattern of `start_step` / `end_step`.
+
+```python
+import torch
+import pickle
+
+model = torch.nn.Linear(4096, 4096).cuda()
+optimizer = torch.optim.Adam(model.parameters())
+
+PROFILE_START = 10   # skip noisy warm-up steps
+PROFILE_END   = 15
+
+for step in range(20):
+    x = torch.randn(64, 4096, device="cuda")
+    loss = model(x).sum()
+    loss.backward()
+    optimizer.step()
+    optimizer.zero_grad()
+
+    if step == PROFILE_START:
+        torch.cuda.memory._record_memory_history(max_entries=100_000)
+
+    if step == PROFILE_END:
+        snapshot = torch.cuda.memory._snapshot()
+        with open(f"snapshot_step{step}.pkl", "wb") as f:
+            pickle.dump(snapshot, f)
+        torch.cuda.memory._record_memory_history(enabled=None)
+        break
+```
+
+Skipping warm-up keeps the snapshot clean — one-time weight and optimizer-state allocations don't appear as false positives.
+
+---
+
+## `ExecutionTraceObserver` (Chakra Traces)
+
+NeMo pairs `ExecutionTraceObserver` with `torch.profiler.profile` to export Chakra host traces — operator-level execution graphs used for workload replay and roofline analysis. Add it alongside memory snapshot to get all three views from one run.
+
+```python
+import torch
+import pickle
+from pathlib import Path
+
+trace_dir = Path("traces")
+(trace_dir / "host").mkdir(parents=True, exist_ok=True)
+(trace_dir / "device").mkdir(parents=True, exist_ok=True)
+
+# Chakra host trace (operator execution graph)
+observer = torch.profiler.ExecutionTraceObserver()
+observer.register_callback(str(trace_dir / "host" / "rank-0.json"))
+
+torch.cuda.memory._record_memory_history(max_entries=100_000)
+
+with torch.profiler.profile(
+    activities=[
+        torch.profiler.ProfilerActivity.CPU,
+        torch.profiler.ProfilerActivity.CUDA,
+    ],
+    schedule=torch.profiler.schedule(wait=0, warmup=2, active=3),
+    on_trace_ready=lambda prof: prof.export_chrome_trace(
+        str(trace_dir / "device" / "rank-0.json")
+    ),
+    execution_trace_observer=observer,   # attach Chakra observer
+    profile_memory=True,
+    with_stack=True,
+) as prof:
+    model = torch.nn.Linear(4096, 4096).cuda()
+    optimizer = torch.optim.Adam(model.parameters())
+
+    for step in range(10):
+        model(torch.randn(64, 4096, device="cuda")).sum().backward()
+        optimizer.step()
+        optimizer.zero_grad()
+        prof.step()
+
+snapshot = torch.cuda.memory._snapshot()
+with open(trace_dir / "memory_snapshot.pkl", "wb") as f:
+    pickle.dump(snapshot, f)
+
+torch.cuda.memory._record_memory_history(enabled=None)
+
+try:
+    observer.unregister_callback()
+except RuntimeError:
+    pass  # already unregistered by profiler stop
+```
+
+Output layout:
+
+```
+traces/
+├── host/rank-0.json      ← Chakra execution graph (operator DAG)
+├── device/rank-0.json    ← Kineto Chrome trace (CPU+CUDA timeline)
+└── memory_snapshot.pkl   ← CUDA memory allocation history
+```
+
+- `host/rank-0.json` — load into [Chakra](https://github.com/mlcommons/chakra) for workload replay
+- `device/rank-0.json` — open in `chrome://tracing` or Perfetto
+- `memory_snapshot.pkl` — visualize with `memory_viz trace`
+
+---
+
+## Reusable Lightning Callback
+
+Wrapping all three into a Lightning callback (modeled after NeMo's `PytorchProfilerCallback`) makes it drop-in for any training script.
+
+```python
+import pickle
+from pathlib import Path
+from typing import Any, Optional
+
+import torch
+from lightning.pytorch.callbacks import Callback
+
+
+class MemoryProfilerCallback(Callback):
+    """
+    Combines torch.profiler.profile + memory snapshot + ExecutionTraceObserver
+    for a specific step range. Saves all artifacts to trace_dir.
+    """
+
+    def __init__(
+        self,
+        start_step: int,
+        end_step: int,
+        trace_dir: str = "traces",
+        rank: int = 0,
+    ):
+        if end_step < start_step:
+            raise ValueError("end_step must be >= start_step")
+
+        self.start_step = start_step
+        self.end_step = end_step
+        self.rank = rank
+
+        self.trace_dir = Path(trace_dir)
+        (self.trace_dir / "host").mkdir(parents=True, exist_ok=True)
+        (self.trace_dir / "device").mkdir(parents=True, exist_ok=True)
+
+        self._observer = torch.profiler.ExecutionTraceObserver()
+        self._profiler: Optional[torch.profiler.profile] = None
+        self._active = False
+
+    def on_train_batch_start(self, trainer, pl_module, batch, batch_idx):
+        if trainer.global_step != self.start_step:
+            return
+
+        self._observer.register_callback(
+            str(self.trace_dir / "host" / f"rank-{self.rank}.json")
+        )
+        torch.cuda.memory._record_memory_history(max_entries=100_000)
+
+        self._profiler = torch.profiler.profile(
+            activities=[
+                torch.profiler.ProfilerActivity.CPU,
+                torch.profiler.ProfilerActivity.CUDA,
+            ],
+            profile_memory=True,
+            with_stack=True,
+            on_trace_ready=lambda p: p.export_chrome_trace(
+                str(self.trace_dir / "device" / f"rank-{self.rank}.json")
+            ),
+            execution_trace_observer=self._observer,
+        )
+        self._profiler.start()
+        self._active = True
+
+    def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx):
+        if not self._active:
+            return
+
+        if trainer.global_step < self.end_step:
+            self._profiler.step()
+        else:
+            self._stop()
+
+    def _stop(self):
+        self._profiler.stop()
+        self._active = False
+
+        snapshot = torch.cuda.memory._snapshot()
+        with open(self.trace_dir / f"memory_rank{self.rank}.pkl", "wb") as f:
+            pickle.dump(snapshot, f)
+        torch.cuda.memory._record_memory_history(enabled=None)
+
+        try:
+            self._observer.unregister_callback()
+        except RuntimeError:
+            pass
+```
+
+Usage:
+
+```python
+import lightning as L
+
+trainer = L.Trainer(
+    max_epochs=3,
+    callbacks=[
+        MemoryProfilerCallback(start_step=10, end_step=15, trace_dir="traces"),
+    ],
+)
+trainer.fit(model, datamodule)
+```
