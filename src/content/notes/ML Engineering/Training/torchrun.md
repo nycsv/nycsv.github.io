@@ -1,33 +1,27 @@
 ---
-title: torchrun
-description: Multi-node distributed training with torchrun — core concepts and best practices
-tags: [pytorch, distributed, training, torchrun]
+title: Distributed Training with torchrun
+description: How to launch single-node and multi-node distributed training with torchrun, including environment variables, DDP patterns, and common failure modes
+tags: [pytorch, distributed, training, torchrun, ddp]
 date: 2026-04-23
 ---
 
-## What torchrun Does
+`torchrun` is PyTorch's launcher for distributed training. It replaces the older `torch.distributed.launch` and handles process spawning, environment setup, and fault tolerance automatically.
 
-`torchrun` is PyTorch's launcher for distributed training. It replaces the older `torch.distributed.launch` and handles:
-
-- Spawning one process per GPU
-- Setting distributed environment variables (`RANK`, `WORLD_SIZE`, `LOCAL_RANK`, etc.)
-- Fault tolerance via automatic worker restarts (up to `--max-restarts`)
-- Rendezvous — coordinating process group initialization across nodes
-
-Each process runs the **same script** and uses its rank to determine what data/shard it owns.
+Each process runs the **same script**. Processes use their rank to figure out which data shard they own and whether to log or save checkpoints.
 
 ---
 
 ## Key Environment Variables
 
+`torchrun` sets these automatically — your script just reads them.
+
 | Variable | Meaning |
 |---|---|
-| `RANK` | Global rank of this process (0 … WORLD_SIZE-1) |
+| `RANK` | Global rank (0 … WORLD_SIZE-1) |
 | `LOCAL_RANK` | Rank within this node (0 … nproc_per_node-1) |
-| `WORLD_SIZE` | Total number of processes across all nodes |
+| `WORLD_SIZE` | Total processes across all nodes |
 | `MASTER_ADDR` | Hostname/IP of rank-0 node |
-| `MASTER_PORT` | Port for the rendezvous |
-| `LOCAL_WORLD_SIZE` | Number of processes on this node |
+| `MASTER_PORT` | Port for rendezvous |
 
 ---
 
@@ -35,25 +29,25 @@ Each process runs the **same script** and uses its rank to determine what data/s
 
 ```bash
 torchrun \
-  --standalone \          # shortcut: sets up rendezvous on localhost
+  --standalone \          # sets up rendezvous on localhost automatically
   --nproc-per-node=4 \    # one process per GPU
   train.py
 ```
 
-`--standalone` is equivalent to `--rdzv-backend=c10d --rdzv-endpoint=localhost:PORT --nnodes=1`.
+`--standalone` is shorthand for `--rdzv-backend=c10d --rdzv-endpoint=localhost:PORT --nnodes=1`.
 
 ---
 
 ## Multi-Node Launch
 
-Run this **on every node**. Only `--node-rank` differs.
+Run this on **every node** — only `--node-rank` differs.
 
 ```bash
 # Node 0 (master)
 torchrun \
   --nnodes=2 \
   --nproc-per-node=4 \
-  --rdzv-id=job42 \
+  --rdzv-id=job42 \          # must match on all nodes
   --rdzv-backend=c10d \
   --rdzv-endpoint=<MASTER_IP>:29500 \
   --node-rank=0 \
@@ -70,15 +64,13 @@ torchrun \
   train.py
 ```
 
-> `--rdzv-id` must be the same string on all nodes. It namespaces the rendezvous so multiple jobs can share the same endpoint.
-
 ---
 
 ## Elastic / Dynamic Node Count
 
 ```bash
 torchrun \
-  --nnodes=2:4 \          # min:max — job starts at 2, scales up to 4
+  --nnodes=2:4 \       # min:max — starts at 2 nodes, can scale to 4
   --nproc-per-node=4 \
   --max-restarts=3 \
   --rdzv-id=job42 \
@@ -87,19 +79,21 @@ torchrun \
   train.py
 ```
 
-Workers that fail or are added trigger a **re-rendezvous**. The script must handle re-initialization gracefully.
+Worker failures or additions trigger a **re-rendezvous**. Your script needs to handle re-initialization cleanly (load from last checkpoint, reinitialize process group).
 
 ---
 
-## Minimal Training Script Pattern
+## Minimal Training Script
 
 ```python
+import os
 import torch
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 def main():
-    dist.init_process_group(backend="nccl")  # torchrun sets env vars automatically
+    # torchrun has already set RANK, LOCAL_RANK, WORLD_SIZE
+    dist.init_process_group(backend="nccl")
 
     local_rank = int(os.environ["LOCAL_RANK"])
     torch.cuda.set_device(local_rank)
@@ -107,7 +101,6 @@ def main():
     model = MyModel().to(local_rank)
     model = DDP(model, device_ids=[local_rank])
 
-    # Only rank 0 should log / save checkpoints
     if dist.get_rank() == 0:
         print(f"World size: {dist.get_world_size()}")
 
@@ -121,59 +114,64 @@ if __name__ == "__main__":
 
 ---
 
-## Best Practices
+## Common Patterns
 
-### Data Loading
+### Data loading
+
 ```python
 sampler = DistributedSampler(dataset, shuffle=True)
 loader = DataLoader(dataset, sampler=sampler, batch_size=batch_per_gpu)
 
 for epoch in range(epochs):
-    sampler.set_epoch(epoch)  # required for proper shuffling per epoch
+    sampler.set_epoch(epoch)  # without this, all epochs get the same shuffle
     for batch in loader:
         ...
 ```
 
-Each rank sees a non-overlapping shard. Without `set_epoch`, all epochs see the same shuffle order.
-
 ### Checkpointing
+
 ```python
 if dist.get_rank() == 0:
     torch.save({
-        "model": model.module.state_dict(),   # unwrap DDP with .module
+        "model": model.module.state_dict(),  # .module unwraps DDP
         "optimizer": optimizer.state_dict(),
         "epoch": epoch,
     }, "checkpoint.pt")
 
-dist.barrier()  # all ranks wait before continuing
+dist.barrier()  # all ranks wait here before continuing
 ```
 
-- Save only on rank 0 to avoid write conflicts
-- `dist.barrier()` after save ensures all ranks resume together
-
-### Gradient Synchronization
-DDP all-reduces gradients automatically after `loss.backward()`. To skip sync for gradient accumulation:
+### Gradient accumulation without double all-reduce
 
 ```python
-with model.no_sync():   # suppress all-reduce for N-1 steps
-    loss.backward()
-loss.backward()         # sync on the last step
-optimizer.step()
+for i, batch in enumerate(loader):
+    # suppress all-reduce for the first N-1 micro-steps
+    with model.no_sync() if (i + 1) % accum_steps != 0 else contextlib.nullcontext():
+        loss = model(batch) / accum_steps
+        loss.backward()
+
+    if (i + 1) % accum_steps == 0:
+        optimizer.step()
+        optimizer.zero_grad()
 ```
 
-### find_unused_parameters
+### `find_unused_parameters`
+
 ```python
 model = DDP(model, device_ids=[local_rank], find_unused_parameters=True)
 ```
 
-Only enable if your model has conditional forward paths (dynamic computation graphs). It adds overhead on every step.
+Only enable this if your model has conditional forward paths. It adds per-step overhead and disables the AllReduce/backward overlap optimization.
 
-### NCCL Tuning
+---
+
+## NCCL Tuning
+
 ```bash
-export NCCL_IB_DISABLE=0         # enable InfiniBand if available
-export NCCL_DEBUG=INFO            # verbose logging for debugging hangs
-export NCCL_SOCKET_IFNAME=eth0    # specify network interface
-export NCCL_TIMEOUT=1800          # seconds before collective op timeout
+export NCCL_IB_DISABLE=0          # enable InfiniBand if available
+export NCCL_DEBUG=INFO             # verbose logging — useful for debugging hangs
+export NCCL_SOCKET_IFNAME=eth0    # specify the network interface
+export NCCL_TIMEOUT=1800          # seconds before a collective op times out
 ```
 
 ---
@@ -183,10 +181,10 @@ export NCCL_TIMEOUT=1800          # seconds before collective op timeout
 | Symptom | Likely Cause |
 |---|---|
 | Hangs at `init_process_group` | Firewall blocking `MASTER_PORT`, wrong `MASTER_ADDR` |
-| `NCCL error: unhandled system error` | NIC not found, try `NCCL_SOCKET_IFNAME` |
+| `NCCL error: unhandled system error` | NIC not found — try setting `NCCL_SOCKET_IFNAME` |
 | Out-of-sync loss across ranks | `sampler.set_epoch()` missing |
-| Deadlock after checkpoint | Missing `dist.barrier()` after rank-0 save |
-| Gradient NaN after accumulation | `no_sync()` not used, gradients accumulated then double all-reduced |
+| Deadlock after checkpoint save | Missing `dist.barrier()` after rank-0 save |
+| Gradient NaN after accumulation | `no_sync()` not used — gradients accumulated then double all-reduced |
 
 ---
 
@@ -194,8 +192,5 @@ export NCCL_TIMEOUT=1800          # seconds before collective op timeout
 
 | Backend | Use Case |
 |---|---|
-| `c10d` (default) | Most cases; no external dependency |
-| `etcd` / `etcd-v2` | Elastic jobs, production Kubernetes |
-| `zeus` | Internal Meta use, not public |
-
-For elastic training on Kubernetes, prefer `etcd` — it survives pod restarts, while `c10d` requires the master endpoint to stay alive.
+| `c10d` (default) | Standard use, no external dependencies |
+| `etcd` / `etcd-v2` | Elastic jobs, Kubernetes — survives pod restarts |
