@@ -4,10 +4,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BT Studio - Log</title>
+  <title>BT Studio - Live</title>
   <meta name="description" content="BT Studio - Real-time speech recognition, translation & interpretation">
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Code:wght@400;500&display=swap"
     rel="stylesheet">
   <link
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
@@ -19,82 +19,417 @@
       theme: {
         extend: {
           colors: {
-            "primary": "#5b2bee",
-            "primary-light": "#7c3aed",
-            "background-dark": "#0a0a0c",
-            "surface": "#111113",
-            "surface-raised": "#18181b",
-            "border-subtle": "#1e1b2e",
-            "border-glow": "rgba(91,43,238,0.15)",
+            "primary": "#8ab4f8",
+            "primary-light": "#a8c7fa",
+            "background-dark": "#131314",
+            "surface": "#1e1f20",
+            "surface-raised": "#282a2c",
+            "border-subtle": "#3c4043",
           },
           fontFamily: {
-            "display": ["Inter", "sans-serif"]
+            "display": ["Google Sans", "Inter", "system-ui", "sans-serif"]
           },
         },
       },
     }
   </script>
-  <link rel="stylesheet" href="/demo/demo.css">
+  <link rel="stylesheet" href="/demo/demo.css?v=2">
 </head>
 
-<body class="bg-background-dark font-display text-slate-100 antialiased overflow-hidden"
-  data-base="">
+<body class="bg-background-dark font-display antialiased overflow-hidden" data-base="">
 
-  <div class="flex h-dvh w-full overflow-hidden">
+  <div class="app-shell h-dvh">
 
-    <!-- Main Content Area -->
-    <main class="flex-1 flex flex-col overflow-hidden relative">
-
-      <!-- Error Message -->
-      <div id="error-message"
-        class="asr-error-message hidden px-6 py-3 bg-red-500/10 border-b border-red-500/30 text-red-400 text-xs font-semibold tracking-wide">
+    <!-- ═══════════════════ Left Nav Rail ═══════════════════ -->
+    <aside id="nav-rail" class="nav-rail" aria-label="Modes">
+      <div class="nav-brand">
+        <button id="nav-collapse-btn" type="button" class="icon-btn nav-toggle" title="Collapse menu"
+          aria-label="Toggle menu">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+        <a href="/demo" class="brand-link">
+          <span class="brand-mark">BT</span>
+          <span class="brand-name nav-label">BT Studio</span>
+        </a>
       </div>
 
-      <!-- ═══════════════════ Top Header Bar ═══════════════════ -->
-      <header
-        class="glass-strong border-b border-border-subtle px-4 md:px-6 py-3 flex items-center justify-between z-10 shrink-0">
+      <nav class="nav-list">
+        <p class="nav-section nav-label">Live speech</p>
+        <button id="tab-live" type="button" class="tab-btn nav-item tab-active" data-title="Transcript"
+          title="Transcript">
+          <span class="material-symbols-outlined">edit_note</span>
+          <span class="nav-label">Transcript</span>
+        </button>
+        <button id="tab-translate" type="button" class="tab-btn nav-item" data-title="Interpreter"
+          title="Interpreter">
+          <span class="material-symbols-outlined">hearing</span>
+          <span class="nav-label">Interpreter</span>
+        </button>
+        <button id="tab-interpreter" type="button" class="tab-btn nav-item" data-title="Interpreter+"
+          title="Interpreter+">
+          <span class="material-symbols-outlined">forum</span>
+          <span class="nav-label">Interpreter+</span>
+        </button>
+        <button id="tab-multilingual" type="button" class="tab-btn nav-item" data-title="Multilingual"
+          title="Multilingual">
+          <span class="material-symbols-outlined">language</span>
+          <span class="nav-label">Multilingual</span>
+        </button>
+        <button id="tab-parakeet" type="button" class="tab-btn nav-item hidden" data-title="Parakeet"
+          title="Parakeet">
+          <span class="material-symbols-outlined">record_voice_over</span>
+          <span class="nav-label">Parakeet</span>
+        </button>
+        <button id="tab-conversation" type="button" class="tab-btn nav-item hidden" data-title="Conversation"
+          title="Conversation">
+          <span class="material-symbols-outlined">groups</span>
+          <span class="nav-label">Conversation</span>
+        </button>
+      </nav>
 
-        <!-- Left: Brand + Start/Stop + Status -->
-        <div class="flex items-center gap-3 md:gap-4">
+      <div class="nav-footer">
+        <a href="/" class="nav-item" title="Home">
+          <span class="material-symbols-outlined">home</span>
+          <span class="nav-label">eesungkim.com</span>
+        </a>
+        <a href="/about" class="nav-item" title="About">
+          <span class="material-symbols-outlined">info</span>
+          <span class="nav-label">About</span>
+        </a>
+      </div>
+    </aside>
 
-          <!-- Brand mark -->
-          <a href="/demo" class="hidden md:flex items-center gap-2.5 pr-4 border-r border-border-subtle hover:opacity-80 transition-opacity">
-            <div
-              class="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shadow-lg shadow-primary/20">
-              <span class="text-white text-sm font-extrabold tracking-tight">BT</span>
-            </div>
-            <div class="flex flex-col">
-              <span class="text-sm font-bold text-white tracking-tight leading-none">BT Studio</span>
-              <span class="text-[9px] font-semibold text-slate-500 uppercase tracking-widest leading-none mt-0.5">Speech AI</span>
-            </div>
-          </a>
+    <div id="scrim" class="scrim" aria-hidden="true"></div>
 
-          <!-- Start/Stop button (connects + starts transcription in one click) -->
-          <button id="mic-btn"
-            class="asr-mic-button gradient-primary flex items-center justify-center gap-2 text-white p-2.5 sm:px-5 sm:py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none sm:w-[100px]">
-            <span class="material-symbols-outlined text-[22px]" id="mic-icon">power_settings_new</span>
-            <span id="mic-label" class="hidden sm:inline">Start</span>
+    <!-- ═══════════════════ Center Stage ═══════════════════ -->
+    <main class="stage">
+
+      <!-- Error Message -->
+      <div id="error-message" class="asr-error-message hidden"></div>
+
+      <!-- Top bar: mode title + mode actions + settings toggle -->
+      <header class="topbar">
+        <div class="flex items-center gap-2 min-w-0">
+          <button id="nav-open-btn" type="button" class="icon-btn topbar-menu" title="Menu" aria-label="Open menu">
+            <span class="material-symbols-outlined">menu</span>
           </button>
-
+          <div class="min-w-0">
+            <h1 id="mode-title" class="topbar-title">Transcript</h1>
+            <p id="mode-desc" class="topbar-desc">Real-time English speech-to-text</p>
+          </div>
         </div>
 
-        <!-- Right: Audio source + Waveform -->
-        <div class="flex items-center gap-3">
-          <!-- Audio source selector -->
-          <div class="flex items-center gap-1 bg-background-dark/60 border border-border-subtle rounded-xl p-0.5">
-            <button type="button" data-source="mic"
-              class="audio-src-btn audio-src-active flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all">
-              <span class="material-symbols-outlined text-[14px]">mic</span>
+        <div class="flex items-center gap-1 shrink-0">
+          <!-- Per-mode actions (shown for the active mode by layout.js) -->
+          <div class="mode-actions" data-mode="live">
+            <button id="summarize-btn" type="button" title="Summarize transcript" class="icon-btn icon-btn-summary">
+              <span class="material-symbols-outlined">summarize</span>
+            </button>
+            <button id="copy-btn" type="button" title="Copy transcript" class="icon-btn">
+              <span class="material-symbols-outlined">content_copy</span>
+            </button>
+          </div>
+          <div class="mode-actions hidden" data-mode="translate">
+            <button id="summarize-btn-translate" type="button" title="Summarize transcript"
+              class="icon-btn icon-btn-summary">
+              <span class="material-symbols-outlined">summarize</span>
+            </button>
+          </div>
+          <div class="mode-actions hidden" data-mode="multilingual">
+            <span id="multilingual-lang-badge" class="lang-badge hidden"></span>
+            <select id="multilingual-source-lang" class="hidden">
+              <option value="auto">Auto-detect</option>
+            </select>
+            <button id="multilingual-copy-btn" type="button" title="Copy transcript" class="icon-btn">
+              <span class="material-symbols-outlined">content_copy</span>
+            </button>
+          </div>
+          <div class="mode-actions hidden" data-mode="parakeet">
+            <span class="lang-badge">EN</span>
+            <button id="parakeet-copy-btn" type="button" title="Copy transcript" class="icon-btn">
+              <span class="material-symbols-outlined">content_copy</span>
+            </button>
+          </div>
+          <div class="mode-actions hidden" data-mode="conversation">
+            <button id="conversation-copy-btn" type="button" title="Copy conversation" class="icon-btn">
+              <span class="material-symbols-outlined">content_copy</span>
+            </button>
+          </div>
+
+          <div class="topbar-divider"></div>
+          <button id="settings-toggle-btn" type="button" class="icon-btn" title="Run settings"
+            aria-label="Toggle run settings">
+            <span class="material-symbols-outlined">tune</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- ═══════════════════ Content Area ═══════════════════ -->
+      <div class="stage-body">
+
+        <!-- ─── Live Transcript Panel ─── -->
+        <div id="transcript-panel" class="panel">
+          <div id="transcript-box" class="panel-scroll custom-scrollbar">
+
+            <!-- Placeholder -->
+            <div id="transcript-placeholder" class="empty-state">
+              <div class="empty-icon"><span class="material-symbols-outlined">edit_note</span></div>
+              <h2 class="empty-title">Talk to BT Studio</h2>
+              <p class="empty-desc">Real-time speech-to-text English transcription<br>with auto-summarization</p>
+              <p class="empty-hint">Press <b>Start</b> below and begin speaking</p>
+            </div>
+
+            <!-- Transcript content -->
+            <div class="reading-col">
+              <div id="transcript-content" class="space-y-2">
+                <span id="transcript-committed" class="text-committed"></span><span
+                  id="transcript-partial" class="text-partial"></span><span
+                  id="transcript-cursor" class="asr-transcript-cursor"></span>
+              </div>
+            </div>
+          </div><!-- end transcript-box -->
+
+          <!-- Summary Footer: outside scroll area, fixed at panel bottom -->
+          <div id="summary-footer-transcript" class="summary-card hidden">
+            <div class="summary-head">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined summary-icon">auto_awesome</span>
+                <span class="summary-label">Summary</span>
+                <span class="summary-sub">Live transcript</span>
+              </div>
+              <button id="summary-btn-transcript-footer" type="button" title="Regenerate summary"
+                class="icon-btn icon-btn-sm icon-btn-summary">
+                <span class="material-symbols-outlined">refresh</span>
+              </button>
+            </div>
+            <div id="summary-content-transcript" class="summary-body"></div>
+          </div>
+          <!-- Jump to bottom FAB -->
+          <button id="transcript-jump-btn" type="button" class="jump-btn hidden" title="Jump to latest">
+            <span class="material-symbols-outlined">arrow_downward</span>
+          </button>
+        </div><!-- end transcript-panel -->
+
+        <!-- ─── Live Translate Panel ─── -->
+        <div id="translate-box" class="panel hidden">
+          <!-- Column headers -->
+          <div class="interp-col-headers">
+            <div class="interp-header">
+              <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined">translate</span>
+                <span>English</span>
+              </div>
+              <button id="copy-btn-en" type="button" title="Copy English text" class="icon-btn icon-btn-sm">
+                <span class="material-symbols-outlined">content_copy</span>
+              </button>
+            </div>
+            <div class="interp-header">
+              <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined">g_translate</span>
+                <span>Korean translation</span>
+              </div>
+              <button id="copy-btn-ko" type="button" title="Copy Korean translation" class="icon-btn icon-btn-sm">
+                <span class="material-symbols-outlined">content_copy</span>
+              </button>
+            </div>
+          </div>
+          <div class="flex-1 flex overflow-hidden relative">
+            <!-- Placeholder -->
+            <div id="translate-placeholder" class="empty-state">
+              <div class="empty-icon"><span class="material-symbols-outlined">hearing</span></div>
+              <h2 class="empty-title">Live interpreter</h2>
+              <p class="empty-desc">Real-time English → Korean interpretation<br>for lectures, meetings, and
+                presentations<br>with auto-summarization</p>
+              <p class="empty-hint">Press <b>Start</b> below and begin speaking</p>
+            </div>
+            <!-- English transcript -->
+            <div id="translate-scroll-en" class="split-col split-col-left custom-scrollbar">
+              <div id="translate-content-en" class="space-y-2">
+                <span id="translate-committed-en" class="text-committed"></span><span
+                  id="translate-partial-en" class="text-partial"></span>
+              </div>
+            </div>
+            <!-- Korean translation -->
+            <div id="translate-scroll-ko" class="split-col custom-scrollbar">
+              <div id="translate-content-ko" class="space-y-2">
+                <span id="translate-committed-ko" class="text-ko"></span><span
+                  id="translate-partial-ko" class="text-ko-partial"></span>
+              </div>
+            </div>
+          </div>
+          <!-- Summary Footer -->
+          <div id="summary-footer-translate" class="summary-card hidden">
+            <div class="summary-head">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined summary-icon">auto_awesome</span>
+                <span class="summary-label">Summary</span>
+                <span class="summary-sub">English · Korean translation</span>
+              </div>
+              <button id="summary-btn-translate-footer" type="button" title="Regenerate summary"
+                class="icon-btn icon-btn-sm icon-btn-summary">
+                <span class="material-symbols-outlined">refresh</span>
+              </button>
+            </div>
+            <div id="summary-content-translate" class="summary-body"></div>
+          </div>
+          <!-- Jump to bottom FAB -->
+          <button id="translate-jump-btn" type="button" class="jump-btn hidden" title="Jump to latest">
+            <span class="material-symbols-outlined">arrow_downward</span>
+          </button>
+        </div>
+
+        <!-- ─── Interpreter Panel ─── -->
+        <div id="interpreter-box" class="panel hidden">
+          <!-- Column headers -->
+          <div class="interp-col-headers">
+            <div class="interp-header">
+              <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined">translate</span>
+                <span>English</span>
+              </div>
+              <button id="interpreter-copy-en" type="button" title="Copy English sentences"
+                class="icon-btn icon-btn-sm">
+                <span class="material-symbols-outlined">content_copy</span>
+              </button>
+            </div>
+            <div class="interp-header">
+              <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined">g_translate</span>
+                <span>Korean translation</span>
+              </div>
+              <button id="interpreter-copy-ko" type="button" title="Copy Korean sentences"
+                class="icon-btn icon-btn-sm">
+                <span class="material-symbols-outlined">content_copy</span>
+              </button>
+            </div>
+          </div>
+          <!-- Scroll area — two-column rows -->
+          <div id="interpreter-scroll" class="flex-1 overflow-y-auto custom-scrollbar relative">
+            <div id="interpreter-placeholder" class="empty-state">
+              <div class="empty-icon"><span class="material-symbols-outlined">forum</span></div>
+              <h2 class="empty-title">Sentence-by-sentence interpreter</h2>
+              <p class="empty-desc">English → Korean interpretation<br>source and translation appear side by side</p>
+              <p class="empty-hint">Press <b>Start</b> below and begin speaking</p>
+            </div>
+            <div id="interpreter-rows">
+              <!-- Rows dynamically inserted by JS -->
+            </div>
+          </div>
+          <!-- Jump to bottom FAB -->
+          <button id="interpreter-jump-btn" type="button" class="jump-btn hidden" title="Jump to latest">
+            <span class="material-symbols-outlined">arrow_downward</span>
+          </button>
+        </div>
+
+        <!-- ─── Conversation Panel (dual-stream ASR) ─── -->
+        <div id="conversation-box" class="panel hidden">
+          <!-- Column headers -->
+          <div class="conv-col-headers">
+            <div class="conv-header flex items-center gap-1.5">
+              <span class="material-symbols-outlined">desktop_windows</span>
+              <span>System</span>
+            </div>
+            <div class="conv-header conv-header-you flex items-center gap-1.5">
+              <span class="material-symbols-outlined">mic</span>
+              <span>You</span>
+            </div>
+          </div>
+          <!-- Scroll area -->
+          <div id="conversation-scroll" class="flex-1 overflow-y-auto custom-scrollbar relative">
+            <div id="conversation-placeholder" class="empty-state">
+              <div class="empty-icon"><span class="material-symbols-outlined">groups</span></div>
+              <h2 class="empty-title">Conversation</h2>
+              <p class="empty-desc">Dual-stream speech recognition<br>System and microphone audio separated</p>
+            </div>
+            <div id="conversation-rows">
+              <!-- Rows dynamically inserted by JS -->
+            </div>
+          </div>
+          <!-- Jump to bottom FAB -->
+          <button id="conversation-jump-btn" type="button" class="jump-btn hidden" title="Jump to latest">
+            <span class="material-symbols-outlined">arrow_downward</span>
+          </button>
+        </div>
+
+        <!-- ─── Parakeet ASR Panel ─── -->
+        <div id="parakeet-box" class="panel hidden">
+          <div id="parakeet-scroll" class="panel-scroll custom-scrollbar">
+            <!-- Placeholder -->
+            <div id="parakeet-placeholder" class="empty-state">
+              <div class="empty-icon"><span class="material-symbols-outlined">record_voice_over</span></div>
+              <h2 class="empty-title">Parakeet ASR</h2>
+              <p class="empty-desc">Real-time English speech-to-text<br>powered by NVIDIA Parakeet TDT 0.6B</p>
+              <p class="empty-hint">Press <b>Start</b> below and begin speaking</p>
+            </div>
+            <!-- Transcript content -->
+            <div class="reading-col">
+              <div id="parakeet-content" class="space-y-2">
+                <span id="parakeet-committed" class="text-committed"></span><span
+                  id="parakeet-partial" class="text-partial"></span><span
+                  id="parakeet-cursor" class="asr-transcript-cursor" style="display:none"></span>
+              </div>
+            </div>
+          </div>
+          <!-- Jump to bottom FAB -->
+          <button id="parakeet-jump-btn" type="button" class="jump-btn hidden" title="Jump to latest">
+            <span class="material-symbols-outlined">arrow_downward</span>
+          </button>
+        </div>
+
+        <!-- ─── Multilingual ASR Panel ─── -->
+        <div id="multilingual-box" class="panel hidden">
+          <div id="multilingual-scroll" class="panel-scroll custom-scrollbar">
+            <!-- Placeholder -->
+            <div id="multilingual-placeholder" class="empty-state">
+              <div class="empty-icon"><span class="material-symbols-outlined">language</span></div>
+              <h2 class="empty-title">Multilingual ASR</h2>
+              <p class="empty-desc">Real-time speech-to-text transcription in 20 languages<br>with automatic
+                language detection</p>
+              <p class="empty-hint">Press <b>Start</b> below and begin speaking</p>
+            </div>
+            <!-- Transcript content -->
+            <div class="reading-col">
+              <div id="multilingual-content" class="space-y-2">
+                <span id="multilingual-committed" class="text-committed"></span><span
+                  id="multilingual-partial" class="text-partial"></span><span
+                  id="multilingual-cursor" class="asr-transcript-cursor" style="display:none"></span>
+              </div>
+            </div>
+          </div>
+          <!-- Jump to bottom FAB -->
+          <button id="multilingual-jump-btn" type="button" class="jump-btn hidden" title="Jump to latest">
+            <span class="material-symbols-outlined">arrow_downward</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- ═══════════════════ Control Dock ═══════════════════ -->
+      <div class="dock-wrap">
+        <div class="dock">
+          <!-- Mini waveform visualizer -->
+          <div id="waveform" class="dock-waveform" aria-hidden="true">
+            <div class="waveform-bar-mini h-2"></div>
+            <div class="waveform-bar-mini h-4"></div>
+            <div class="waveform-bar-mini h-2"></div>
+            <div class="waveform-bar-mini h-3"></div>
+            <div class="waveform-bar-mini h-5"></div>
+            <div class="waveform-bar-mini h-3"></div>
+            <div class="waveform-bar-mini h-4"></div>
+          </div>
+
+          <!-- Audio source selector (demo.js hides it via .flex.items-center.gap-1 on mobile) -->
+          <div class="audio-src-group flex items-center gap-1">
+            <button type="button" data-source="mic" class="audio-src-btn audio-src-active" title="Microphone">
+              <span class="material-symbols-outlined">mic</span>
               <span class="hidden sm:inline">Mic</span>
             </button>
-            <button type="button" data-source="system"
-              class="audio-src-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all">
-              <span class="material-symbols-outlined text-[14px]">desktop_windows</span>
+            <button type="button" data-source="system" class="audio-src-btn" title="System audio">
+              <span class="material-symbols-outlined">desktop_windows</span>
               <span class="hidden sm:inline">System</span>
             </button>
-            <button type="button" data-source="both"
-              class="audio-src-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all">
-              <span class="material-symbols-outlined text-[14px]">merge</span>
+            <button type="button" data-source="both" class="audio-src-btn" title="Microphone + system audio">
+              <span class="material-symbols-outlined">merge</span>
               <span class="hidden sm:inline">Both</span>
             </button>
           </div>
@@ -105,477 +440,93 @@
             <option value="both">Both</option>
           </select>
 
-          <!-- Mini waveform visualizer -->
-          <div id="waveform"
-            class="flex items-end gap-[3px] bg-background-dark/60 border border-border-subtle px-3 py-2 rounded-xl h-10">
-            <div class="waveform-bar-mini w-[3px] h-2 bg-slate-700 rounded-full"></div>
-            <div class="waveform-bar-mini w-[3px] h-4 bg-slate-600 rounded-full"></div>
-            <div class="waveform-bar-mini w-[3px] h-2 bg-slate-700 rounded-full"></div>
-            <div class="waveform-bar-mini w-[3px] h-3 bg-slate-600 rounded-full"></div>
-            <div class="waveform-bar-mini w-[3px] h-5 bg-primary/50 rounded-full"></div>
-            <div class="waveform-bar-mini w-[3px] h-3 bg-slate-600 rounded-full"></div>
-            <div class="waveform-bar-mini w-[3px] h-4 bg-slate-700 rounded-full"></div>
-          </div>
-        </div>
-      </header>
-
-      <!-- ═══════════════════ Content Area ═══════════════════ -->
-      <div class="flex-1 flex flex-col bg-background-dark relative overflow-hidden">
-
-        <!-- Tab Navigation -->
-        <div
-          class="overflow-x-auto border-b border-border-subtle/40 bg-surface/40 shrink-0 tab-nav-scroll">
-          <div class="flex items-center gap-1 px-4 md:px-8 min-w-max">
-            <button id="tab-live"
-              class="tab-btn tab-active px-4 py-3 text-xs font-bold text-primary transition-colors">Transcript</button>
-            <button id="tab-translate"
-              class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors">Interpreter</button>
-            <button id="tab-interpreter"
-              class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors">Interpreter+</button>
-            <button id="tab-multilingual"
-              class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors">Multilingual</button>
-            <button id="tab-parakeet"
-              class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors hidden">Parakeet</button>
-            <button id="tab-conversation"
-              class="tab-btn px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors hidden">
-              Conversation</button>
-          </div>
-        </div>
-
-        <!-- ─── Live Transcript Panel ─── -->
-        <div id="transcript-panel" class="flex-1 flex flex-col overflow-hidden relative">
-          <div class="flex items-center justify-between px-4 md:px-8 py-2 border-b border-border-subtle/30 bg-surface/30 shrink-0">
-            <div class="flex items-center gap-2">
-              <div class="w-5 h-5 rounded bg-primary/10 flex items-center justify-center">
-                <span class="material-symbols-outlined text-primary-light text-[13px]">edit_note</span>
-              </div>
-              <span class="section-label text-slate-500">Transcript</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <button id="summarize-btn" title="Summarize transcript"
-                class="icon-btn flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:text-amber-400 hover:bg-amber-400/10 transition-all">
-                <span class="material-symbols-outlined text-[16px]">summarize</span>
-              </button>
-              <button id="copy-btn" title="Copy transcript"
-                class="icon-btn flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:text-white hover:bg-white/10 transition-all">
-                <span class="material-symbols-outlined text-[16px]">content_copy</span>
-              </button>
-            </div>
-          </div>
-          <div id="transcript-box" class="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-8 relative custom-scrollbar">
-
-          <!-- Placeholder -->
-          <div id="transcript-placeholder"
-            class="absolute inset-0 flex flex-col items-center justify-center text-center space-y-5 z-10 bg-background-dark">
-            <div
-              class="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shadow-xl shadow-primary/20 placeholder-ring">
-              <span class="material-symbols-outlined text-white text-3xl">edit_note</span>
-            </div>
-            <div>
-              <p class="text-slate-300 text-sm font-semibold">Transcript</p>
-              <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Real-time speech-to-text English transcription<br>with auto-summarization</p>
-            </div>
-          </div>
-
-          <!-- Transcript content -->
-          <div class="max-w-4xl mx-auto">
-            <div id="transcript-content" class="space-y-2">
-              <span id="transcript-committed"
-                class="text-slate-100 leading-[1.6] text-[0.9rem] font-medium"></span><span
-                id="transcript-partial"
-                class="text-slate-500 leading-[1.6] text-[0.9rem] font-medium italic"></span><span
-                id="transcript-cursor" class="asr-transcript-cursor"></span>
-            </div>
-
-          </div>
-
-          <!-- Bottom gradient -->
-          <div class="fixed bottom-10 left-0 right-0 h-16 transcript-gradient pointer-events-none z-10"></div>
-          </div><!-- end transcript-box -->
-
-          <!-- Summary Footer: outside scroll area, fixed at panel bottom -->
-          <div id="summary-footer-transcript" class="hidden shrink-0 px-4 md:px-8 pt-4 pb-3 border-t border-border-subtle/15">
-            <div class="flex items-center justify-between gap-2 mb-2.5">
-              <div class="flex items-center gap-2.5">
-                <span class="text-[9px] font-bold text-amber-400/80 uppercase tracking-[0.15em]">Summary</span>
-                <div class="w-px h-3 bg-border-subtle/40"></div>
-                <span class="material-symbols-outlined text-slate-500 text-[14px]">mic</span>
-                <span class="text-[9px] font-semibold text-slate-500 uppercase tracking-[0.1em]">Live Transcript</span>
-              </div>
-              <button id="summary-btn-transcript-footer" title="Regenerate summary"
-                class="icon-btn flex items-center justify-center w-6 h-6 rounded-lg text-slate-600 hover:text-amber-400 hover:bg-amber-400/10 transition-all shrink-0">
-                <span class="material-symbols-outlined text-[14px]">summarize</span>
-              </button>
-            </div>
-            <div id="summary-content-transcript" class="text-slate-100 leading-[1.6] text-[0.9rem] font-medium"></div>
-          </div>
-          <!-- Jump to bottom FAB -->
-          <button id="transcript-jump-btn"
-            class="hidden absolute bottom-3 right-3 md:right-6 w-7 h-7 rounded-full bg-primary/80 text-white shadow-md shadow-primary/20 items-center justify-center hover:bg-primary transition-all z-20 opacity-70 hover:opacity-100">
-            <span class="material-symbols-outlined text-[14px]">keyboard_double_arrow_down</span>
-          </button>
-        </div><!-- end transcript-panel -->
-
-        <!-- ─── Live Translate Panel ─── -->
-        <div id="translate-box" class="flex-1 flex flex-col overflow-hidden hidden relative">
-          <div class="flex items-center justify-between px-4 md:px-8 py-2 border-b border-border-subtle/30 bg-surface/30 shrink-0">
-            <div class="flex items-center gap-2">
-              <div class="w-5 h-5 rounded bg-primary/10 flex items-center justify-center">
-                <span class="material-symbols-outlined text-primary-light text-[13px]">hearing</span>
-              </div>
-              <span class="section-label text-slate-500">Interpreter</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <button id="summarize-btn-translate" title="Summarize transcript"
-                class="icon-btn flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:text-amber-400 hover:bg-amber-400/10 transition-all">
-                <span class="material-symbols-outlined text-[16px]">summarize</span>
-              </button>
-            </div>
-          </div>
-          <!-- Column headers (same as Interpreter Conversation) -->
-          <div class="interp-col-headers border-b border-border-subtle/20 shrink-0">
-            <div class="interp-header flex items-center justify-between">
-              <div class="flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-[13px]">translate</span>
-                <span>English</span>
-              </div>
-              <button id="copy-btn-en" title="Copy English text"
-                class="icon-btn flex items-center justify-center w-6 h-6 rounded-lg text-slate-600 hover:text-white hover:bg-white/10 transition-all">
-                <span class="material-symbols-outlined text-[13px]">content_copy</span>
-              </button>
-            </div>
-            <div class="interp-header flex items-center justify-between">
-              <div class="flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-[13px]">g_translate</span>
-                <span>Korean Translation</span>
-              </div>
-              <button id="copy-btn-ko" title="Copy Korean translation"
-                class="icon-btn flex items-center justify-center w-6 h-6 rounded-lg text-slate-600 hover:text-indigo-400/80 hover:bg-indigo-400/10 transition-all">
-                <span class="material-symbols-outlined text-[13px]">content_copy</span>
-              </button>
-            </div>
-          </div>
-          <div class="flex-1 flex overflow-hidden relative">
-            <!-- Placeholder -->
-            <div id="translate-placeholder"
-              class="absolute inset-0 flex flex-col items-center justify-center text-center space-y-5 z-10 bg-background-dark">
-              <div
-                class="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shadow-xl shadow-primary/20 placeholder-ring">
-                <span class="material-symbols-outlined text-white text-3xl">hearing</span>
-              </div>
-              <div>
-                <p class="text-slate-300 text-sm font-semibold">Interpreter</p>
-                <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Real-time English → Korean interpretation<br>for lectures, meetings, and presentations<br>with auto-summarization</p>
-              </div>
-            </div>
-            <!-- English transcript -->
-            <div id="translate-scroll-en"
-              class="flex-1 overflow-y-auto px-4 py-5 md:px-8 md:py-6 custom-scrollbar border-r border-border-subtle/30">
-              <div id="translate-content-en" class="space-y-2">
-                <span id="translate-committed-en"
-                  class="text-slate-100 leading-[1.6] text-[0.9rem] font-medium"></span><span
-                  id="translate-partial-en"
-                  class="text-slate-500 leading-[1.6] text-[0.9rem] font-medium italic"></span>
-              </div>
-            </div>
-            <!-- Korean translation -->
-            <div id="translate-scroll-ko"
-              class="flex-1 overflow-y-auto px-4 py-5 md:px-8 md:py-6 custom-scrollbar">
-              <div id="translate-content-ko" class="space-y-2">
-                <span id="translate-committed-ko"
-                  class="text-indigo-300 leading-[1.6] text-[0.9rem] font-medium"></span><span
-                  id="translate-partial-ko"
-                  class="text-indigo-400/60 leading-[1.6] text-[0.9rem] font-medium italic"></span>
-              </div>
-            </div>
-          </div>
-          <!-- Summary Footer -->
-          <div id="summary-footer-translate" class="hidden shrink-0 px-4 md:px-8 pt-4 pb-3 border-t border-border-subtle/15">
-            <div class="flex items-center justify-between gap-3 mb-2.5">
-              <div class="flex items-center gap-2.5">
-                <span class="text-[9px] font-bold text-amber-400/80 uppercase tracking-[0.15em]">Summary</span>
-                <div class="w-px h-3 bg-border-subtle/40"></div>
-                <span class="material-symbols-outlined text-slate-500 text-[14px]">translate</span>
-                <span class="text-[9px] font-semibold text-slate-500 uppercase tracking-[0.1em]">English</span>
-                <div class="w-px h-3 bg-border-subtle/40"></div>
-                <span class="material-symbols-outlined text-indigo-400 text-[14px]">g_translate</span>
-                <span class="text-[9px] font-semibold text-indigo-400/70 uppercase tracking-[0.1em]">Korean Translation</span>
-              </div>
-              <button id="summary-btn-translate-footer" title="Regenerate summary"
-                class="icon-btn flex items-center justify-center w-6 h-6 rounded-lg text-slate-600 hover:text-amber-400 hover:bg-amber-400/10 transition-all shrink-0">
-                <span class="material-symbols-outlined text-[14px]">summarize</span>
-              </button>
-            </div>
-            <div id="summary-content-translate" class="text-slate-100 leading-[1.6] text-[0.9rem] font-medium"></div>
-          </div>
-          <!-- Jump to bottom FAB -->
-          <button id="translate-jump-btn"
-            class="hidden absolute bottom-3 right-3 md:right-6 w-7 h-7 rounded-full bg-primary/80 text-white shadow-md shadow-primary/20 items-center justify-center hover:bg-primary transition-all z-20 opacity-70 hover:opacity-100">
-            <span class="material-symbols-outlined text-[14px]">keyboard_double_arrow_down</span>
+          <!-- Start/Stop button (connects + starts transcription in one click) -->
+          <button id="mic-btn" type="button" class="asr-mic-button">
+            <span class="material-symbols-outlined" id="mic-icon">power_settings_new</span>
+            <span id="mic-label">Start</span>
           </button>
         </div>
-
-        <!-- ─── Interpreter Panel ─── -->
-        <div id="interpreter-box" class="flex-1 overflow-hidden hidden relative">
-          <!-- Interpreter toolbar -->
-          <div class="flex items-center justify-between px-4 md:px-8 py-2 border-b border-border-subtle/30 bg-surface/30 shrink-0">
-            <div class="flex items-center gap-2">
-              <div class="w-5 h-5 rounded bg-primary/10 flex items-center justify-center">
-                <span class="material-symbols-outlined text-primary-light text-[13px]">forum</span>
-              </div>
-              <span class="section-label text-slate-500">Interpreter+</span>
-            </div>
-            <div class="flex items-center gap-2">
-            </div>
-          </div>
-          <!-- Column headers -->
-          <div class="interp-col-headers border-b border-border-subtle/20 shrink-0">
-            <div class="interp-header flex items-center justify-between">
-              <div class="flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-[13px]">translate</span>
-                <span>English</span>
-              </div>
-              <button id="interpreter-copy-en" title="Copy English sentences"
-                class="icon-btn flex items-center justify-center w-6 h-6 rounded-lg text-slate-600 hover:text-white hover:bg-white/10 transition-all">
-                <span class="material-symbols-outlined text-[13px]">content_copy</span>
-              </button>
-            </div>
-            <div class="interp-header flex items-center justify-between">
-              <div class="flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-[13px]">g_translate</span>
-                <span>Korean Translation</span>
-              </div>
-              <button id="interpreter-copy-ko" title="Copy Korean sentences"
-                class="icon-btn flex items-center justify-center w-6 h-6 rounded-lg text-slate-600 hover:text-indigo-400/80 hover:bg-indigo-400/10 transition-all">
-                <span class="material-symbols-outlined text-[13px]">content_copy</span>
-              </button>
-            </div>
-          </div>
-          <!-- Scroll area — two-column rows -->
-          <div id="interpreter-scroll" class="flex-1 overflow-y-auto custom-scrollbar relative">
-            <div id="interpreter-placeholder"
-              class="absolute inset-0 flex flex-col items-center justify-center text-center space-y-5 z-10 bg-background-dark">
-              <div
-                class="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shadow-xl shadow-primary/20 placeholder-ring">
-                <span class="material-symbols-outlined text-white text-3xl">forum</span>
-              </div>
-              <div>
-                <p class="text-slate-300 text-sm font-semibold">Interpreter+</p>
-                <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Sentence-by-sentence English → Korean interpretation<br>source and translation appear side by side</p>
-              </div>
-            </div>
-            <div id="interpreter-rows" class="divide-y divide-border-subtle/15">
-              <!-- Rows dynamically inserted by JS -->
-            </div>
-          </div>
-          <!-- Jump to bottom FAB -->
-          <button id="interpreter-jump-btn"
-            class="hidden absolute bottom-3 right-3 md:right-6 w-7 h-7 rounded-full bg-primary/80 text-white shadow-md shadow-primary/20 items-center justify-center hover:bg-primary transition-all z-20 opacity-70 hover:opacity-100">
-            <span class="material-symbols-outlined text-[14px]">keyboard_double_arrow_down</span>
-          </button>
-        </div>
-
-        <!-- ─── Conversation Panel (dual-stream ASR) ─── -->
-        <div id="conversation-box" class="flex-1 overflow-hidden hidden relative">
-          <!-- Header -->
-          <div class="flex items-center justify-between px-4 md:px-8 py-2 border-b border-border-subtle/30 bg-surface/30 shrink-0">
-            <div class="flex items-center gap-2">
-              <div class="w-5 h-5 rounded bg-primary/10 flex items-center justify-center">
-                <span class="material-symbols-outlined text-primary-light text-[13px]">forum</span>
-              </div>
-              <span class="section-label text-slate-500">Conversation</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <button id="conversation-copy-btn" title="Copy conversation"
-                class="icon-btn flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:text-white hover:bg-white/10 transition-all">
-                <span class="material-symbols-outlined text-[16px]">content_copy</span>
-              </button>
-            </div>
-          </div>
-          <!-- Column headers -->
-          <div class="conv-col-headers border-b border-border-subtle/20 shrink-0">
-            <div class="conv-header flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-[13px]">desktop_windows</span>
-              <span>System</span>
-            </div>
-            <div class="conv-header conv-header-you flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-[13px]">mic</span>
-              <span>You</span>
-            </div>
-          </div>
-          <!-- Scroll area -->
-          <div id="conversation-scroll" class="flex-1 overflow-y-auto custom-scrollbar relative">
-            <div id="conversation-placeholder"
-              class="absolute inset-0 flex flex-col items-center justify-center text-center space-y-5 z-10 bg-background-dark">
-              <div
-                class="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shadow-xl shadow-primary/20 placeholder-ring">
-                <span class="material-symbols-outlined text-white text-3xl">forum</span>
-              </div>
-              <div>
-                <p class="text-slate-300 text-sm font-semibold">Conversation</p>
-                <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Dual-stream speech recognition<br>System and microphone audio separated</p>
-              </div>
-            </div>
-            <div id="conversation-rows" class="divide-y divide-border-subtle/15">
-              <!-- Rows dynamically inserted by JS -->
-            </div>
-          </div>
-          <!-- Jump to bottom FAB -->
-          <button id="conversation-jump-btn"
-            class="hidden absolute bottom-3 right-3 md:right-6 w-7 h-7 rounded-full bg-primary/80 text-white shadow-md shadow-primary/20 items-center justify-center hover:bg-primary transition-all z-20 opacity-70 hover:opacity-100">
-            <span class="material-symbols-outlined text-[14px]">keyboard_double_arrow_down</span>
-          </button>
-        </div>
-
-        <!-- ─── Parakeet ASR Panel ─── -->
-        <div id="parakeet-box" class="flex-1 flex flex-col overflow-hidden hidden relative">
-          <div class="flex items-center justify-between px-4 md:px-8 py-2 border-b border-border-subtle/30 bg-surface/30 shrink-0">
-            <div class="flex items-center gap-2">
-              <div class="w-5 h-5 rounded bg-sky-500/10 flex items-center justify-center">
-                <span class="material-symbols-outlined text-sky-400 text-[13px]">record_voice_over</span>
-              </div>
-              <span class="section-label text-slate-500">Parakeet ASR</span>
-              <span class="ml-2 px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-400 text-[10px] font-bold uppercase tracking-wide">EN</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <button id="parakeet-copy-btn" title="Copy transcript"
-                class="icon-btn flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:text-white hover:bg-white/10 transition-all">
-                <span class="material-symbols-outlined text-[16px]">content_copy</span>
-              </button>
-            </div>
-          </div>
-          <div id="parakeet-scroll" class="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-8 relative custom-scrollbar">
-            <!-- Placeholder -->
-            <div id="parakeet-placeholder"
-              class="absolute inset-0 flex flex-col items-center justify-center text-center space-y-5 z-10 bg-background-dark">
-              <div
-                class="w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-500 to-sky-700 flex items-center justify-center shadow-xl shadow-sky-500/20 placeholder-ring">
-                <span class="material-symbols-outlined text-white text-3xl">record_voice_over</span>
-              </div>
-              <div>
-                <p class="text-slate-300 text-sm font-semibold">Parakeet ASR</p>
-                <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Real-time English speech-to-text<br>powered by NVIDIA Parakeet TDT 0.6B</p>
-              </div>
-            </div>
-            <!-- Transcript content -->
-            <div class="max-w-4xl mx-auto">
-              <div id="parakeet-content" class="space-y-2">
-                <span id="parakeet-committed"
-                  class="text-slate-100 leading-[1.6] text-[0.9rem] font-medium"></span><span
-                  id="parakeet-partial"
-                  class="text-slate-500 leading-[1.6] text-[0.9rem] font-medium italic"></span><span
-                  id="parakeet-cursor" class="asr-transcript-cursor" style="display:none"></span>
-              </div>
-            </div>
-          </div>
-          <!-- Jump to bottom FAB -->
-          <button id="parakeet-jump-btn"
-            class="hidden absolute bottom-3 right-3 md:right-6 w-7 h-7 rounded-full bg-sky-500/80 text-white shadow-md shadow-sky-500/20 items-center justify-center hover:bg-sky-500 transition-all z-20 opacity-70 hover:opacity-100">
-            <span class="material-symbols-outlined text-[14px]">keyboard_double_arrow_down</span>
-          </button>
-        </div>
-
-        <!-- ─── Multilingual ASR Panel ─── -->
-        <div id="multilingual-box" class="flex-1 flex flex-col overflow-hidden hidden relative">
-          <div class="flex items-center justify-between px-4 md:px-8 py-2 border-b border-border-subtle/30 bg-surface/30 shrink-0">
-            <div class="flex items-center gap-2">
-              <div class="w-5 h-5 rounded bg-emerald-500/10 flex items-center justify-center">
-                <span class="material-symbols-outlined text-emerald-400 text-[13px]">language</span>
-              </div>
-              <span class="section-label text-slate-500">Multilingual ASR</span>
-              <span id="multilingual-lang-badge"
-                class="hidden ml-2 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 text-[10px] font-bold uppercase tracking-wide"></span>
-            </div>
-            <div class="flex items-center gap-2">
-              <select id="multilingual-source-lang" class="hidden">
-                <option value="auto">Auto-detect</option>
-              </select>
-              <button id="multilingual-copy-btn" title="Copy transcript"
-                class="icon-btn flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:text-white hover:bg-white/10 transition-all">
-                <span class="material-symbols-outlined text-[16px]">content_copy</span>
-              </button>
-            </div>
-          </div>
-          <div id="multilingual-scroll" class="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-8 relative custom-scrollbar">
-            <!-- Placeholder -->
-            <div id="multilingual-placeholder"
-              class="absolute inset-0 flex flex-col items-center justify-center text-center space-y-5 z-10 bg-background-dark">
-              <div
-                class="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-xl shadow-emerald-500/20 placeholder-ring">
-                <span class="material-symbols-outlined text-white text-3xl">language</span>
-              </div>
-              <div>
-                <p class="text-slate-300 text-sm font-semibold">Multilingual ASR</p>
-                <p class="text-slate-600 text-xs mt-1.5 leading-relaxed">Real-time speech-to-text transcription in 20 languages<br>with automatic language detection</p>
-              </div>
-            </div>
-            <!-- Transcript content -->
-            <div class="max-w-4xl mx-auto">
-              <div id="multilingual-content" class="space-y-2">
-                <span id="multilingual-committed"
-                  class="text-slate-100 leading-[1.6] text-[0.9rem] font-medium"></span><span
-                  id="multilingual-partial"
-                  class="text-slate-500 leading-[1.6] text-[0.9rem] font-medium italic"></span><span
-                  id="multilingual-cursor" class="asr-transcript-cursor" style="display:none"></span>
-              </div>
-            </div>
-          </div>
-          <!-- Jump to bottom FAB -->
-          <button id="multilingual-jump-btn"
-            class="hidden absolute bottom-3 right-3 md:right-6 w-7 h-7 rounded-full bg-emerald-500/80 text-white shadow-md shadow-emerald-500/20 items-center justify-center hover:bg-emerald-500 transition-all z-20 opacity-70 hover:opacity-100">
-            <span class="material-symbols-outlined text-[14px]">keyboard_double_arrow_down</span>
-          </button>
-        </div>
-
       </div>
 
-      <!-- ═══════════════════ Status Bar Footer ═══════════════════ -->
-      <footer
-        class="glass-strong border-t border-border-subtle px-3 md:px-6 py-2 flex items-center justify-between text-slate-500 shrink-0">
-        <div class="flex items-center gap-2 md:gap-3">
-          <div class="flex items-center gap-1.5">
-            <span class="asr-status-dot idle" id="status-dot"></span>
-            <span id="status-text" class="text-[10px] text-slate-500 font-semibold">Disconnected</span>
-          </div>
-          <div class="w-px h-3 bg-border-subtle/40"></div>
-          <div class="flex items-center gap-1" title="Elapsed time">
-            <span class="material-symbols-outlined text-[13px] text-slate-600">schedule</span>
-            <span class="text-[10px] font-semibold text-slate-400"><span id="stat-duration">-</span></span>
-          </div>
-          <div class="hidden md:flex items-center gap-1" title="Words per minute">
-            <span class="material-symbols-outlined text-[13px] text-slate-600">abc</span>
-            <span class="text-[10px] font-semibold text-slate-400"><span id="stat-wpm">-</span></span>
-          </div>
-          <div class="hidden md:flex items-center gap-1" title="Inference latency">
-            <span class="material-symbols-outlined text-[13px] text-slate-600">bolt</span>
-            <span class="text-[10px] font-semibold text-slate-400"><span id="stat-latency">-</span></span>
-          </div>
-          <div class="hidden md:flex items-center gap-1" title="Real-Time Factor (< 1.0 = faster than real-time)">
-            <span class="material-symbols-outlined text-[13px] text-slate-600">compress</span>
-            <span class="text-[10px] font-semibold text-slate-400"><span id="stat-rtf">-</span></span>
-          </div>
-        </div>
-        <div class="flex items-center gap-2 md:gap-3">
-          <!-- Audio track indicators -->
-          <div id="audio-track-indicators" class="hidden items-center gap-2">
-            <div class="flex items-center gap-1" id="indicator-mic" title="Microphone track">
-              <span class="material-symbols-outlined text-[13px] text-slate-600">mic</span>
-              <span id="indicator-mic-label" class="text-[10px] font-semibold text-slate-600">--</span>
-            </div>
-            <div class="flex items-center gap-1" id="indicator-sys" title="System audio track">
-              <span class="material-symbols-outlined text-[13px] text-slate-600">desktop_windows</span>
-              <span id="indicator-sys-label" class="text-[10px] font-semibold text-slate-600">--</span>
-            </div>
-          </div>
-          <div class="flex gap-[3px]" id="status-footer-dot">
-            <div class="w-1 h-2 bg-slate-700 rounded-full transition-all duration-300"></div>
-            <div class="w-1 h-3 bg-slate-700 rounded-full transition-all duration-300"></div>
-            <div class="w-1 h-4 bg-slate-700 rounded-full transition-all duration-300"></div>
-          </div>
-        </div>
-      </footer>
-
     </main>
+
+    <!-- ═══════════════════ Right Panel: Run settings ═══════════════════ -->
+    <aside id="settings-panel" class="settings-panel" aria-label="Run settings">
+      <div class="settings-head">
+        <h2>Run settings</h2>
+        <button id="settings-close-btn" type="button" class="icon-btn" title="Close" aria-label="Close run settings">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="settings-body custom-scrollbar">
+        <section class="settings-section">
+          <h3 class="settings-label">Connection</h3>
+          <div class="settings-card flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="asr-status-dot idle" id="status-dot"></span>
+              <span id="status-text" class="settings-value">Disconnected</span>
+            </div>
+            <div class="flex items-end gap-[3px]" id="status-footer-dot" aria-hidden="true">
+              <div class="w-1 h-2 rounded-full transition-all duration-300" style="background:#4b5563"></div>
+              <div class="w-1 h-3 rounded-full transition-all duration-300" style="background:#4b5563"></div>
+              <div class="w-1 h-4 rounded-full transition-all duration-300" style="background:#4b5563"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <h3 class="settings-label">Mode</h3>
+          <div class="settings-card">
+            <div class="flex items-center gap-2">
+              <span id="mode-icon" class="material-symbols-outlined settings-mode-icon">edit_note</span>
+              <span id="mode-name" class="settings-value">Transcript</span>
+            </div>
+            <p id="mode-detail" class="settings-note">Streaming English ASR. Summaries on demand.</p>
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <h3 class="settings-label">Session</h3>
+          <div class="stat-grid">
+            <div class="stat-tile" title="Elapsed time">
+              <span class="stat-name"><span class="material-symbols-outlined">schedule</span>Duration</span>
+              <span id="stat-duration" class="stat-value">-</span>
+            </div>
+            <div class="stat-tile" title="Inference latency">
+              <span class="stat-name"><span class="material-symbols-outlined">bolt</span>Latency</span>
+              <span id="stat-latency" class="stat-value">-</span>
+            </div>
+            <div class="stat-tile" title="Real-Time Factor (< 1.0 = faster than real-time)">
+              <span class="stat-name"><span class="material-symbols-outlined">speed</span>RTF</span>
+              <span id="stat-rtf" class="stat-value">-</span>
+            </div>
+            <div class="stat-tile" title="Words per minute">
+              <span class="stat-name"><span class="material-symbols-outlined">abc</span>Speed</span>
+              <span id="stat-wpm" class="stat-value">-</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <h3 class="settings-label">Audio input</h3>
+          <div class="settings-card">
+            <p class="settings-note mt-0">Choose Mic, System, or Both in the control bar. Input locks while
+              listening.</p>
+            <div id="audio-track-indicators" class="hidden items-center gap-4 mt-3">
+              <div class="flex items-center gap-1.5" id="indicator-mic" title="Microphone track">
+                <span class="material-symbols-outlined">mic</span>
+                <span id="indicator-mic-label" class="settings-value text-xs">--</span>
+              </div>
+              <div class="flex items-center gap-1.5" id="indicator-sys" title="System audio track">
+                <span class="material-symbols-outlined">desktop_windows</span>
+                <span id="indicator-sys-label" class="settings-value text-xs">--</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </aside>
   </div>
 
   <!-- i18n strings for JavaScript -->
@@ -598,8 +549,9 @@
   </script>
 
   <!-- Main application script -->
-  <script src="/demo/demo.js?v=1"></script>
-
+  <script src="/demo/demo.js?v=2"></script>
+  <!-- Shell UI: nav rail, run settings panel, mode titles -->
+  <script src="/demo/layout.js?v=1"></script>
 
 </body>
 
