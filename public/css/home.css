@@ -1,0 +1,225 @@
+/* Homepage. Layout and palette follow ericyuegu.com: paper background, serif body, mono labels. */
+:root {
+  --paper: #fbfaf6;
+  --ink: #1c2530;
+  --ink-soft: #5f5b50;
+  --ink-faint: #8c8779;
+  --ink-ghost: #a8a294;
+  --meta: #6e6a5e;
+  --accent: #7b2e2e;
+  --rule: #ede9dd;
+  --rule-dotted: #cfc8b6;
+  --font-serif: Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --col-max: 680px;
+  --col-pad: 24px;
+  --space-section: 2.7rem;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-serif);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+::selection { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+
+.skip-link { position: absolute; left: -9999px; }
+.skip-link:focus { left: 12px; top: 12px; background: var(--ink); color: var(--paper); padding: 4px 10px; }
+
+.lbl {
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--meta);
+}
+
+.url {
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  letter-spacing: .02em;
+  color: var(--meta) !important;
+  text-decoration: underline;
+  text-decoration-color: #d8d2c2;
+  text-underline-offset: 3px;
+}
+.url:hover { color: var(--accent) !important; }
+
+/* Header */
+.site-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  max-width: var(--col-max);
+  margin: 0 auto;
+  padding: 30px var(--col-pad) 0;
+}
+.site-top .name { font-size: 1.05rem; font-weight: 600; color: var(--ink); }
+.site-top .name:hover { color: var(--accent); text-decoration: none; }
+.socials { display: flex; gap: 18px; }
+.socials a { color: var(--ink-faint); display: inline-flex; padding: 6px; margin: -6px; }
+.socials a:hover { color: var(--accent); }
+
+.col { max-width: var(--col-max); margin: 0 auto; padding: 50px var(--col-pad) 0; }
+main.col { padding-bottom: 64px; }
+
+.bio { font-size: 1.04rem; line-height: 1.62; max-width: 600px; }
+.bio p:first-child { margin-top: 0; }
+
+.group { margin-top: var(--space-section); }
+.grouphead { display: flex; align-items: baseline; gap: 14px; margin-bottom: .9rem; }
+.grouphead .rule { flex: 1; border-top: 1px dotted var(--rule-dotted); }
+
+/* Experience: one row per company, click to expand highlights */
+.xp { border-bottom: 1px solid var(--rule); }
+.xp:last-child { border-bottom: 0; }
+.xp-row {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  column-gap: 16px;
+  row-gap: 1px;
+  align-items: baseline;
+  padding: 12px 0;
+  cursor: pointer;
+  list-style: none;
+}
+.xp-row::-webkit-details-marker { display: none; }
+/* Logo slot: fixed width so the names line up */
+.xp-logo { grid-row: 1 / 3; align-self: center; display: flex; align-items: center; justify-content: center; height: 100%; }
+.xp-logo img { display: block; width: auto; max-width: 64px; height: 15px; }
+.xp-logo img[src*="samsung"] { height: auto; width: 64px; }
+.xp-org { color: var(--ink); font-weight: 600; }
+.xp-row:hover .xp-org { color: var(--accent); }
+.xp-role { grid-column: 2 / 4; color: var(--ink-soft); font-size: .93rem; }
+.xp-when { font-family: var(--font-mono); font-size: .7rem; color: var(--ink-faint); white-space: nowrap; }
+.xp-when::after {
+  content: "▸";
+  display: inline-block;
+  margin-left: 8px;
+  color: var(--ink-faint);
+  transition: transform .15s ease;
+}
+.xp[open] .xp-when::after { transform: rotate(90deg); }
+.xp-more {
+  margin: 0 0 14px;
+  padding-left: calc(64px + 16px + 1.1em);
+  color: var(--ink-soft);
+  font-size: .92rem;
+  line-height: 1.55;
+}
+.xp-more li { margin: .3em 0; }
+.xp-more li::marker { color: var(--ink-ghost); }
+
+/* Featured card */
+/* Projects: plain rows on the page background, like the other lists */
+.project-card { padding: 16px 0 14px; border-bottom: 1px solid var(--rule); }
+.project-card:last-child { border-bottom: 0; }
+.phead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.project-card .pt { font-size: 1.08rem; font-weight: 600; color: var(--ink); }
+a.pt:hover { color: var(--accent); }
+.project-card .ptab { font-family: var(--font-mono); font-size: .66rem; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-faint); white-space: nowrap; }
+.project-card .ps { color: var(--ink-soft); margin: .25em 0 0; font-size: .95rem; line-height: 1.55; }
+.skills { margin: .5rem 0 0; font-family: var(--font-mono); font-size: .66rem; letter-spacing: .02em; line-height: 1.6; color: var(--ink-faint); }
+.series-list { margin-top: 1rem; border-top: 1px solid var(--rule); }
+.series-row { display: flex; align-items: baseline; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--rule); }
+.series-row:last-child { border-bottom: 0; }
+.series-row .pn, .series-row .when { font-family: var(--font-mono); font-size: .68rem; color: var(--ink-faint); white-space: nowrap; }
+.series-row .t { color: var(--ink); }
+.series-row:has(a:hover) a { color: var(--accent); }
+.series-row .leader { flex: 1; border-bottom: 1px dotted #d8d2c2; transform: translateY(-4px); }
+
+.project-list { display: flex; flex-direction: column; }
+.pdetails { margin-top: .45rem; }
+.pdetails > summary { cursor: pointer; list-style: none; display: flex; align-items: baseline; gap: 6px; }
+.pdetails > summary .url { margin-left: auto; }
+.pdetails > summary::-webkit-details-marker { display: none; }
+.pdetails > summary::before { content: "▸"; color: var(--ink-faint); transition: transform .15s ease; display: inline-block; }
+.pdetails[open] > summary::before { transform: rotate(90deg); }
+.pdetails > summary:hover .lbl { color: var(--accent); }
+.achv { margin: .7rem 0 0; padding-left: 1.1em; font-size: .92rem; line-height: 1.55; color: var(--ink-soft); }
+.achv li { margin: .45em 0; }
+.achv li::marker { color: var(--ink-ghost); }
+.achv b { color: var(--ink); font-weight: 600; }
+.pdetails .src { margin: .4rem 0 .3rem; font-family: var(--font-mono); font-size: .64rem; color: var(--ink-ghost); }
+
+/* Publications, patents, notes */
+.pub-row, .post-row {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  column-gap: 20px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.pub-row:last-child, .post-row:last-child { border-bottom: 0; }
+.pub-row .yr, .post-row time { font-family: var(--font-mono); font-size: .7rem; color: var(--ink-faint); padding-top: .45em; }
+.pub-row .t { font-weight: 600; line-height: 1.4; display: block; }
+.pub-row .au { margin: .25em 0 0; color: var(--ink-soft); font-size: .9rem; }
+.pub-row .au b { color: var(--ink); font-weight: 600; }
+.pub-row .venue { font-family: var(--font-mono); font-size: .7rem; color: var(--meta); white-space: nowrap; }
+
+/* Folded lists: only hidden when JS is on, so the full list is never lost */
+.js .foldable:not(.open) .more { display: none; }
+.foldable .pub-row:last-child { border-bottom: 0; }
+.js .foldable:not(.open) .pub-row:not(.more):has(~ .more) { border-bottom: 1px solid var(--rule); }
+.fold-btn {
+  display: none;
+  margin-top: .5rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  letter-spacing: .02em;
+  color: var(--meta);
+  text-decoration: underline;
+  text-decoration-color: #d8d2c2;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.fold-btn::after { content: " ▾"; text-decoration: none; display: inline-block; margin-left: .3em; }
+.fold-btn[aria-expanded="true"]::after { content: " ▴"; }
+.fold-btn:hover { color: var(--accent); }
+.js .fold-btn { display: inline-block; }
+.pub-row .venue .issued { color: var(--accent); }
+
+.post-row { grid-template-columns: 104px 1fr; padding: 13px 0; }
+.post-row .t { font-size: 1.04rem; font-weight: 600; color: var(--ink); }
+.post-row .t:hover { color: var(--accent); }
+.post-row .excerpt { margin: .3em 0 0; color: var(--ink-soft); font-size: .92rem; }
+
+.foot {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 18px;
+  padding-bottom: 40px;
+  border-top: 1px dotted var(--rule-dotted);
+}
+.foot .lbl { color: var(--ink-ghost); }
+
+@media (max-width: 640px) {
+  .col { padding-top: 36px; }
+  .xp-row { grid-template-columns: 52px 1fr auto; column-gap: 12px; }
+  .xp-logo img { height: 13px; }
+  .xp-logo img[src*="samsung"] { width: 52px; }
+  .xp-more { padding-left: calc(52px + 12px + 1.1em); }
+  .pub-row, .post-row { grid-template-columns: 1fr; row-gap: 2px; }
+  .pub-row .yr, .post-row time { padding-top: 0; }
+}
+
+/* Experience → paper/patent citations */
+.refs { display: inline-flex; flex-wrap: wrap; gap: 0 .7em; margin-left: .55em; max-width: 100%; }
+.ref { font-family: var(--font-mono); font-size: .68rem; white-space: nowrap; border-bottom: 1px dotted var(--rule-dotted); }
+.ref:hover { text-decoration: none; border-bottom-color: var(--accent); }
+.pub-row { scroll-margin: 96px 0; }
+.pub-row.flash { animation: row-flash 1.8s ease-out; }
+@keyframes row-flash { from { background: color-mix(in srgb, var(--accent) 12%, transparent); } to { background: transparent; } }

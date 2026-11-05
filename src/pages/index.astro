@@ -1,92 +1,348 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
 
 const notes = (await getCollection("notes"))
   .sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime())
   .slice(0, 6);
 
-const reviews = (await getCollection("reviews"))
-  .filter((r) => r.slug !== "_index")
-  .sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime())
-  .slice(0, 5);
+const isoDate = (date: Date) => new Date(date).toISOString().split("T")[0];
 
-const formatDate = (date: Date) => {
-  const d = new Date(date);
-  return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+const ME = "E Kim";
+
+const experience = [
+  {
+    org: "Samsung Research America",
+    href: "https://sra.samsung.com",
+    logo: "/logos/samsung.svg",
+    role: "Staff ML Research Engineer · Speech AI for Galaxy",
+    when: "2022–now",
+    highlights: [
+      "Leading an ASR-LLM speech de-rambling system on Samsung Keyboard, refining disfluent speech into clean text with SFT and DPO.",
+      "Own on-device and server-side streaming ASR for Galaxy S25/S26: large-scale training, domain adaptation, inference optimization, and production evaluation.",
+      { text: "Production streaming ASR trained on 1M+ hours of speech, balancing accuracy, latency, and device/server compute; 15% relative WER reduction (Samsung STAR Award, 2025).", refs: ["pub:hybrid-tae", "pat:transducer-consistency"] },
+      { text: "Shipped domain adaptation, contextual biasing (3% WER gain on in-house named entities), named-entity modeling, multilingual modeling, and on-device and server-side inference.", refs: ["pub:contextual-biasing"] },
+      "Built reproducible data infrastructure over hundreds of terabytes of multilingual audio, text, and metadata, with filtering, versioning, and training-data lineage.",
+      "Optimized distributed multi-node GPU training (Kubeflow on AWS) with dynamic batching and input-pipeline work for higher utilization and throughput.",
+      { text: "Multilingual speech foundation models and LLM-integrated spoken language understanding (Samsung STAR Award, 2023; three patents, two papers).", refs: ["pub:joint-slu-asr", "pub:slu-adaptation", "pat:va-slu-llm", "pat:slu-adaptation", "pat:joint-slu-asr"] },
+    ],
+  },
+  {
+    org: "Kakao",
+    href: "https://www.kakaocorp.com",
+    logo: "/logos/kakao.svg",
+    role: "ML Engineer · Voice assistant",
+    when: "2018–2022",
+    highlights: [
+      { text: "ASR, TTS, noise reduction, voice activity detection, and echo cancellation for Kakao voice-assistant products (three patents, four papers).", refs: ["pub:transformer-rnnt", "pub:jets", "pub:se-conformer", "pub:echo-suppression", "pat:acoustic-signal", "pat:beam-search"] },
+      "On-device voice activity detection and echo-cancellation models for Kakao smart speakers.",
+      { text: "Led a commercialized pronunciation-assessment system (patent and paper); contributed to self-supervised ASR research and a Kubernetes serving stack.", refs: ["pub:pronunciation", "pat:pronunciation"] },
+      "Hadoop/Hive broadcast-speech data pipeline that raised usable data yield by 50% (patent).",
+      "Moved an in-house C acoustic-model stack to TensorFlow training and TFLite/C++ inference.",
+    ],
+  },
+];
+
+const publications = [
+  { key: "rvq-beam-search", year: "2027", title: "When More Search Makes Audio Worse: Native-Metric Regularization for RVQ Beam Search", authors: "E Kim, E Orbach, A Sahoo, VR Apsingekar", venue: "ICASSP 2027 (submitted)" },
+  { key: "neural-memory-tta", year: "2027", title: "Neural Memory as Context for Session-Level Test-Time Adaptation in ASR", authors: "M Soleymanpour, ST Sridharan, E Kim, VR Apsingekar", venue: "ICASSP 2027 (submitted)" },
+  { key: "contextual-biasing", year: "2026", title: "Peeking into the Future for Contextual Biasing", authors: "R Selvakumar, C Tseng, E Kim, VR Apsingekar, Y Tang", venue: "ICASSP 2026" },
+  { key: "hybrid-tae", year: "2025", title: "Enhanced Hybrid Transducer and Attention Encoder Decoder with Text Data", authors: "Y Tang, E Kim, VR Apsingekar", venue: "Interspeech 2025" },
+  { key: "joint-slu-asr", year: "2024", title: "Joint End-to-End Spoken Language Understanding and Automatic Speech Recognition Training based on Unified Speech-to-Text Pre-Training", authors: "E Kim, Y Tang, T Ki, D Neelagiri, VR Apsingekar", venue: "Interspeech 2024" },
+  { key: "slu-adaptation", year: "2023", title: "Efficient Adaptation of Spoken Language Understanding based on End-to-End Automatic Speech Recognition", authors: "E Kim, A Jajodia, C Tseng, D Neelagiri, T Ki, VR Apsingekar", venue: "Interspeech 2023" },
+  { key: "pronunciation", year: "2022", title: "Automatic Pronunciation Assessment using Self-Supervised Speech Representation Learning", authors: "E Kim, JJ Jeon, H Seo, H Kim", venue: "Interspeech 2022" },
+  { key: "jets", year: "2022", title: "JETS: Jointly Training FastSpeech2 and HiFi-GAN for End to End Text to Speech", authors: "D Lim, S Jung, E Kim", venue: "Interspeech 2022" },
+  { key: "se-conformer", year: "2021", title: "SE-Conformer: Time-Domain Speech Enhancement using Conformer", authors: "E Kim, H Seo", venue: "Interspeech 2021" },
+  { key: "transformer-rnnt", year: "2021", title: "Multitask Learning and Joint Optimization for Transformer-RNN-Transducer Speech Recognition", authors: "JJ Jeon, E Kim", venue: "ICASSP 2021" },
+  { key: "echo-suppression", year: "2021", title: "U-Convolution based Residual Echo Suppression with Multiple Encoders", authors: "E Kim, JJ Jeon, H Seo", venue: "ICASSP 2021" },
+  { key: "rnnt-search", year: "2020", title: "Accelerating RNN Transducer Inference via Adaptive Expansion Search", authors: "J Kim, Y Lee, E Kim", venue: "IEEE Signal Processing Letters 27" },
+  { key: "emotion-latent", year: "2020", title: "Affective Latent Representation of Acoustic and Lexical Features for Emotion Recognition", authors: "E Kim, H Song, JW Shin", venue: "Sensors" },
+  { key: "emotion-dnn", year: "2019", title: "DNN-based Emotion Recognition based on Bottleneck Acoustic Features and Lexical Features", authors: "E Kim, JW Shin", venue: "ICASSP 2019" },
+];
+
+const patents = [
+  { key: "va-slu-llm", year: "2026", title: "Voice assistant system configured to leverage information from spoken language understanding and large language model", authors: "E Kim, T Yun, T Ki, D Neelagiri, VR Apsingekar", id: "US20260038490", status: "pending" },
+  { key: "transducer-consistency", year: "2026", title: "Transducer consistency regularization for speech-to-text applications", authors: "C Tseng, T Yun, D Neelagiri, E Kim", id: "US20260011326", status: "pending" },
+  { key: "slu-adaptation", year: "2026", title: "Efficient adaptation of spoken language understanding based on automatic speech recognition using multi-task learning", authors: "E Kim, A Jajodia, C Tseng, D Neelagiri, T Ki, VR Apsingekar", id: "US12711948", status: "issued" },
+  { key: "joint-slu-asr", year: "2025", title: "Joint end-to-end spoken language understanding and automatic speech recognition", authors: "E Kim, T Yun, T Ki, D Neelagiri, VR Apsingekar", id: "US20250078824", status: "pending" },
+  { key: "pronunciation", year: "2024", title: "Foreign language pronunciation assessment apparatus and control method thereof", authors: "E Kim, H Seo", id: "US12469484", status: "issued" },
+  { key: "acoustic-signal", year: "2023", title: "Method and apparatus for acoustic signal processing", authors: "E Kim, JJ Jeon", id: "KR 102503895", status: "issued" },
+  { key: "beam-search", year: "2022", title: "Method and apparatus for speech recognition and beam search", authors: "JJ Jeon, E Kim", id: "KR 102386627", status: "issued" },
+];
+
+const projects = [
+  {
+    tab: "In progress",
+    title: "Voice dialogue agents",
+    headline: "A real-time voice agent for customer support calls.",
+    skills: ["Voice agents", "Turn-taking", "Tool calling", "Real-time audio"],
+    points: [
+      "<b>Building a fully local voice agent: ASR, an LLM-based brain, and TTS all run in a self-hosted environment with no cloud APIs.</b>",
+    ],
+  },
+  {
+    tab: "Live demo",
+    title: "BT Studio",
+    href: "https://eesungkim.com/demo/",
+    linkText: "try the demo",
+    headline: "A real-time captioning and speech translation service, built to scale from consumer GPUs to the cloud.",
+    skills: ["Real-time WebSocket serving", "Triton", "TensorRT", "ONNX Runtime", "Batching", "LLM serving", "Load testing", "GPU capacity planning"],
+    points: [
+      "<b>Optimized streaming ASR serving to 24 live caption streams per 8 GB GPU with batching, GPU-resident stream state, and a TensorRT encoder, with no loss of accuracy.</b>",
+      "<b>Scaled translation to 16 live streams per GPU with a multi-slot LLM server.</b>",
+      "<b>Batched voice activity detection across users, raising gateway capacity to about 150 users per process.</b>",
+      "<b>Designing scale-out on AWS EKS: one Helm chart from local k3s to EKS, with Karpenter GPU node pools and session-aware WebSocket routing.</b>",
+    ],
+    note: "All load tests stream audio at real-time speed on one shared server with RTX 3070 GPUs.",
+  },
+  {
+    tab: "Tool",
+    title: "Agent Helm",
+    headline: "A command center for AI coding agents: monitor, steer, and approve Claude Code, Codex, and Gemini from anywhere.",
+    skills: ["Multi-agent orchestration", "Human-in-the-loop UX", "Approval policy", "Automated code review", "Observability", "Node.js", "Server-sent events", "Web Push"],
+    points: [
+      "<b>Built one control page for Claude Code, Codex, and Gemini that reads their session logs directly, with no plugins.</b>",
+      "<b>Enabled full session control from a phone: start, steer, answer, and approve, with push alerts through one Inbox.</b>",
+      "<b>Automated safe-command approval with a rule-based policy, and routed each large change to a different assistant for review.</b>",
+      "<b>Added monitoring of GPU and disk use, process owners, plan limits, and benchmark leaderboards.</b>",
+    ],
+  },
+];
+
+// Indexes shown before "Show all"; the rest stay folded.
+// Experience highlights cite rows below: "pub:<key>" or "pat:<key>" -> in-page anchor + short label.
+const refLink = (ref: string) => {
+  const [kind, key] = ref.split(":");
+  if (kind === "pub") {
+    const p = publications.find((x) => x.key === key)!;
+    return { href: `#pub-${key}`, label: p.venue.replace(" (submitted)", ""), title: p.title };
+  }
+  const p = patents.find((x) => x.key === key)!;
+  return { href: `#pat-${key}`, label: p.id, title: p.title };
 };
+const highlight = (h: string | { text: string; refs?: string[] }) =>
+  typeof h === "string" ? { text: h, refs: [] } : { refs: [], ...h };
 
-const isoDate = (date: Date) => new Date(date).toISOString().split('T')[0];
+const SELECTED_PUBS = [0, 4, 6, 7, 8];
+const SELECTED_PATENTS = [0, 2, 4];
+
+// Split an author string so "E Kim" can be emphasized.
+const splitAuthors = (s: string) => s.split(ME);
 ---
 
-<BaseLayout title="Home">
-  <div class="home-page">
-    <section class="home-hero">
-      <h1 class="home-title">Eesung Kim</h1>
-      <p class="home-description">
-        Production AI systems — ASR, translation, summarization.<br />
-        Notes on ML engineering, research, and real-time speech infrastructure.
-      </p>
-      <div class="home-links">
-        <a href="https://github.com/nycsv" target="_blank" rel="noopener">GitHub</a>
-        <span class="home-link-sep">·</span>
-        <a href="/reviews/">Log</a>
-        <span class="home-link-sep">·</span>
-        <a href="/search/">Search</a>
-      </div>
-    </section>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <title>Eesung Kim</title>
+    <meta name="description" content="Eesung Kim: machine learning research engineer working on speech recognition and spoken language understanding." />
+    <meta property="og:title" content="Eesung Kim" />
+    <meta property="og:description" content="Machine learning research engineer working on speech recognition and spoken language understanding." />
+    <meta property="og:type" content="website" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap" />
+    <link rel="stylesheet" href="/css/home.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-top">
+      <a class="name" href="/">Eesung Kim</a>
+      <nav class="socials" aria-label="Elsewhere">
+        <a href="https://github.com/nycsv" aria-label="GitHub" title="GitHub">
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+        </a>
+        <a href="https://www.linkedin.com/in/eesung-kim-05869456/" aria-label="LinkedIn" title="LinkedIn">
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+        </a>
+        <a href="https://scholar.google.com/citations?user=uTA75sYAAAAJ" aria-label="Google Scholar" title="Google Scholar">
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M12 24a7 7 0 1 1 0-14 7 7 0 0 1 0 14zm0-24L0 9.5l4.838 3.94A8 8 0 0 1 12 9a8 8 0 0 1 7.162 4.44L24 9.5z"/></svg>
+        </a>
+        <a href="mailto:eesungk@gmail.com" aria-label="Email" title="Email">
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M2 5.5A1.5 1.5 0 0 1 3.5 4h17A1.5 1.5 0 0 1 22 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-17A1.5 1.5 0 0 1 2 18.5zM4.2 6 12 11.9 19.8 6zM20 7.7l-7.4 5.6a1 1 0 0 1-1.2 0L4 7.7V18h16z"/></svg>
+        </a>
+      </nav>
+    </header>
 
-    {notes.length > 0 && (
-      <section class="home-section">
-        <p class="section-label">Recent Notes</p>
-        <ul class="entry-list">
-          {notes.map((note) => (
-            <li class="entry-item">
-              <a href={`/notes/${note.slug}/`} class="entry-link">
-                <span class="entry-title">{note.data.title}</span>
-                <time datetime={isoDate(note.data.date)} class="entry-date">
-                  {formatDate(note.data.date)}
-                </time>
-              </a>
-              {note.data.description && (
-                <p class="entry-description">{note.data.description}</p>
-              )}
-              {note.data.tags && note.data.tags.length > 0 && (
-                <div class="entry-tags">
-                  {note.data.tags.slice(0, 4).map((tag: string) => (
-                    <span class="entry-tag">{tag}</span>
-                  ))}
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
+    <main class="col" id="main">
+      <section class="bio">
+        <p>
+          Hi, I’m Eesung, a Staff Machine Learning Research Engineer at Samsung Research America in
+          New York. I build the speech AI behind Samsung’s Galaxy devices, driving real-world speech
+          technology from research to production on the Galaxy S25/S26—powering voice assistants, live
+          captions, and live translation.
+        </p>
+        <p>
+          I stay deeply hands-on across the entire stack, moving fast from multi-modal data pipelines and
+          speech preprocessing to building models, pre-/fine-training neural networks for speech
+          recognition, and rigorous evaluation. Beyond my core lane, I love jumping in wherever I can help
+          build systems that work reliably in the real world.
+        </p>
+        <p>
+          As my focus expands into conversational AI, dialogue systems, and agent-based engineering with a
+          mission to create seamless, natural interactions between people and machines, I build real-time
+          voice dialogue agents end-to-end.
+        </p>
+        <p>I write <a href="/search/">notes</a> on ML engineering, and I love playing tennis.</p>
       </section>
-    )}
 
-    {reviews.length > 0 && (
-      <section class="home-section">
-        <p class="section-label">Recent Log</p>
-        <ul class="entry-list">
-          {reviews.map((review) => (
-            <li class="entry-item">
-              <a href={`/reviews/${review.slug}/`} class="entry-link">
-                <span class="entry-title">{review.data.title}</span>
-                <time datetime={isoDate(review.data.date)} class="entry-date">
-                  {formatDate(review.data.date)}
-                </time>
-              </a>
-              {review.data.tags && review.data.tags.length > 0 && (
-                <div class="entry-tags">
-                  {review.data.tags.slice(0, 4).map((tag: string) => (
-                    <span class="entry-tag">{tag}</span>
-                  ))}
-                </div>
-              )}
-            </li>
+      <section class="group">
+        <div class="grouphead"><span class="lbl">Experience</span><span class="rule"></span></div>
+        <div class="xp-list">
+          {experience.map((x) => (
+            <details class="xp">
+              <summary class="xp-row">
+                <span class="xp-logo"><img src={x.logo} alt="" /></span>
+                <span class="xp-org">{x.org}</span>
+                <span class="xp-when">{x.when}</span>
+                <span class="xp-role">{x.role}</span>
+              </summary>
+              <ul class="xp-more">
+                {x.highlights.map(highlight).map((h) => (
+                  <li>
+                    {h.text}
+                    {h.refs.length > 0 && (
+                      <span class="refs">
+                        {h.refs.map(refLink).map((r) => <a class="ref" href={r.href} title={r.title}>{r.label}</a>)}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </details>
           ))}
-        </ul>
+        </div>
       </section>
-    )}
-  </div>
-</BaseLayout>
+
+      <section class="group" id="projects">
+        <div class="grouphead"><span class="lbl">Projects</span><span class="rule"></span></div>
+        <div class="project-list">
+          {projects.map((pr) => (
+            <div class="project-card">
+              <div class="phead">
+                {pr.href ? <a class="pt" href={pr.href}>{pr.title}</a> : <span class="pt">{pr.title}</span>}
+                <span class="ptab">{pr.tab}</span>
+              </div>
+              <p class="ps">{pr.headline}</p>
+              <details class="pdetails">
+                <summary><span class="lbl">Highlights</span>{pr.href && <a class="url" href={pr.href}>{pr.linkText}</a>}</summary>
+                <p class="skills">{pr.skills.join(" · ")}</p>
+                <ul class="achv">
+                  {pr.points.map((h) => <li set:html={h} />)}
+                </ul>
+                {pr.note && <p class="src">{pr.note}</p>}
+              </details>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section class="group">
+        <div class="grouphead"><span class="lbl">Selected publications</span><span class="rule"></span><a class="url" href="https://scholar.google.com/citations?user=uTA75sYAAAAJ">scholar</a></div>
+        <div class="pub-list foldable" id="pubs">
+          {publications.map((p, idx) => (
+            <div id={`pub-${p.key}`} class:list={["pub-row", { more: !SELECTED_PUBS.includes(idx) }]}>
+              <span class="yr">{p.year}</span>
+              <div>
+                <span class="t">{p.title}</span>
+                <p class="au">
+                  {splitAuthors(p.authors).map((part, i) => (
+                    <>{i > 0 && <b>{ME}</b>}{part}</>
+                  ))}
+                  <span class="venue"> · {p.venue}</span>
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button class="fold-btn" type="button" aria-controls="pubs" aria-expanded="false"
+          data-more={`Show all ${publications.length} publications`} data-less="Show selected">
+          Show all {publications.length} publications
+        </button>
+      </section>
+
+      <section class="group">
+        <div class="grouphead"><span class="lbl">Selected patents</span><span class="rule"></span></div>
+        <div class="pub-list foldable" id="patents">
+          {patents.map((p, idx) => (
+            <div id={`pat-${p.key}`} class:list={["pub-row", { more: !SELECTED_PATENTS.includes(idx) }]}>
+              <span class="yr">{p.year}</span>
+              <div>
+                <span class="t">{p.title}</span>
+                <p class="au">
+                  {splitAuthors(p.authors).map((part, i) => (
+                    <>{i > 0 && <b>{ME}</b>}{part}</>
+                  ))}
+                  <span class="venue"> · {p.id} · <span class={p.status}>{p.status}</span></span>
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button class="fold-btn" type="button" aria-controls="patents" aria-expanded="false"
+          data-more={`Show all ${patents.length} patents`} data-less="Show selected">
+          Show all {patents.length} patents
+        </button>
+      </section>
+
+      {notes.length > 0 && (
+        <section class="group">
+          <div class="grouphead"><span class="lbl">Notes</span><span class="rule"></span><a class="url" href="/search/">all notes</a></div>
+          <div class="post-list">
+            {notes.map((n) => (
+              <div class="post-row">
+                <time datetime={isoDate(n.data.date)}>{isoDate(n.data.date)}</time>
+                <div>
+                  <a class="t" href={`/notes/${n.slug}/`}>{n.data.title}</a>
+                  {n.data.description && <p class="excerpt">{n.data.description}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+    </main>
+
+    <footer class="col foot">
+      <span class="lbl">New York, NY</span>
+      <span class="lbl">© 2026 Eesung Kim</span>
+    </footer>
+    <script is:inline>
+      document.documentElement.classList.add("js");
+      document.querySelectorAll(".fold-btn").forEach((btn) => {
+        const list = document.getElementById(btn.getAttribute("aria-controls"));
+        btn.addEventListener("click", () => {
+          const open = list.classList.toggle("open");
+          btn.setAttribute("aria-expanded", open);
+          btn.textContent = open ? btn.dataset.less : btn.dataset.more;
+        });
+      });
+      // In-page links to a paper or patent: unfold its list if the row is hidden, then scroll and flash it.
+      const reveal = (hash) => {
+        const row = hash && document.getElementById(decodeURIComponent(hash.slice(1)));
+        if (!row || !row.classList.contains("pub-row")) return;
+        const list = row.closest(".foldable");
+        if (list && !list.classList.contains("open")) {
+          list.classList.add("open");
+          const btn = document.querySelector(`.fold-btn[aria-controls="${list.id}"]`);
+          btn.setAttribute("aria-expanded", true);
+          btn.textContent = btn.dataset.less;
+        }
+        row.scrollIntoView({ behavior: "smooth", block: "center" });
+        row.classList.remove("flash");
+        void row.offsetWidth;
+        row.classList.add("flash");
+      };
+      document.querySelectorAll("a.ref").forEach((a) => {
+        a.addEventListener("click", (e) => {
+          e.preventDefault();
+          history.pushState(null, "", a.getAttribute("href"));
+          reveal(a.getAttribute("href"));
+        });
+      });
+      window.addEventListener("hashchange", () => reveal(location.hash));
+      reveal(location.hash);
+    </script>
+  </body>
+</html>
