@@ -14,6 +14,10 @@ export default defineConfig({
       wrap: true,
     },
   },
+  vite: {
+    // Dev server is opened from other machines on the LAN.
+    server: { allowedHosts: ['lambda-quad', 'lambda-quad.local'] },
+  },
   output: 'static',
   build: {
     format: 'directory'
