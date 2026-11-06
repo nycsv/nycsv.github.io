@@ -119,6 +119,7 @@ main.col { padding-bottom: 64px; }
 }
 .xp-more li { margin: .3em 0; }
 .xp-more li::marker { color: var(--ink-ghost); }
+.xp-more b { color: var(--ink); font-weight: 600; }
 
 /* Featured card */
 /* Projects: plain rows on the page background, like the other lists */
@@ -217,8 +218,8 @@ a.pt:hover { color: var(--accent); }
 }
 
 /* Experience → paper/patent citations */
-.refs { display: inline-flex; flex-wrap: wrap; gap: 0 .7em; margin-left: .55em; max-width: 100%; }
-.ref { font-family: var(--font-mono); font-size: .68rem; white-space: nowrap; border-bottom: 1px dotted var(--rule-dotted); }
+.refs { display: inline-flex; gap: .22em; margin-left: .12em; font-size: .64rem; line-height: 0; position: relative; vertical-align: baseline; top: -.45em; }
+.ref { font-family: var(--font-mono); white-space: nowrap; border-bottom: 1px dotted var(--rule-dotted); padding-bottom: 1px; }
 .ref:hover { text-decoration: none; border-bottom-color: var(--accent); }
 .pub-row { scroll-margin: 96px 0; }
 .pub-row.flash { animation: row-flash 1.8s ease-out; }

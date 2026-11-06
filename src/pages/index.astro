@@ -17,13 +17,12 @@ const experience = [
     role: "Staff ML Research Engineer · Speech AI for Galaxy",
     when: "2022–now",
     highlights: [
-      "Leading an ASR-LLM speech de-rambling system on Samsung Keyboard, refining disfluent speech into clean text with SFT and DPO.",
-      "Own on-device and server-side streaming ASR for Galaxy S25/S26: large-scale training, domain adaptation, inference optimization, and production evaluation.",
-      { text: "Production streaming ASR trained on 1M+ hours of speech, balancing accuracy, latency, and device/server compute; 15% relative WER reduction (Samsung STAR Award, 2025).", refs: ["pub:hybrid-tae", "pat:transducer-consistency"] },
-      { text: "Shipped domain adaptation, contextual biasing (3% WER gain on in-house named entities), named-entity modeling, multilingual modeling, and on-device and server-side inference.", refs: ["pub:contextual-biasing"] },
-      "Built reproducible data infrastructure over hundreds of terabytes of multilingual audio, text, and metadata, with filtering, versioning, and training-data lineage.",
-      "Optimized distributed multi-node GPU training (Kubeflow on AWS) with dynamic batching and input-pipeline work for higher utilization and throughput.",
-      { text: "Multilingual speech foundation models and LLM-integrated spoken language understanding (Samsung STAR Award, 2023; three patents, two papers).", refs: ["pub:joint-slu-asr", "pub:slu-adaptation", "pat:va-slu-llm", "pat:slu-adaptation", "pat:joint-slu-asr"] },
+      { lead: "ASR-LLM Speech De-rambler:", text: " Leading the development of an ASR-LLM system using SFT and DPO to remove disfluencies and improve real-time transcription readability." },
+      { lead: "Production Streaming ASR (Galaxy S25/S26):", text: " Trained on-device and server streaming models on 1M+ hours of speech data, cutting relative WER by 15% across multiple domains (Samsung STAR Award 2025)." },
+      { lead: "SLU-Based Voice Assistant:", text: " Spearheaded unified ASR-NLU voice assistant architecture, yielding 3 patents, 2 papers, and the Samsung STAR Award 2023." },
+      { lead: "Scalable Multilingual Data Platform:", text: " Architected reproducible data infrastructure across hundreds of TBs of audio, text, and metadata with automated ingestion, filtering, and lineage tracking." },
+      { lead: "Contextual Biasing & Trendy LM:", text: " Built biasing and dynamic LM modules within production ASR, improving emerging named-entity recognition by 3% WER." },
+      { lead: "Distributed Training Infrastructure:", text: " Built multi-node GPU training and evaluation pipelines (AWS, Kubeflow), boosting training throughput and GPU utilization via dynamic batching and I/O optimization." },
     ],
   },
   {
@@ -33,11 +32,23 @@ const experience = [
     role: "ML Engineer · Voice assistant",
     when: "2018–2022",
     highlights: [
-      { text: "ASR, TTS, noise reduction, voice activity detection, and echo cancellation for Kakao voice-assistant products (three patents, four papers).", refs: ["pub:transformer-rnnt", "pub:jets", "pub:se-conformer", "pub:echo-suppression", "pat:acoustic-signal", "pat:beam-search"] },
-      "On-device voice activity detection and echo-cancellation models for Kakao smart speakers.",
-      { text: "Led a commercialized pronunciation-assessment system (patent and paper); contributed to self-supervised ASR research and a Kubernetes serving stack.", refs: ["pub:pronunciation", "pat:pronunciation"] },
-      "Hadoop/Hive broadcast-speech data pipeline that raised usable data yield by 50% (patent).",
-      "Moved an in-house C acoustic-model stack to TensorFlow training and TFLite/C++ inference.",
+      [
+        { text: "Developed and commercialized an " },
+        { text: "English pronunciation assessment service", href: "https://play.google.com/store/apps/details?id=com.englishunt.biboboo" },
+        { text: ", leading the research and development of its core self-supervised representation-based approach.", refs: ["pub:pronunciation", "pat:pronunciation"] },
+      ],
+      [
+        { text: "Researched and engineered ASR modeling", refs: ["pub:transformer-rnnt", "pat:asr-learning"] },
+        { text: " and decoding", refs: ["pub:rnnt-search", "pat:beam-search"] },
+        { text: ", TTS", refs: ["pub:jets"] },
+        { text: ", noise reduction", refs: ["pub:se-conformer"] },
+        { text: ", and echo cancellation", refs: ["pub:echo-suppression", "pat:acoustic-signal"] },
+        { text: " powering " },
+        { text: "Kakao smart speakers", href: "https://kakao.ai/product/minihexa" },
+        { text: "." },
+      ],
+      { text: "Built a scalable data pipeline on Kubernetes and Hadoop/Hive to mine broadcast audio, text, and speaker metadata, boosting usable training-data yield by 50%.", refs: ["pat:broadcast-db"] },
+      "Migrated an in-house C acoustic-model trainer and inference module to TensorFlow training and TFLite C++ inference, accelerating model development and deployment.",
     ],
   },
 ];
@@ -67,6 +78,10 @@ const patents = [
   { key: "pronunciation", year: "2024", title: "Foreign language pronunciation assessment apparatus and control method thereof", authors: "E Kim, H Seo", id: "US12469484", status: "issued" },
   { key: "acoustic-signal", year: "2023", title: "Method and apparatus for acoustic signal processing", authors: "E Kim, JJ Jeon", id: "KR 102503895", status: "issued" },
   { key: "beam-search", year: "2022", title: "Method and apparatus for speech recognition and beam search", authors: "JJ Jeon, E Kim", id: "KR 102386627", status: "issued" },
+  { key: "acoustic-ui", year: "2022", title: "Method and apparatus for a user interface for visually displaying an acoustic signal to a user", authors: "Y Kim, E Kim, H Lee, JB Lee", id: "KR 102471678", status: "issued" },
+  { key: "broadcast-db", year: "2021", title: "Method and apparatus for construction of broadcasting speech database", authors: "E Kim, Y Kim, D Jung", id: "KR 102267725", status: "issued" },
+  { key: "asr-learning", year: "2021", title: "Speech recognition system and learning method thereof", authors: "JJ Jeon, E Kim", id: "KR 102344218", status: "issued" },
+  { key: "emotion-bottleneck", year: "2020", title: "Deep neural network bottleneck based speech emotion recognition method", authors: "JW Shin, E Kim", id: "KR 102110791", status: "issued" },
 ];
 
 const projects = [
@@ -98,7 +113,7 @@ const projects = [
     tab: "Tool",
     title: "Agent Helm",
     headline: "A command center for AI coding agents: monitor, steer, and approve Claude Code, Codex, and Gemini from anywhere.",
-    skills: ["Multi-agent orchestration", "Human-in-the-loop UX", "Approval policy", "Automated code review", "Observability", "Node.js", "Server-sent events", "Web Push"],
+    skills: ["Multi-agent orchestration", "Human-in-the-loop", "Approval policy", "Automated code review", "Observability", "Server-sent events", "Web Push"],
     points: [
       "<b>Built one control page for Claude Code, Codex, and Gemini that reads their session logs directly, with no plugins.</b>",
       "<b>Enabled full session control from a phone: start, steer, answer, and approve, with push alerts through one Inbox.</b>",
@@ -109,18 +124,28 @@ const projects = [
 ];
 
 // Indexes shown before "Show all"; the rest stay folded.
-// Experience highlights cite rows below: "pub:<key>" or "pat:<key>" -> in-page anchor + short label.
-const refLink = (ref: string) => {
+// Experience highlights cite rows below: "pub:<key>" or "pat:<key>" -> numbered superscript + in-page anchor.
+const refLink = (ref: string, num: number) => {
   const [kind, key] = ref.split(":");
   if (kind === "pub") {
     const p = publications.find((x) => x.key === key)!;
-    return { href: `#pub-${key}`, label: p.venue.replace(" (submitted)", ""), title: p.title };
+    return { href: `#pub-${key}`, label: String(num), title: `${p.venue.replace(" (submitted)", "")} · ${p.title}` };
   }
   const p = patents.find((x) => x.key === key)!;
-  return { href: `#pat-${key}`, label: p.id, title: p.title };
+  return { href: `#pat-${key}`, label: String(num), title: `${p.id} · ${p.title}` };
 };
-const highlight = (h: string | { text: string; refs?: string[] }) =>
-  typeof h === "string" ? { text: h, refs: [] } : { refs: [], ...h };
+type HighlightPart = { lead?: string; text: string; href?: string; refs?: string[] };
+const highlightParts = (h: string | HighlightPart | HighlightPart[]): HighlightPart[] =>
+  Array.isArray(h) ? h : [typeof h === "string" ? { text: h, refs: [] } : { refs: [], ...h }];
+const numberExperience = (highlights: Array<string | HighlightPart | HighlightPart[]>) => {
+  let n = 0;
+  return highlights.map(highlightParts).map((parts) =>
+    parts.map((h) => ({
+      ...h,
+      links: (h.refs ?? []).map((r) => refLink(r, ++n)),
+    }))
+  );
+};
 
 const SELECTED_PUBS = [0, 4, 6, 7, 8];
 const SELECTED_PATENTS = [0, 2, 4];
@@ -199,14 +224,11 @@ const splitAuthors = (s: string) => s.split(ME);
                 <span class="xp-role">{x.role}</span>
               </summary>
               <ul class="xp-more">
-                {x.highlights.map(highlight).map((h) => (
+                {numberExperience(x.highlights).map((parts) => (
                   <li>
-                    {h.text}
-                    {h.refs.length > 0 && (
-                      <span class="refs">
-                        {h.refs.map(refLink).map((r) => <a class="ref" href={r.href} title={r.title}>{r.label}</a>)}
-                      </span>
-                    )}
+                    {parts.map((h) => (
+                      <>{h.lead && <b>{h.lead}</b>}{h.href ? <a href={h.href}>{h.text}</a> : h.text}{h.links.length > 0 && <sup class="refs">{h.links.map((r) => <a class="ref" href={r.href} title={r.title}>{r.label}</a>)}</sup>}</>
+                    ))}
                   </li>
                 ))}
               </ul>
