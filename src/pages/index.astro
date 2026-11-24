@@ -71,7 +71,7 @@ const publications = [
 ];
 
 const patents = [
-  { key: "va-slu-llm", year: "2026", title: "Voice assistant system configured to leverage information from spoken language understanding and large language model", authors: "E Kim, T Yun, T Ki, D Neelagiri, VR Apsingekar", id: "US20260038490", status: "pending" },
+  { key: "va-slu-llm", year: "2026", title: "Voice assistant system configured to leverage information from spoken language understanding and large language model", authors: "E Kim, T Yun, T Ki, D Neelagiri, VR Apsingekar", id: "US12810847", status: "issued" },
   { key: "transducer-consistency", year: "2026", title: "Transducer consistency regularization for speech-to-text applications", authors: "C Tseng, T Yun, D Neelagiri, E Kim", id: "US20260011326", status: "pending" },
   { key: "slu-adaptation", year: "2026", title: "Efficient adaptation of spoken language understanding based on automatic speech recognition using multi-task learning", authors: "E Kim, A Jajodia, C Tseng, D Neelagiri, T Ki, VR Apsingekar", id: "US12711948", status: "issued" },
   { key: "joint-slu-asr", year: "2025", title: "Joint end-to-end spoken language understanding and automatic speech recognition", authors: "E Kim, T Yun, T Ki, D Neelagiri, VR Apsingekar", id: "US20250078824", status: "pending" },
@@ -89,37 +89,17 @@ const projects = [
     tab: "In progress",
     title: "Voice dialogue agents",
     headline: "A real-time voice agent for customer support calls.",
-    skills: ["Voice agents", "Turn-taking", "Tool calling", "Real-time audio"],
-    points: [
-      "<b>Building a fully local voice agent: ASR, an LLM-based brain, and TTS all run in a self-hosted environment with no cloud APIs.</b>",
-    ],
   },
   {
     tab: "Live demo",
     title: "BT Studio",
     href: "https://eesungkim.com/demo/",
-    linkText: "try the demo",
     headline: "A real-time captioning and speech translation service, built to scale from consumer GPUs to the cloud.",
-    skills: ["Real-time WebSocket serving", "Triton", "TensorRT", "ONNX Runtime", "Batching", "LLM serving", "Load testing", "GPU capacity planning"],
-    points: [
-      "<b>Optimized streaming ASR serving to 24 live caption streams per 8 GB GPU with batching, GPU-resident stream state, and a TensorRT encoder, with no loss of accuracy.</b>",
-      "<b>Scaled translation to 16 live streams per GPU with a multi-slot LLM server.</b>",
-      "<b>Batched voice activity detection across users, raising gateway capacity to about 150 users per process.</b>",
-      "<b>Designing scale-out on AWS EKS: one Helm chart from local k3s to EKS, with Karpenter GPU node pools and session-aware WebSocket routing.</b>",
-    ],
-    note: "All load tests stream audio at real-time speed on one shared server with RTX 3070 GPUs.",
   },
   {
     tab: "Tool",
     title: "Agent Helm",
     headline: "A command center for AI coding agents: monitor, steer, and approve Claude Code, Codex, and Gemini from anywhere.",
-    skills: ["Multi-agent orchestration", "Human-in-the-loop", "Approval policy", "Automated code review", "Observability", "Server-sent events", "Web Push"],
-    points: [
-      "<b>Built one control page for Claude Code, Codex, and Gemini that reads their session logs directly, with no plugins.</b>",
-      "<b>Enabled full session control from a phone: start, steer, answer, and approve, with push alerts through one Inbox.</b>",
-      "<b>Automated safe-command approval with a rule-based policy, and routed each large change to a different assistant for review.</b>",
-      "<b>Added monitoring of GPU and disk use, process owners, plan limits, and benchmark leaderboards.</b>",
-    ],
   },
 ];
 
@@ -247,14 +227,6 @@ const splitAuthors = (s: string) => s.split(ME);
                 <span class="ptab">{pr.tab}</span>
               </div>
               <p class="ps">{pr.headline}</p>
-              <details class="pdetails">
-                <summary><span class="lbl">Highlights</span>{pr.href && <a class="url" href={pr.href}>{pr.linkText}</a>}</summary>
-                <p class="skills">{pr.skills.join(" · ")}</p>
-                <ul class="achv">
-                  {pr.points.map((h) => <li set:html={h} />)}
-                </ul>
-                {pr.note && <p class="src">{pr.note}</p>}
-              </details>
             </div>
           ))}
         </div>
