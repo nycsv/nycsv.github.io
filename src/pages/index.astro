@@ -84,25 +84,6 @@ const patents = [
   { key: "emotion-bottleneck", year: "2020", title: "Deep neural network bottleneck based speech emotion recognition method", authors: "JW Shin, E Kim", id: "KR 102110791", status: "issued" },
 ];
 
-const projects = [
-  {
-    tab: "In progress",
-    title: "Voice dialogue agents",
-    headline: "A real-time voice agent for customer support calls.",
-  },
-  {
-    tab: "Live demo",
-    title: "BT Studio",
-    href: "https://eesungkim.com/demo/",
-    headline: "A real-time captioning and speech translation service, built to scale from consumer GPUs to the cloud.",
-  },
-  {
-    tab: "Tool",
-    title: "Agent Helm",
-    headline: "A command center for AI coding agents: monitor, steer, and approve Claude Code, Codex, and Gemini from anywhere.",
-  },
-];
-
 // Indexes shown before "Show all"; the rest stay folded.
 // Experience highlights cite rows below: "pub:<key>" or "pat:<key>" -> numbered superscript + in-page anchor.
 const refLink = (ref: string, num: number) => {
@@ -213,21 +194,6 @@ const splitAuthors = (s: string) => s.split(ME);
                 ))}
               </ul>
             </details>
-          ))}
-        </div>
-      </section>
-
-      <section class="group" id="projects">
-        <div class="grouphead"><span class="lbl">Projects</span><span class="rule"></span></div>
-        <div class="project-list">
-          {projects.map((pr) => (
-            <div class="project-card">
-              <div class="phead">
-                {pr.href ? <a class="pt" href={pr.href}>{pr.title}</a> : <span class="pt">{pr.title}</span>}
-                <span class="ptab">{pr.tab}</span>
-              </div>
-              <p class="ps">{pr.headline}</p>
-            </div>
           ))}
         </div>
       </section>
